@@ -1,3 +1,10 @@
+#=
+constants.jl
+
+Useful constants
+
+Adapted from code written by Rolfe Power
+=#
 """
     DEFAULT_ABS_TOL
 

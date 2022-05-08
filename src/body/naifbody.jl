@@ -1,3 +1,10 @@
+#=
+naifbody.jl
+
+Celestial body objects
+
+Adapted from code written by Rolfe Power
+=#
 """
     AbstractCelestialBody
 

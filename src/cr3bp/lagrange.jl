@@ -67,11 +67,11 @@ end
 end # module LagrangePointHelpers
 
 """
-    equilibrium_solutions(m::CrtbpModel; [max_iter=100], [tolerance=1e-12])
+    equilibrium_solutions(m::Cr3bpModel; [max_iter=100], [tolerance=1e-12])
 
-Calculate the Lagrange point locations for the CRTBP
+Calculate the Lagrange point locations for the CR3BP
 """
-function equilibrium_solutions(m::CrtbpModel; max_iter=100, tolerance=1e-12)
+function equilibrium_solutions(m::Cr3bpModel; max_iter=100, tolerance=1e-12)
     mu = mass_ratio(m)
 
     f1(g) = LagrangePointHelpers.eq1(mu, g)

@@ -3,6 +3,13 @@ uuid = "baa2e468-22bd-49d8-ba56-df81c5c994c0"
 authors = ["Mitch Dominguez <doming18@purdue.edu> and contributors"]
 version = "0.1.0"
 
+[deps]
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1"
 

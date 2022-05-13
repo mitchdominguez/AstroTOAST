@@ -30,16 +30,21 @@ export solve
 export tangent_solve
 export equilibrium_solutions
 
-include("body/naifbody.jl")
+include("Body/naifbody.jl")
 export Bodies
 
-include("cr3bp/cr3bp.jl")
+include("CR3BP/cr3bp.jl")
 export Cr3bpModel
 export mass_ratio, primary_bodies
 export distance_to_primary, primary_state
 export pseudopotential, pseudopotential_gradient, pseudopotential_jacobian
 export jacobi_constant
 
+include("Targeting/free_variable.jl")
+export FreeVariable
+export dimension, name, value
+export XVector
+export numels, tovector
 
 
 end

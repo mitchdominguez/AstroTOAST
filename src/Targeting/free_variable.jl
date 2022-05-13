@@ -12,20 +12,29 @@ import Base.iterate
 """
 struct FreeVariable{D,T}
     name::String
-    value::T
+    value::Vector{T}
     
     # Constructor
-    function FreeVariable(name, value)
-        new{Base.length(value), typeof(value)}(name, value) 
+    function FreeVariable(name::String, value)
+        valvec = Vector{eltype(value)}()
+        append!(valvec,value)
+        new{Base.length(value), eltype(value)}(name, valvec) 
     end
 end
 
 """
-    dimension(::FreeVariable)
+    length(::FreeVariable)
 
 Return the dimension of the free variable, i.e. the number of state vector elements
 """
-Base.length(::FreeVariable{D}) where {D} = D
+Base.length(::FreeVariable{D,T}) where {D,T} = D
+
+"""
+    length(::FreeVariable)
+
+Return the dimension of the free variable, i.e. the number of state vector elements
+"""
+Base.eltype(::FreeVariable{D,T}) where {D,T} = T
 
 """
     name(fv::FreeVariable)
@@ -48,6 +57,13 @@ Returns the element of the FreeVariable at index i in the given XVector
 """
 Base.getindex(fv::FreeVariable, i::Int) = value(fv)[i]
 
+function Base.getindex(fv::FreeVariable, r::UnitRange{Int})
+    outvec = Vector{eltype(fv)}()
+    for i in r
+        push!(outvec, fv[i])
+    end
+    return outvec
+end
 """
     iterate(::FreeVariable)
 
@@ -75,7 +91,7 @@ struct XVector{D}
         fv_array = Vector{FreeVariable}(undef,Base.length(free_variables))
         for i in eachindex(free_variables)
             if ~(typeof(free_variables[i])<:FreeVariable)
-                error("Must provide arguments of type FreeVariable to constructor")
+                throw(MethodError(XVector, free_variables))
             end
             fv_array[i] = free_variables[i]
         end
@@ -91,11 +107,12 @@ Returns the number of free variables in the XVector
 numels(::XVector{D}) where {D} = D
 
 """
-    getindex(::XVector, i::Int)
+    getindex(::XVector, ...)
 
-Returns the FreeVariable at index i in the given XVector
+Returns the FreeVariable at index i or in UnitRange r in the given XVector
 """
 Base.getindex(xv::XVector, i::Int) = xv.FVs[i]
+
 function Base.getindex(xv::XVector, r::UnitRange{Int})
     outvec = Vector{FreeVariable}()
     for i in r

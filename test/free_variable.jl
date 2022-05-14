@@ -96,4 +96,36 @@ using Test
     @test value(X1) == [9, 99, 999]
     @test value(xv[1]) == [9, 99, 999]
 
+    # update
+    X1_update = update(X1, [22, 55, 77])
+    @test value(X1) == [9, 99, 999]
+
+    # copy
+    X1_copy = copy(X1)
+    @test X1_copy != X1
+    @test name(X1_copy) == name(X1)
+    @test value(X1_copy) == value(X1)
+    
+    # copy (XVector)
+    xvc = copy(xv)
+    @test xvc ≢ xv
+    @test tovector(xvc) == tovector(xv)
+
+    # setindex! and update! (XVector)
+    X1f = FreeVariable("x1",[1.0, 2.0, 3.0])
+    X2f = FreeVariable("x2",[1.3, 2.3, 3.3])
+    X3f = FreeVariable("x3",[1.6, 2.6, 3.6])
+    xvf = XVector(X1f, X2, X3f) # all floats version
+    @test_throws DimensionMismatch xvc[2] = X2f
+    update!(xvf, tovector(xvf).+1)
+    @test value(xvf[1]) == [2.0, 3.0, 4.0]
+    xvfc = update(xvf, tovector(xvf).+1)
+    @test value(xvf[1]) == [2.0, 3.0, 4.0]
+    @test value(xvfc[1]) == [3.0, 4.0, 5.0]
+
+    # Test throwing bounds error if updating with too many FVs
+
+
+    
+
 end

@@ -85,8 +85,12 @@ Base.iterate(fv::FreeVariable, state=1) = state>length(fv) ? nothing : (fv[state
 
 Set the value of fv at an index ind to the specified newval
 """
-function Base.setindex!(fv::FreeVariable{D,T}, newval::Int, ind::T) where {D,T}
-    fv.value[ind] = newval
+function Base.setindex!(fv::FreeVariable{D,T}, newval::T, ind::Int) where {D,T}
+    if 1 <= ind && ind <= length(fv)
+        fv.value[ind] = newval
+    else
+        throw(BoundsError(fv,ind)) 
+    end
 end
 
 """
@@ -212,7 +216,64 @@ function tovector(xv::XVector)
     return outvec
 end
 
+"""
+    Base.setindex!(xv::XVector{D}, newval::FreeVariable, ind::Int) where {D}
 
-# TODO
-#   - update! and update
-#   - copy
+Set the value of fv at an index ind to the specified newval
+Note that this allows changing the type of the FreeVariable
+"""
+function Base.setindex!(xv::XVector{D}, newval::FreeVariable, ind::Int) where {D}
+    if 1 <= ind && ind <= numels(xv)
+        if length(xv.FVs[ind]) == length(newval)
+            xv.FVs[ind] = newval
+        else
+            throw(DimensionMismatch("Cannot replace a FreeVariable with a FreeVariable of different length"))
+        end
+    else
+        throw(BoundsError(xv,ind)) 
+    end
+end
+
+"""
+    update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
+
+Update the values of the FreeVariable in place
+"""
+function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
+    if length(xv) == length(newvec)
+        startind = 1 
+        for i = 1:numels(xv)
+            els = length(xv[i])
+            update!(xv[i],newvec[startind:startind+els-1])
+            startind = startind+els
+        end
+    else
+        throw(DimensionMismatch("XVector and newvec have different number of elements"))
+    end
+end
+
+"""
+    update!(xv::XVector{D}, newvec::Vector{FreeVariable}) where {D}
+
+Update the values of the FreeVariable in place
+"""
+function update!(xv::XVector{D}, newvec::Vector{FreeVariable}) where {D}
+    if numels(xv) == length(newvec)
+        for i = 1:numels(xv)
+            xv[i] = newvec[i]
+        end
+    else
+        throw(DimensionMismatch("XVector and newvec have different number of elements"))
+    end
+end
+
+"""
+    update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
+
+Update the values of the FreeVariable out of place
+"""
+function update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
+    xvnew = copy(xv)
+    update!(xvnew, newvec)
+    return xvnew
+end

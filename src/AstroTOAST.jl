@@ -42,7 +42,7 @@ export jacobi_constant
 
 include("Targeting/free_variable.jl")
 export FreeVariable
-export dimension, name, value, update!
+export dimension, name, value, update!, update
 export XVector
 export numels, tovector
 

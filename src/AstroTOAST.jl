@@ -47,6 +47,7 @@ export XVector
 export numels, tovector, tosvector
 
 include("Targeting/constraint.jl")
+export FXVector
 include("Targeting/continuity_constraint.jl")
 export ContinuityConstraint
 export x1, x2, tof, dm

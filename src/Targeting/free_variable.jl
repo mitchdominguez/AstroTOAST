@@ -3,12 +3,11 @@
 #                                    FREE VARIABLE
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
-import Base.getindex
-import Base.length
-import Base.iterate
 """
-    FreeVariable{D}
+    FreeVariable{D,T}
 
+Type parameters include the dimensions of the model and the type of the elements
+within the value vector
 """
 struct FreeVariable{D,T}
     name::String
@@ -71,7 +70,29 @@ Method for iterating through FreeVariables
 """
 Base.iterate(fv::FreeVariable, state=1) = state>length(fv) ? nothing : (fv[state], state+1)
 
-# TODO set?
+"""
+    setindex!(fv::FreeVariable{D,T}, ind::Int, newval::T) where {D,T}
+
+Set the value of fv at an index ind to the specified newval
+"""
+function Base.setindex!(fv::FreeVariable{D,T}, newval::Int, ind::T) where {D,T}
+    fv.value[ind] = newval
+end
+
+"""
+    update!(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+
+Update the values of the FreeVariable in place
+"""
+function update!(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+    if length(newval)!=length(value(fv))
+        throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
+    end
+    for i = 1:length(value(fv))
+        fv[i] = newval[i]
+    end
+
+end
 
 
 # -------------------------------------------------------------------------------------- #

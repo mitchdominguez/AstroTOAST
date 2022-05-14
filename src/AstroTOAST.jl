@@ -42,9 +42,11 @@ export jacobi_constant
 
 include("Targeting/free_variable.jl")
 export FreeVariable
-export dimension, name, value
+export dimension, name, value, update!
 export XVector
 export numels, tovector
 
+include("Targeting/constraint.jl")
+export ContinuityConstraint
 
 end

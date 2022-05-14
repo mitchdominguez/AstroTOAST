@@ -82,4 +82,18 @@ using Test
 
     # tovector
     @test tovector(xv) == [1;2;3;x2vec;x3vec]
+
+
+    ######################################################
+
+    # setindex! and update!
+    @test value(X1) == [1,2,3]
+    X1[2] = 17
+    @test value(X1) == [1,17,3]
+    @test_throws BoundsError X1[5]=99
+    @test_throws MethodError X1[2]=4.5
+    update!(X1, [9,99,999])
+    @test value(X1) == [9, 99, 999]
+    @test value(xv[1]) == [9, 99, 999]
+
 end

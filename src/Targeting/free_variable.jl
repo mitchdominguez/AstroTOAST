@@ -22,6 +22,15 @@ struct FreeVariable{D,T}
 end
 
 """
+    copy(fv::FreeVariable)
+
+Create a shallow copy of a FreeVariable object
+"""
+function Base.copy(fv::FreeVariable)
+    return FreeVariable(name(fv), value(fv))
+end
+
+"""
     length(::FreeVariable)
 
 Return the dimension of the free variable, i.e. the number of state vector elements
@@ -63,6 +72,7 @@ function Base.getindex(fv::FreeVariable, r::UnitRange{Int})
     end
     return outvec
 end
+
 """
     iterate(::FreeVariable)
 
@@ -91,7 +101,18 @@ function update!(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
     for i = 1:length(value(fv))
         fv[i] = newval[i]
     end
+end
 
+"""
+    update(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+
+Update the values of the FreeVariable out of place
+"""
+function update(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+    if length(newval)!=length(value(fv))
+        throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
+    end
+    return FreeVariable(name(fv), newval)
 end
 
 
@@ -120,6 +141,20 @@ struct XVector{D}
     end
 end
 
+"""
+    copy(xv::XVector)
+
+Create a shallow copy of a XVector object
+"""
+function Base.copy(xv::XVector)
+    outvec = Vector{FreeVariable}()
+    for i in 1:numels(xv)
+        xvc = copy(xv[i])
+        push!(outvec, xvc)
+    end
+    return XVector(outvec...)
+end
+
 """ 
     length(::XVector)
 
@@ -131,6 +166,8 @@ numels(::XVector{D}) where {D} = D
     getindex(::XVector, ...)
 
 Returns the FreeVariable at index i or in UnitRange r in the given XVector
+Note that getindex returns the original FreeVariable objects in the array,
+so changes to each fv elsewhere will affect the output here as well
 """
 Base.getindex(xv::XVector, i::Int) = xv.FVs[i]
 
@@ -174,3 +211,8 @@ function tovector(xv::XVector)
     end
     return outvec
 end
+
+
+# TODO
+#   - update! and update
+#   - copy

@@ -3,6 +3,7 @@
 #                                    FREE VARIABLE
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
+using StaticArrays
 """
     FreeVariable{D,T}
 
@@ -12,12 +13,13 @@ within the value vector
 struct FreeVariable{D,T}
     name::String
     value::Vector{T}
+    active::Bool
     
     # Constructor
-    function FreeVariable(name::String, value)
+    function FreeVariable(name::String, value, active=true)
         valvec = Vector{eltype(value)}()
         append!(valvec,value)
-        new{Base.length(value), eltype(value)}(name, valvec) 
+        new{Base.length(value), eltype(value)}(name, valvec, active) 
     end
 end
 
@@ -52,11 +54,32 @@ Return the string name of the free variable
 name(fv::FreeVariable) = fv.name
 
 """
+    active(fv::FreeVariable)
+
+Return if the free variable is active
+"""
+active(fv::FreeVariable) = fv.active
+
+"""
     value(fv::FreeVariable)
 
 Return the value of the free variable
 """
 value(fv::FreeVariable) = fv.value
+
+"""
+    tovector(fv::FreeVariable)
+
+Return the vector value of the free variable (wrapper for value(fv))
+"""
+tovector(fv::FreeVariable) = fv.value
+
+"""
+    tosvector(fv::FreeVariable)
+
+Return the value of the free variable as an SVector (for increased performance with numerical integration)
+"""
+tosvector(fv::FreeVariable) = SVector(Tuple(tovector(fv)))
 
 """
     getindex(::FreeVariable, i::Int)
@@ -134,14 +157,19 @@ struct XVector{D}
     # Constructor
     function XVector(free_variables...)
         # Initialize array
-        fv_array = Vector{FreeVariable}(undef,Base.length(free_variables))
+        # fv_array = Vector{FreeVariable}(undef,Base.length(free_variables))
+        fv_array = Vector{FreeVariable}()
         for i in eachindex(free_variables)
             if ~(typeof(free_variables[i])<:FreeVariable)
                 throw(MethodError(XVector, free_variables))
             end
-            fv_array[i] = free_variables[i]
+            # fv_array[i] = free_variables[i]
+            if active(free_variables[i])
+                push!(fv_array, free_variables[i])
+            end
         end
-        new{Base.length(free_variables)}(fv_array)
+        # new{Base.length(free_variables)}(fv_array)
+        new{Base.length(fv_array)}(fv_array)
     end
 end
 
@@ -217,6 +245,15 @@ function tovector(xv::XVector)
 end
 
 """
+    tosvector(xv::XVector)
+
+Returns the XVector as an SVector comprising all the elements of its component FreeVariables
+"""
+function tosvector(xv::XVector)
+    SVector(Tuple(tovector(xv)))
+end
+
+"""
     Base.setindex!(xv::XVector{D}, newval::FreeVariable, ind::Int) where {D}
 
 Set the value of fv at an index ind to the specified newval
@@ -277,3 +314,5 @@ function update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
     update!(xvnew, newvec)
     return xvnew
 end
+
+# TODO pretty print

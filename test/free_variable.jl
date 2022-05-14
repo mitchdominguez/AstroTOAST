@@ -16,6 +16,11 @@ using Test
     X1 = FreeVariable("x1",x1vec)
     X2 = FreeVariable("x2",[1.0,2.0,3.0,4.0,5.0,6.0])
     X3 = FreeVariable("x3",[1,2,3,4,5,6,7,8,9])
+    T = FreeVariable("T",2.0,false)
+
+    # active
+    @test active(X1) == true
+    @test active(T) == false
 
     # length
     @test length(X0) == 1
@@ -61,12 +66,15 @@ using Test
     @test_throws MethodError XVector{3}([X1, X2, X3])
     @test_throws MethodError xv2 = XVector(X1, 5)
     xv = XVector(X1, X2, X3)
+    xvf = XVector(X1, X2, X3, T)
 
     # numels
     @test numels(xv) == 3
+    @test numels(xvf) == 3 # test that inactive free variables are not added
 
     # length
     @test length(xv) == 18
+    @test length(xvf) == 18
 
     # iterate
     @test iterate(xv,1) == (X1, 2)
@@ -122,8 +130,8 @@ using Test
     xvfc = update(xvf, tovector(xvf).+1)
     @test value(xvf[1]) == [2.0, 3.0, 4.0]
     @test value(xvfc[1]) == [3.0, 4.0, 5.0]
-
-    # Test throwing bounds error if updating with too many FVs
+    @test_throws DimensionMismatch  xvfc = update(xvf, convert(Vector{Float64},[4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,0,0,0]))
+    @test_throws BoundsError xvf[5] = X1f
 
 
     

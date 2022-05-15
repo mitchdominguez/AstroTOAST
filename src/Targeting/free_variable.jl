@@ -188,7 +188,7 @@ function Base.copy(xv::XVector)
 end
 
 """ 
-    length(::XVector)
+    numels(::XVector)
 
 Returns the number of free variables in the XVector
 """
@@ -219,7 +219,7 @@ Method for iterating through XVectors
 Base.iterate(xv::XVector, state=1) = state>numels(xv) ? nothing : (xv[state], state+1)
 
 """
-    numels(xv::XVector)
+    length(xv::XVector)
 
 Returns the length of the XVector if it is output as a Vector
 """

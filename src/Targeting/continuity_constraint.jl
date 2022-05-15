@@ -27,6 +27,7 @@ end
 Return dimension of the ContinuityConstraint
 """
 dimension(::ContinuityConstraint{D}) where {D} = D
+Base.length(::ContinuityConstraint{D}) where {D} = D
 
 """
     x1(cc::ContinuityConstraint)

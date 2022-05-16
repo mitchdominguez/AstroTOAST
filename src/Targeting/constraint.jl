@@ -37,20 +37,6 @@ struct FXVector{D}
     end
 end
 
-"""
-    copy(xv::FXVector)
-
-Create a shallow copy of a FXVector object
-"""
-function Base.copy(xv::FXVector)
-    outvec = Vector{Constraint}()
-    for i in 1:numels(xv)
-        xvc = copy(xv[i])
-        push!(outvec, xvc)
-    end
-    return FXVector(outvec...)
-end
-
 """ 
     numels(::XVector)
 

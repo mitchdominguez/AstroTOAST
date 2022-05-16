@@ -123,7 +123,8 @@ using Test
     X1f = FreeVariable("x1",[1.0, 2.0, 3.0])
     X2f = FreeVariable("x2",[1.3, 2.3, 3.3])
     X3f = FreeVariable("x3",[1.6, 2.6, 3.6])
-    xvf = XVector(X1f, X2, X3f) # all floats version
+    xvf = XVector(X1f, X2f, X3f) # all floats version
+    xvf2 = XVector(copy(X3f), copy(X2f), copy(X1f))
     @test_throws DimensionMismatch xvc[2] = X2f
     update!(xvf, tovector(xvf).+1)
     @test value(xvf[1]) == [2.0, 3.0, 4.0]
@@ -132,6 +133,27 @@ using Test
     @test value(xvfc[1]) == [3.0, 4.0, 5.0]
     @test_throws DimensionMismatch  xvfc = update(xvf, convert(Vector{Float64},[4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,0,0,0]))
     @test_throws BoundsError xvf[5] = X1f
+
+    xvf_copy = copy(xvf)
+    @test xvf_copy != xvf != xvf2
+    @test xvf_copy[1] != xvf[1]
+    @test xvf_copy[2] != xvf[2]
+    @test xvf_copy[3] != xvf[3]
+    @test tovector(xvf[1]) == [2.0, 3, 4]
+    @test tovector(xvf_copy[1]) == [2.0, 3, 4]
+    @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
+
+    update!(xvf, xvf2)
+    @test xvf_copy != xvf != xvf2
+    @test tovector(xvf[1]) == [1.6, 2.6, 3.6]
+    @test tovector(xvf_copy[1]) == [2.0, 3, 4]
+    @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
+
+    update!(xvf, xvf_copy)
+    @test xvf_copy != xvf != xvf2
+    @test tovector(xvf[1]) == [2.0, 3, 4]
+    @test tovector(xvf_copy[1]) == [2.0, 3, 4]
+    @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
 
 
     

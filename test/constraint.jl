@@ -14,7 +14,7 @@ using Test
 
     # Define a free variable vector
     xv = XVector(X1, X2, T)
-    Xvf = XVector(X1, X2, Tf)
+    xvf = XVector(X1, X2, Tf)
 
     # Define the model
     model = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
@@ -22,6 +22,7 @@ using Test
     # Define some constraints
     cc = ContinuityConstraint(X1, X2, T, model)
     ccf = ContinuityConstraint(X1, X2, Tf, model)
+    ccf2 = ContinuityConstraint(X2, X3, Tf, model)
     cc2 = ContinuityConstraint(X2, X3, T, model)
     @test_throws MethodError ContinuityConstraint(X1, X2, 2.0, model)
 

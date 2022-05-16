@@ -306,13 +306,16 @@ end
 Update the values of the FreeVariable in place
 """
 function update!(xv::XVector{D}, newvec::Vector{FreeVariable}) where {D}
-    if numels(xv) == length(newvec)
-        for i = 1:numels(xv)
-            xv[i] = newvec[i]
-        end
-    else
-        throw(DimensionMismatch("XVector and newvec have different number of elements"))
-    end
+    update!(xv, tovector(XVector(newvec...)))
+end
+
+"""
+    update!(xv::XVector{D}, xvnew::XVector{D}) where {D}
+
+Update the values of the FreeVariable in place, given values contained within XVector xvnew
+"""
+function update!(xv::XVector{D}, xvnew::XVector{D}) where {D}
+    update!(xv, tovector(xvnew))
 end
 
 """

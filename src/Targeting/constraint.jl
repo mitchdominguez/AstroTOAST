@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 using StaticArrays
+using LinearAlgebra
 """
     Constraint{D}
 
@@ -94,6 +95,28 @@ function tovector(fx::FXVector)
     return outvec
 end
 
+
+"""
+    tovector(fx::FXVector, xvorig::XVector, xveval::XVector)
+
+Returns the FXVector as a Vector comprising all the elements of its component FreeVariables
+This method of `tovector` assumes that the constraints within fx are all defined with
+respect to free variables contained within xvorig. To evaluate constraints,
+this method will update! xvorig to the values contained in xveval, evaluate
+the constraint, and then update! xvorig back to its original state. 
+"""
+function tovector(fx::FXVector, xvorig::XVector, xveval::Vector{FreeVariable})
+    xvorig_copy = copy(xvorig)
+    update!(xvorig, xveval)
+    outvec = tovector(fx)
+    update!(xvorig, xvorig_copy)
+    return outvec
+end
+
+function tovector(fx::FXVector, xvorig::XVector, xveval::XVector)
+    tovector(fx, xvorig, xveval.FVs)
+end
+
 """
     tosvector(fx::FXVector)
 
@@ -102,6 +125,14 @@ Returns the FXVector as an SVector comprising all the elements of its component 
 function tosvector(fx::FXVector)
     SVector(Tuple(tovector(fx)))
 end
+
+"""
+    norm(fx::FXVector)
+
+Calculate the L2 norm of the constraint vector
+"""
+LinearAlgebra.norm(fx::FXVector) = LinearAlgebra.norm(tovector(fx))
+LinearAlgebra.norm(fx::FXVector, xvorig::XVector, xveval::XVector) = LinearAlgebra.norm(tovector(fx, xvorig, xveval))
 
 """
     Base.show

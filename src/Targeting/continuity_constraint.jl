@@ -79,6 +79,16 @@ function evalconstraint(cc::ContinuityConstraint)
 end
 
 """
+    evalconstraint(cc::ContinuityConstraint, X1::FreeVariable, X2::FreeVariable)
+
+Evaluate the continuity constraint
+"""
+function evalconstraint(cc::ContinuityConstraint, X1::FreeVariable, X2::FreeVariable)
+    sol = solve(dm(cc), tosvector(X1), cctspan(cc))
+    return sol.u[end]-tovector(X2)
+end
+
+"""
     partials(cc::ContinuityConstraint, fv::FreeVariable)
 
 Return the matrix of partial derivatives for the partial of the constraint with

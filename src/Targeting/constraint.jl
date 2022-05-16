@@ -102,3 +102,20 @@ Returns the FXVector as an SVector comprising all the elements of its component 
 function tosvector(fx::FXVector)
     SVector(Tuple(tovector(fx)))
 end
+
+"""
+    Base.show
+
+Overload the show operator to pretty print the FXVector to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", fx::FXVector)
+    print(io, "FXVector:\n")
+    print(io, "- Number of Constraints: $(numels(fx))\n")
+    print(io, "- Length: $(length(fx))\n")
+    print(io, "---\n")
+    print(io, "Constraints:\n")
+    for c in fx
+        # print(io, "- Name: $(name(fv)), Length: $(length(fv))\n")
+        show(io, "text/plain", c)
+    end
+end

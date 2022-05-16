@@ -142,6 +142,17 @@ function update(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
     return FreeVariable(name(fv), newval)
 end
 
+"""
+    Base.show
+
+Overload the show operator to pretty print the FreeVariable to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", fv::FreeVariable)
+    print(io, "Free Variable: $(name(fv))\n")
+    print(io, "- Length: $(length(fv))\n")
+    print(io, "- Value: $(tovector(fv))\n")
+end
+
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
@@ -274,7 +285,7 @@ end
 """
     update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
 
-Update the values of the FreeVariable in place
+Update the values of the XVector in place
 """
 function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
     if length(xv) == length(newvec)
@@ -307,7 +318,7 @@ end
 """
     update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
 
-Update the values of the FreeVariable out of place
+Update the values of the XVector out of place
 """
 function update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
     xvnew = copy(xv)
@@ -315,4 +326,18 @@ function update(xv::XVector{D}, newvec::Vector{T}) where {D,T}
     return xvnew
 end
 
-# TODO pretty print
+"""
+    Base.show
+
+Overload the show operator to pretty print the XVector to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", xv::XVector)
+    print(io, "XVector:\n")
+    print(io, "- Number of Free Variables: $(numels(xv))\n")
+    print(io, "- Length: $(length(xv))\n")
+    print(io, "---\n")
+    print(io, "Free Variables:\n")
+    for fv in xv
+        print(io, "- Name: $(name(fv)), Length: $(length(fv))\n")
+    end
+end

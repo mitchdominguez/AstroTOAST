@@ -48,9 +48,13 @@ export numels, tovector, tosvector
 
 include("Targeting/constraint.jl")
 export FXVector
+
 include("Targeting/continuity_constraint.jl")
 export ContinuityConstraint
 export x1, x2, tof, dm
 export evalconstraint, partials, cctspan
+
+include("Targeting/targeter.jl")
+export Targeter
 
 end

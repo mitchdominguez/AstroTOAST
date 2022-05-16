@@ -8,7 +8,7 @@ using Test
     # Define some free variables
     X1 = FreeVariable("x1",[0.9, 0, 0, 0, -0.4, 0])
     X2 = FreeVariable("x2", [0.95, 0.05, 0, 0.48, -0.2, 0])
-    X3 = FreeVariable("x2", [0.85, 0.85, 3, 1.48, -0.9, -2])
+    X3 = FreeVariable("x3", [0.85, 0.85, 3, 1.48, -0.9, -2])
     T = FreeVariable("T", 2.0)
     Tf = FreeVariable("T", 2.0, false) # inactive time
 

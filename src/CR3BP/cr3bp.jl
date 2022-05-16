@@ -358,6 +358,19 @@ function cr3bp_jacobian(q, p, t)
     ]
 end
 
+
+"""
+    Base.show
+
+Overload the show operator to pretty print the model to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", model::Cr3bpModel)
+    print(io, "Model: Circular Restricted 3 Body Problem\n")
+    print(io, "- Bodies: $(primary_bodies(model)[1].name), $(primary_bodies(model)[2].name)\n")
+    print(io, "- Mass ratio: μ = $(mass_ratio(model))\n")
+    print(io, "- Dimensional length: lstar = $(dimensional_length(dimensional_quantity_set(model))) km\n")
+    print(io, "- Dimensional time: tstar = $(dimensional_time(dimensional_quantity_set(model))*sec2day) days")
+end
 # ------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------ #
 #                                      ADDITIONAL INCLUDES                                         #

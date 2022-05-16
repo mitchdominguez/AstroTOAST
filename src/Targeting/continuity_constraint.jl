@@ -141,3 +141,16 @@ unrelated free variable, which is just a matrix of zeros
 function __no_partial(cc::ContinuityConstraint{D}) where {D}
     return zeros(D,D)
 end
+
+"""
+    Base.show
+
+Overload the show operator to pretty print the ContinuityConstraint to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", cc::ContinuityConstraint)
+    print(io, "Continuity Constraint\n")
+    print(io, "- Length: $(length(cc))\n")
+    print(io, "- X1: $(name(x1(cc)))\n")
+    print(io, "- X2: $(name(x2(cc)))\n")
+    print(io, "- T: $(name(tof(cc)))\n")
+end

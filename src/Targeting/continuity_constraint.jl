@@ -1,3 +1,5 @@
+# TODO make continuity constraint an abstract type to allow for FullContinuityConstraint
+# and PartialContinuityConstraint (or PeriodicityConstraint) concrete types
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                                     CONTINUITY CONSTRAINT

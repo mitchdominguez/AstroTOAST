@@ -56,6 +56,6 @@ export evalconstraint, partials, cctspan
 
 include("Targeting/targeter.jl")
 export Targeter
-export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix
+export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
 
 end

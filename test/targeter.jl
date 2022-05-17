@@ -12,9 +12,16 @@ using Test
     X4 = FreeVariable("x4",[0.72, 0, -0.71, 0, 0.18, 0])
     X5 = FreeVariable("x5",[0.72, 0, 0.71, 0, 0.18, 0])
     T = FreeVariable("T", 3.0, false) # inactive time
+    # T = FreeVariable("T", 3.0, true) # active time
+    # Tvec = Vector{FreeVariable}()
+    # push!(Tvec,FreeVariable("T1", 3.0, true))# active time
+    # push!(Tvec,FreeVariable("T2", 3.0, true))# active time
+    # push!(Tvec,FreeVariable("T3", 3.0, true))# active time
+    # push!(Tvec,FreeVariable("T4", 3.0, true))# active time
 
     # Define a free variable vector
-    xv = XVector(X1, X2, X3, X4, X5)
+    xv = XVector(X1, X2, X3, X4, X5, T)
+    # xv = XVector(X1, X2, X3, X4, X5, Tvec...)
 
     # Define the model
     model = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
@@ -24,6 +31,10 @@ using Test
     cc2 = ContinuityConstraint(X2, X3, T, model)
     cc3 = ContinuityConstraint(X3, X4, T, model)
     cc4 = ContinuityConstraint(X4, X5, T, model)
+    # cc1 = ContinuityConstraint(X1, X2, Tvec[1], model)
+    # cc2 = ContinuityConstraint(X2, X3, Tvec[2], model)
+    # cc3 = ContinuityConstraint(X3, X4, Tvec[3], model)
+    # cc4 = ContinuityConstraint(X4, X5, Tvec[4], model)
 
     # Define a FXVector
     fx = FXVector(cc1, cc2, cc3, cc4)
@@ -37,11 +48,13 @@ using Test
     targ = Targeter(xv, fx, maxiter, tol)
 
     # Test DFX matrix
-    funcmat = [AstroTOAST.__dCC_dx1     AstroTOAST.__dCC_dx2     AstroTOAST.__no_partial  AstroTOAST.__no_partial  AstroTOAST.__no_partial;
-               AstroTOAST.__no_partial  AstroTOAST.__dCC_dx1     AstroTOAST.__dCC_dx2     AstroTOAST.__no_partial  AstroTOAST.__no_partial;
-               AstroTOAST.__no_partial  AstroTOAST.__no_partial  AstroTOAST.__dCC_dx1     AstroTOAST.__dCC_dx2     AstroTOAST.__no_partial;
-               AstroTOAST.__no_partial  AstroTOAST.__no_partial  AstroTOAST.__no_partial  AstroTOAST.__dCC_dx1     AstroTOAST.__dCC_dx2]
+    funcmat = [AstroTOAST.__dCC_dx1{6}()  AstroTOAST.__dCC_dx2{6}()  AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}();
+               AstroTOAST.__NP{6}()       AstroTOAST.__dCC_dx1{6}()  AstroTOAST.__dCC_dx2{6}()  AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}();
+               AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}()       AstroTOAST.__dCC_dx1{6}()  AstroTOAST.__dCC_dx2{6}()  AstroTOAST.__NP{6}();
+               AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}()       AstroTOAST.__NP{6}()       AstroTOAST.__dCC_dx1{6}()  AstroTOAST.__dCC_dx2{6}()]
+
     @test DFX(targ) == funcmat
+
 
     # Test targeting
     errhist = [ 0.2709052919898982;

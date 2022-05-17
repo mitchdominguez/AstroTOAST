@@ -13,14 +13,14 @@ the length of the FXVector vector
 struct Targeter{Df,Dx}
     X::XVector
     FX::FXVector
-    DFX::Matrix{Function}
+    DFX::Matrix{Partial}
     maxiter::Int
     tol::Float64
 
     function Targeter(X::XVector, FX::FXVector, maxiter::Int, tol::Float64)
 
         # Generate DF Matrix Function array
-        DFX = Matrix{Function}(undef,numels(FX),numels(X))
+        DFX = Matrix{Partial}(undef,numels(FX),numels(X))
         for j = 1:numels(X)
             for i = 1:numels(FX)
                 DFX[i,j] = partials(FX[i],X[j])

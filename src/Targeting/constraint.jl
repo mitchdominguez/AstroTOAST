@@ -15,6 +15,36 @@ abstract type Constraint{D} end
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
+#                                       PARTIAL  
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
+"""
+    Partial{D}
+
+Abstract type for all partial derivative matrices. The 
+type D refers to the number of columns that will be in the 
+matrix of partial derivatives
+"""
+abstract type Partial{D} end
+
+"""
+    __NP{D}
+
+Type used when no partial derivative exists.
+"""
+struct __NP{D} <: Partial{D} end
+
+"""
+    (::__NP{C})(cc::Constraint{R})
+
+Function call to output a zero matrix of dimensions RxC
+"""
+function (::__NP{C})(cc::Constraint{R}) where {R,C}
+    return zeros(R,C)
+end
+
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
 #                                       FX Vector
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #

@@ -94,19 +94,19 @@ end
 Return the matrix of partial derivatives for the partial of the constraint with
 respect to the given free variable
 """
-function partials(cc::ContinuityConstraint, fv::FreeVariable)
+function partials(cc::ContinuityConstraint, fv::FreeVariable{D,T}) where {D,T}
     if fv == x1(cc)
         # Partial with respect to X1(0)
-        return __dCC_dx1
+        return __dCC_dx1{D}()
     elseif fv == x2(cc)
         # Partial with respect to X2(0)
-        return __dCC_dx2
+        return __dCC_dx2{D}()
     elseif  fv == tof(cc) && active(tof(cc))
         # Partial with respect to T
-        return __dCC_dt
+        return __dCC_dt{D}()
     else
         # No partial
-        return __no_partial
+        return __NP{D}()
     end
 end
 
@@ -116,7 +116,8 @@ end
 Partial of the continuity constraint with respect to x1(0),
 which is the STM phi(0,T)
 """
-function __dCC_dx1(cc::ContinuityConstraint)
+struct __dCC_dx1{D} <: Partial{D} end
+function (::__dCC_dx1{C})(cc::ContinuityConstraint{R}) where {R,C}
     sol = tangent_solve(dm(cc), tosvector(x1(cc)), cctspan(cc))
     return sol.u[end][:,2:end]
 end
@@ -127,8 +128,9 @@ end
 Partial of the continuity constraint with respect to x2(0),
 which is the negative identity matrix
 """
-function __dCC_dx2(cc::ContinuityConstraint{D}) where {D}
-    return -I(D)
+struct __dCC_dx2{D} <: Partial{D} end
+function (::__dCC_dx2{C})(cc::ContinuityConstraint{R}) where {R,C}
+    return -I(C)
 end
 
 """
@@ -137,7 +139,8 @@ end
 Partial of the continuity constraint with respect to T,
 which is the derivative of the x1 state at time T
 """
-function __dCC_dt(cc::ContinuityConstraint{D}) where {D}
+struct __dCC_dt{D} <: Partial{D} end
+function (::__dCC_dt{C})(cc::ContinuityConstraint{R}) where {R,C}
     sol = solve(dm(cc), tosvector(x1(cc)), cctspan(cc))
     return dm(cc)((sol.u[end]))
 end

@@ -97,7 +97,7 @@ respect to the given free variable
 function partials(cc::ContinuityConstraint, fv::FreeVariable{D,T}) where {D,T}
     if fv == x1(cc)
         # Partial with respect to X1(0)
-        return __dCC_dx1{D}()
+        return __dCC_dx1{D}() # TODO make this have a constructor that can take in fv, cc
     elseif fv == x2(cc)
         # Partial with respect to X2(0)
         return __dCC_dx2{D}()

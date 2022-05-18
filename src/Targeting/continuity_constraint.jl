@@ -15,7 +15,7 @@ propagates x1 from time 0 to T to perform this operation
 struct ContinuityConstraint{D} <: Constraint{D}
     x1::FreeVariable{D,T} where {T}
     x2::FreeVariable{D,T} where {T}
-    tof::FreeVariable{1,T} where {T}
+    tof::FreeVariable{N,T} where {N,T}
     dm::DynamicalModel
 
     function ContinuityConstraint(x1, x2, T, dm)

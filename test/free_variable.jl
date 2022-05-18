@@ -16,7 +16,7 @@ using Test
     X1 = FreeVariable("x1",x1vec)
     X2 = FreeVariable("x2",[1.0,2.0,3.0,4.0,5.0,6.0])
     X3 = FreeVariable("x3",[1,2,3,4,5,6,7,8,9])
-    T = FreeVariable("T",2.0,false)
+    T = FreeVariable("T",2.0,1)
 
     # active
     @test active(X1) == true

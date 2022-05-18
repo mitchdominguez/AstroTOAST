@@ -13,13 +13,36 @@ within the value vector
 struct FreeVariable{D,T}
     name::String
     value::Vector{T}
-    active::Bool
+    # active::Bool
+    removeinds::Vector{Int}
     
     # Constructor
-    function FreeVariable(name::String, value, active=true)
+    # function FreeVariable(name::String, value, active=true)
+        # valvec = Vector{eltype(value)}()
+        # append!(valvec,value)
+        # new{Base.length(value), eltype(value)}(name, valvec, active) 
+    # end
+    function FreeVariable(name::String, value, removeinds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+        # Determine the dimension of the FreeVariable using value and removeinds
+        rmlength = Base.length(removeinds)
+        vallength = Base.length(value)
+
+        # Check for correct bounds on removeinds
+        if !all(removeinds.<=vallength) || !all(removeinds.>=1) || rmlength>vallength
+            throw(BoundsError(value, removeinds))
+        end
+        fvdimension = vallength-rmlength # D in FreeVariable{D,T}
+
+        # Assure that value is a vector
         valvec = Vector{eltype(value)}()
         append!(valvec,value)
-        new{Base.length(value), eltype(value)}(name, valvec, active) 
+
+        # Assure that removeinds is a vector
+        rmvec = Vector{Int}()
+        append!(rmvec, removeinds)
+
+        # Construct new FreeVariable
+        new{fvdimension, eltype(value)}(name, valvec, rmvec) 
     end
 end
 
@@ -54,25 +77,35 @@ Return the string name of the free variable
 name(fv::FreeVariable) = fv.name
 
 """
+    removeinds(fv::FreeVariable)
+
+Return the indices to remove from the FreeVariable
+"""
+removeinds(fv::FreeVariable) = copy(fv.removeinds)
+
+"""
     active(fv::FreeVariable)
 
 Return if the free variable is active
 """
-active(fv::FreeVariable) = fv.active
+# active(fv::FreeVariable) = fv.active
+active(fv::FreeVariable{D,T}) where {D,T} = D == 0 ? false : true
 
 """
-    value(fv::FreeVariable)
+    value(fv::FreeVariable, rm=false)
 
 Return the value of the free variable
 """
-value(fv::FreeVariable) = fv.value
+# value(fv::FreeVariable, rm=true) = copy(fv.value)
+value(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.value),removeinds(fv))
 
 """
     tovector(fv::FreeVariable)
 
 Return the vector value of the free variable (wrapper for value(fv))
 """
-tovector(fv::FreeVariable) = fv.value
+# tovector(fv::FreeVariable) = copy(fv.value)
+tovector(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.value),removeinds(fv))
 
 """
     tosvector(fv::FreeVariable)

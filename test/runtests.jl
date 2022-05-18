@@ -3,5 +3,8 @@ using Test
 
 @testset "AstroTOAST.jl" begin
     # Write your tests here.
-    @test 4==4
+    include("free_variable.jl")
+    include("continuity_constraint.jl")
+    include("constraint.jl")
+    include("targeter.jl")
 end

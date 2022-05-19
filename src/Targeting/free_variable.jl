@@ -63,6 +63,13 @@ Return the dimension of the free variable, i.e. the number of state vector eleme
 Base.length(::FreeVariable{D,T}) where {D,T} = D
 
 """
+    full_length(::FreeVariable)
+
+Return the dimension of the free variable without the removing any elements
+"""
+full_length(fv::FreeVariable) = length(fv.value)
+
+"""
     length(::FreeVariable)
 
 Return the dimension of the free variable, i.e. the number of state vector elements
@@ -96,16 +103,31 @@ active(fv::FreeVariable{D,T}) where {D,T} = D == 0 ? false : true
 
 Return the value of the free variable
 """
-# value(fv::FreeVariable, rm=true) = copy(fv.value)
-value(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.value),removeinds(fv))
+value(fv::FreeVariable) = deleteat!(copy(fv.value),removeinds(fv))
+
+"""
+    fullvalue(fv::FreeVariable, rm=false)
+
+Return the value of the free variable
+"""
+fullvalue(fv::FreeVariable) = copy(fv.value)
+# value(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.value),removeinds(fv))
 
 """
     tovector(fv::FreeVariable)
 
-Return the vector value of the free variable (wrapper for value(fv))
+Return the vector value of the free variable 
 """
 # tovector(fv::FreeVariable) = copy(fv.value)
-tovector(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.value),removeinds(fv))
+tovector(fv::FreeVariable) = deleteat!(copy(fv.value),removeinds(fv))
+
+
+"""
+    tovector(fv::FreeVariable)
+
+Return the vector value of the free variable without removing any elements
+"""
+tofullvector(fv::FreeVariable) = copy(fv.value)
 
 """
     tosvector(fv::FreeVariable)
@@ -113,6 +135,13 @@ tovector(fv::FreeVariable, rm=false) = !rm ? copy(fv.value) : deleteat!(copy(fv.
 Return the value of the free variable as an SVector (for increased performance with numerical integration)
 """
 tosvector(fv::FreeVariable) = SVector(Tuple(tovector(fv)))
+
+"""
+    tofullsvector(fv::FreeVariable)
+
+Return the value of the free variable as an SVector (for increased performance with numerical integration)
+"""
+tofullsvector(fv::FreeVariable) = SVector(Tuple(tofullvector(fv)))
 
 """
     getindex(::FreeVariable, i::Int)
@@ -184,6 +213,7 @@ function Base.show(io::IO, ::MIME"text/plain", fv::FreeVariable)
     print(io, "Free Variable: $(name(fv))\n")
     print(io, "- Length: $(length(fv))\n")
     print(io, "- Value: $(tovector(fv))\n")
+    print(io, "- Removed indices: $(removeinds(fv))\n")
 end
 
 
@@ -276,6 +306,20 @@ function Base.length(xv::XVector)
 end
 
 """
+    full_length(xv::XVector)
+
+Returns the length of the XVector if it is output as a Vector, without removing 
+any elements
+"""
+function full_length(xv::XVector)
+    els = 0
+    for fv in xv
+        els = els + full_length(fv)
+    end
+    return els
+end
+
+"""
     tovector(xv::XVector)
 
 Returns the XVector as a Vector comprising all the elements of its component FreeVariables
@@ -289,12 +333,36 @@ function tovector(xv::XVector)
 end
 
 """
+    tofullvector(xv::XVector)
+
+Returns the XVector as a Vector comprising all the elements of its component FreeVariables
+without removing any elements
+"""
+function tofullvector(xv::XVector)
+    outvec = Vector{Float64}()
+    for fv in xv
+        append!(outvec,fullvalue(fv))
+    end
+    return outvec
+end
+
+"""
     tosvector(xv::XVector)
 
 Returns the XVector as an SVector comprising all the elements of its component FreeVariables
 """
 function tosvector(xv::XVector)
     SVector(Tuple(tovector(xv)))
+end
+
+"""
+    tofullsvector(xv::XVector)
+
+Returns the XVector as an SVector comprising all the elements of its component FreeVariables
+without removing any elements
+"""
+function tofullsvector(xv::XVector)
+    SVector(Tuple(tofullvector(xv)))
 end
 
 """
@@ -321,7 +389,8 @@ end
 Update the values of the XVector in place
 """
 function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
-    if length(xv) == length(newvec)
+    if full_length(xv) == length(newvec)
+        # Case that the full vector is provided in the update
         startind = 1 
         for i = 1:numels(xv)
             els = length(xv[i])

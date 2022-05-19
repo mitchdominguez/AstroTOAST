@@ -58,7 +58,7 @@ tof(cc::ContinuityConstraint) = cc.tof
 Return the tspan to integrate the continuity constraint for
 """
 function cctspan(cc::ContinuityConstraint)
-    return (0, value(tof(cc))[1])
+    return (0, fullvalue(tof(cc))[1])
 end
 
 """
@@ -74,8 +74,8 @@ dm(cc::ContinuityConstraint) = cc.dm
 Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint)
-    sol = solve(dm(cc), tosvector(x1(cc)), cctspan(cc))
-    return sol.u[end]-tovector(x2(cc))
+    sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+    return sol.u[end]-tovector(x2(cc)) ### TODO this needs to be changed
 end
 
 """
@@ -84,8 +84,9 @@ end
 Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint, X1::FreeVariable, X2::FreeVariable)
-    sol = solve(dm(cc), tosvector(X1), cctspan(cc))
-    return sol.u[end]-tovector(X2)
+    sol = solve(dm(cc), tofullsvector(X1), cctspan(cc))
+    # deleteat!(copy(fv.value),removeinds(fv))
+    return sol.u[end]-tovector(X2) ### TODO this needs to be changed
 end
 
 """
@@ -118,7 +119,7 @@ which is the STM phi(0,T)
 """
 struct __dCC_dx1{D} <: Partial{D} end
 function (::__dCC_dx1{C})(cc::ContinuityConstraint{R}) where {R,C}
-    sol = tangent_solve(dm(cc), tosvector(x1(cc)), cctspan(cc))
+    sol = tangent_solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return sol.u[end][:,2:end]
 end
 
@@ -141,7 +142,7 @@ which is the derivative of the x1 state at time T
 """
 struct __dCC_dt{D} <: Partial{D} end
 function (::__dCC_dt{C})(cc::ContinuityConstraint{R}) where {R,C}
-    sol = solve(dm(cc), tosvector(x1(cc)), cctspan(cc))
+    sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return dm(cc)((sol.u[end]))
 end
 

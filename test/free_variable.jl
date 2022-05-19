@@ -1,4 +1,5 @@
 using AstroTOAST
+using StaticArrays
 using Test
 
 
@@ -16,17 +17,25 @@ using Test
     X1 = FreeVariable("x1",x1vec)
     X2 = FreeVariable("x2",[1.0,2.0,3.0,4.0,5.0,6.0])
     X3 = FreeVariable("x3",[1,2,3,4,5,6,7,8,9])
+    X4 = FreeVariable("x4",[0.72, 0, 0.71, 0, 0.18, 0],[2,4,6])
     T = FreeVariable("T",2.0,1)
+
+    # removeinds
+    @test removeinds(X0) == []
+    @test removeinds(X4) == [2,4,6]
 
     # active
     @test active(X1) == true
     @test active(T) == false
+    @test active(X4) == true
 
     # length
     @test length(X0) == 1
     @test length(X1) == 3
     @test length(X2) == 6
     @test length(X3) == 9
+    @test length(X4) == 3
+    # @test length(X4, true) == 3
 
     # element type
     @test eltype(X1) == Int64
@@ -42,6 +51,13 @@ using Test
     @test value(X1) == [1,2,3]
     @test value(X2) == [1.0,2.0,3.0,4.0,5.0,6.0]
     @test value(X3) == [1,2,3,4,5,6,7,8,9]
+
+    # tovector
+    @test tovector(X1) == [1,2,3]
+    @test tovector(X2) == [1.0,2.0,3.0,4.0,5.0,6.0]
+    @test tovector(X3) == [1,2,3,4,5,6,7,8,9]
+    @test tovector(X4) == [0.72, 0.71, 0.18]
+    @test tofullvector(X4) == [0.72, 0, 0.71, 0, 0.18, 0]
 
     # test that changing the value of x1vec does not change X1
     @test value(X1) == x1vec
@@ -67,14 +83,18 @@ using Test
     @test_throws MethodError xv2 = XVector(X1, 5)
     xv = XVector(X1, X2, X3)
     xvf = XVector(X1, X2, X3, T)
+    xvrm = XVector(X1, X4) # test removing free variables
 
     # numels
     @test numels(xv) == 3
     @test numels(xvf) == 3 # test that inactive free variables are not added
+    @test numels(xvrm) == 2
 
     # length
     @test length(xv) == 18
     @test length(xvf) == 18
+    @test length(xvrm) == 6 # The removed free variables are counted
+    # @test length(xvrm,true) == 6 # The removed free variables should not be counted
 
     # iterate
     @test iterate(xv,1) == (X1, 2)
@@ -90,6 +110,11 @@ using Test
 
     # tovector
     @test tovector(xv) == [1;2;3;x2vec;x3vec]
+    # @test tovector(xv, true) == [1;2;3;x2vec;x3vec] # no elements to remove
+    @test tofullvector(xvrm) == [1.0, 2.0, 3.0 ,0.72, 0, 0.71, 0, 0.18, 0]
+    @test tovector(xvrm) == [1.0, 2.0, 3.0 ,0.72, 0.71, 0.18] # remove elements
+    @test tofullsvector(xvrm) == @SVector [1.0, 2.0, 3.0 ,0.72, 0, 0.71, 0, 0.18, 0]
+    @test tosvector(xvrm) == @SVector [1.0, 2.0, 3.0 ,0.72, 0.71, 0.18] # remove elements
 
 
     ######################################################

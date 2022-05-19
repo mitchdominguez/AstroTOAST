@@ -286,6 +286,21 @@ function Base.getindex(xv::XVector, r::UnitRange{Int})
 end
 
 """
+    removeinds(xv::XVector)
+
+Output a vector containing the indices of removed elements in the full XVector
+"""
+function removeinds(xv::XVector)
+    ind = 0
+    outvec = Vector{Int}()
+    for i = 1:numels(xv)
+        append!(outvec, removeinds(xv[i]).+ind)
+        ind += full_length(xv[i])
+    end
+    return outvec
+end
+
+"""
     iterate(::XVector)
 
 Method for iterating through XVectors
@@ -397,7 +412,18 @@ function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
             update!(xv[i],newvec[startind:startind+els-1])
             startind = startind+els
         end
-    else
+    elseif length(xv) == length(newvec)
+        # Case that the vector with removed elements is provided in the update
+        
+        # create a new vector to pass into update!
+        origvec = tofullvector(xv)
+        newfull = similar(origvec)
+        for i = 1:length(newfull)
+            # If i is in removeinds(xv), then push!(newfull, origvec[i])
+            # Else push!(next element in newvec)
+            # TODO removeinds(xv)
+
+        end
         throw(DimensionMismatch("XVector and newvec have different number of elements"))
     end
 end

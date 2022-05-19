@@ -146,9 +146,16 @@ tofullsvector(fv::FreeVariable) = SVector(Tuple(tofullvector(fv)))
 """
     getindex(::FreeVariable, i::Int)
 
-Returns the element of the FreeVariable at index i in the given XVector
+Returns the element of the FreeVariable at index i in the given XVector,
+without removing any elements.
+
+The reason for implementing getindex in this way is so that
+assignment to the entire FreeVariable can occur, and to ensure
+that the only way to update a FreeVariable is to account for the 
+full vector.
 """
-Base.getindex(fv::FreeVariable, i::Int) = value(fv)[i]
+# Base.getindex(fv::FreeVariable, i::Int) = value(fv)[i]
+Base.getindex(fv::FreeVariable, i::Int) = fullvalue(fv)[i]
 
 function Base.getindex(fv::FreeVariable, r::UnitRange{Int})
     outvec = Vector{eltype(fv)}()
@@ -163,6 +170,7 @@ end
 
 Method for iterating through FreeVariables
 """
+# TODO: determine if iterate needs to use the full or partial vector
 Base.iterate(fv::FreeVariable, state=1) = state>length(fv) ? nothing : (fv[state], state+1)
 
 """
@@ -171,7 +179,7 @@ Base.iterate(fv::FreeVariable, state=1) = state>length(fv) ? nothing : (fv[state
 Set the value of fv at an index ind to the specified newval
 """
 function Base.setindex!(fv::FreeVariable{D,T}, newval::T, ind::Int) where {D,T}
-    if 1 <= ind && ind <= length(fv)
+    if 1 <= ind && ind <= full_length(fv)
         fv.value[ind] = newval
     else
         throw(BoundsError(fv,ind)) 
@@ -184,10 +192,10 @@ end
 Update the values of the FreeVariable in place
 """
 function update!(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
-    if length(newval)!=length(value(fv))
+    if length(newval)!=full_length(fv)
         throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
     end
-    for i = 1:length(value(fv))
+    for i = 1:full_length(fv)
         fv[i] = newval[i]
     end
 end
@@ -212,7 +220,7 @@ Overload the show operator to pretty print the FreeVariable to the console.
 function Base.show(io::IO, ::MIME"text/plain", fv::FreeVariable)
     print(io, "Free Variable: $(name(fv))\n")
     print(io, "- Length: $(length(fv))\n")
-    print(io, "- Value: $(tovector(fv))\n")
+    print(io, "- Value: $(tofullvector(fv))\n")
     print(io, "- Removed indices: $(removeinds(fv))\n")
 end
 
@@ -405,25 +413,37 @@ Update the values of the XVector in place
 """
 function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
     if full_length(xv) == length(newvec)
+        # println("Case 1")
         # Case that the full vector is provided in the update
         startind = 1 
         for i = 1:numels(xv)
-            els = length(xv[i])
+            els = full_length(xv[i])
             update!(xv[i],newvec[startind:startind+els-1])
             startind = startind+els
         end
-    elseif length(xv) == length(newvec)
-        # Case that the vector with removed elements is provided in the update
+    # elseif length(xv) == length(newvec)
+        # println("Case 2")
+        # # Case that the vector with removed elements is provided in the update
         
-        # create a new vector to pass into update!
-        origvec = tofullvector(xv)
-        newfull = similar(origvec)
-        for i = 1:length(newfull)
-            # If i is in removeinds(xv), then push!(newfull, origvec[i])
-            # Else push!(next element in newvec)
-            # TODO removeinds(xv)
+        # # create a new vector to pass into update!
+        # origvec = tofullvector(xv)
+        # newfull = similar(origvec)
+        # removed = removeinds(xv)
+        # ind = 1
 
-        end
+        # for i = 1:length(newfull)
+            # if i in removed
+                # # If i is in removeinds(xv), then push!(newfull, origvec[i])
+                # push!(newfull, origvec[i])
+            # else
+                # # Else push!(next element in newvec)
+                # push!(newfull, newvec[ind])
+                # ind+=1
+            # end
+        # end
+
+        # update!(xv, newfull)
+    else
         throw(DimensionMismatch("XVector and newvec have different number of elements"))
     end
 end

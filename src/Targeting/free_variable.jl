@@ -171,6 +171,7 @@ end
 Method for iterating through FreeVariables
 """
 # TODO: determine if iterate needs to use the full or partial vector
+# Also TODO: is iterate even necessary?
 Base.iterate(fv::FreeVariable, state=1) = state>length(fv) ? nothing : (fv[state], state+1)
 
 """
@@ -413,7 +414,6 @@ Update the values of the XVector in place
 """
 function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
     if full_length(xv) == length(newvec)
-        # println("Case 1")
         # Case that the full vector is provided in the update
         startind = 1 
         for i = 1:numels(xv)
@@ -421,28 +421,26 @@ function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
             update!(xv[i],newvec[startind:startind+els-1])
             startind = startind+els
         end
-    # elseif length(xv) == length(newvec)
-        # println("Case 2")
-        # # Case that the vector with removed elements is provided in the update
+    elseif length(xv) == length(newvec)
+        # Case that the vector with removed elements is provided in the update
         
-        # # create a new vector to pass into update!
-        # origvec = tofullvector(xv)
-        # newfull = similar(origvec)
-        # removed = removeinds(xv)
-        # ind = 1
+        origvec = tofullvector(xv) # copy the original vector
+        newfull = similar(origvec) # create a new vector to pass into update!
+        removed = removeinds(xv) # removed inds in the XVector
+        ind = 1
 
-        # for i = 1:length(newfull)
-            # if i in removed
-                # # If i is in removeinds(xv), then push!(newfull, origvec[i])
-                # push!(newfull, origvec[i])
-            # else
-                # # Else push!(next element in newvec)
-                # push!(newfull, newvec[ind])
-                # ind+=1
-            # end
-        # end
+        for i = 1:length(newfull)
+            if i in removed
+                newfull[i] = origvec[i]
+            else
+                newfull[i] = newvec[ind]
+                ind+=1
+            end
+        end
+        println(length(newfull))
+        println(newfull)
 
-        # update!(xv, newfull)
+        update!(xv, newfull)
     else
         throw(DimensionMismatch("XVector and newvec have different number of elements"))
     end

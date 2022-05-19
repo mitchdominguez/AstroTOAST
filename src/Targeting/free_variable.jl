@@ -206,7 +206,7 @@ end
 Update the values of the FreeVariable out of place
 """
 function update(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
-    if length(newval)!=length(value(fv))
+    if length(newval)!=full_length(fv)
         throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
     end
     return FreeVariable(name(fv), newval)

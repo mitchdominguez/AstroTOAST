@@ -19,7 +19,11 @@ struct ContinuityConstraint{D} <: Constraint{D}
     dm::DynamicalModel
 
     function ContinuityConstraint(x1, x2, T, dm)
-        new{length(x1)}(x1,x2,T,dm)
+        if length(x1) == length(x2)
+            new{length(x1)}(x1,x2,T,dm)
+        else
+            throw(DimensionMismatch("X1 and X2 must have the same dimensions"))
+        end
     end
 end
 

@@ -80,6 +80,11 @@ using Test
     @test X3[2:5] == [2,3,4,5]
     @test_throws BoundsError X2[5:10]
 
+    fullvec = [0.72, 0, 0.71, 0, 0.18, 0]
+    for i = 1:length(fullvec)
+        @test X4[i] == fullvec[i]
+    end
+
 
     # XVector construction
     @test_throws MethodError XVector{3}([X1, X2, X3])
@@ -202,6 +207,5 @@ using Test
     update!(xvrm2, newvec_rm) # Pass in vector of length length(xvrm2) (as opposed to full_length)
     @test tofullvector(xvrm2) == [1.5,2,3.5,4,5.5,6,7.5,8.5,9,10.5,11.5,12.5]
 
-    
 
 end

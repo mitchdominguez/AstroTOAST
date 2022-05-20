@@ -18,6 +18,7 @@ using Test
     X2 = FreeVariable("x2",[1.0,2.0,3.0,4.0,5.0,6.0])
     X3 = FreeVariable("x3",[1,2,3,4,5,6,7,8,9])
     X4 = FreeVariable("x4",[0.72, 0, 0.71, 0, 0.18, 0],[2,4,6])
+    X5 = FreeVariable("x5",[0.72, -1, 0.71, 0.39, 0.18, 0.46],3)
     T = FreeVariable("T",2.0,1)
 
     # removeinds
@@ -35,6 +36,7 @@ using Test
     @test length(X2) == 6
     @test length(X3) == 9
     @test length(X4) == 3
+    @test full_length(X4) == 6
     # @test length(X4, true) == 3
 
     # element type
@@ -58,6 +60,7 @@ using Test
     @test tovector(X3) == [1,2,3,4,5,6,7,8,9]
     @test tovector(X4) == [0.72, 0.71, 0.18]
     @test tofullvector(X4) == [0.72, 0, 0.71, 0, 0.18, 0]
+    @test tofullsvector(X4) == @SVector [0.72, 0, 0.71, 0, 0.18, 0]
 
     # test that changing the value of x1vec does not change X1
     @test value(X1) == x1vec
@@ -84,6 +87,10 @@ using Test
     xv = XVector(X1, X2, X3)
     xvf = XVector(X1, X2, X3, T)
     xvrm = XVector(X1, X4) # test removing free variables
+    xvrm2 = XVector(X4, X5) # test removing free variables
+
+    # removeinds
+    @test removeinds(xvrm2) == [2,4,6,9]
 
     # numels
     @test numels(xv) == 3
@@ -94,6 +101,8 @@ using Test
     @test length(xv) == 18
     @test length(xvf) == 18
     @test length(xvrm) == 6 # The removed free variables are counted
+    @test length(xvrm2) == 8 # The removed free variables are counted
+    @test full_length(xvrm2) == 12
     # @test length(xvrm,true) == 6 # The removed free variables should not be counted
 
     # iterate
@@ -180,6 +189,18 @@ using Test
     @test tovector(xvf_copy[1]) == [2.0, 3, 4]
     @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
 
+
+    # Test update! with different length update vectors
+    newvec = [1,2,3,4,5,6,7,8,9,10,11,12.0] # update full vector
+
+    update!(xvrm2, newvec)
+    @test deleteat!(copy(newvec), removeinds(xvrm2)) == [1,3,5,7,8,10,11,12.0]
+    @test tovector(xvrm2) == deleteat!(copy(newvec), removeinds(xvrm2))
+    @test tofullvector(xvrm2) == copy(newvec)
+
+    newvec_rm = tovector(xvrm2).+0.5 # exclude selected elements 
+    update!(xvrm2, newvec_rm) # Pass in vector of length length(xvrm2) (as opposed to full_length)
+    @test tofullvector(xvrm2) == [1.5,2,3.5,4,5.5,6,7.5,8.5,9,10.5,11.5,12.5]
 
     
 

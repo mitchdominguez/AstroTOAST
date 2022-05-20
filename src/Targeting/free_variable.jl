@@ -437,8 +437,6 @@ function update!(xv::XVector{D}, newvec::Vector{Float64}) where {D}
                 ind+=1
             end
         end
-        println(length(newfull))
-        println(newfull)
 
         update!(xv, newfull)
     else

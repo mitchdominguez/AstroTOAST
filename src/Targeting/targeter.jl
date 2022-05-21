@@ -84,7 +84,7 @@ function evalDFXMatrix(T::Targeter)
     for i = 1:size(evalmat,2)
         temp[1,i] = vcat(evalmat[:,i]...)
     end 
-    outmat=hcat(temp...)
+    outmat=hcat(temp...)[setdiff(1:end,removeinds(X(T))), setdiff(1:end,removeinds(FX(T)))]
 end
 
 """

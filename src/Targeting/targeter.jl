@@ -82,9 +82,14 @@ function evalDFXMatrix(T::Targeter)
 
     temp = Array{Array{Float64}}(undef,1,numels(X(T)))
     for i = 1:size(evalmat,2)
+        # println(i)
+        # println(evalmat[1,i])
+        # println(evalmat[2,i])
+        # println(evalmat[3,i])
         temp[1,i] = vcat(evalmat[:,i]...)
+        # println(size(temp[1,i]))
     end 
-    outmat=hcat(temp...)[setdiff(1:end,removeinds(X(T))), setdiff(1:end,removeinds(FX(T)))]
+    outmat=hcat(temp...)[setdiff(1:end,removeinds(FX(T))), setdiff(1:end,removeinds(X(T)))]
 end
 
 """
@@ -126,6 +131,7 @@ function target(T::Targeter, maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     end
 
     if i>maxiter
+        println("Error history: $(err)")
         error("maximum number of iterations reached")
     end
 

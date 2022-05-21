@@ -82,7 +82,7 @@ struct __NP{D} <: Partial{D} end
 Function call to output a zero matrix of dimensions RxC
 """
 function (::__NP{C})(cc::Constraint{R}) where {R,C}
-    return zeros(R,C)
+    return zeros(full_length(cc),C)
 end
 
 # -------------------------------------------------------------------------------------- #

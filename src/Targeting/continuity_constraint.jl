@@ -31,7 +31,9 @@ struct ContinuityConstraint{D} <: Constraint{D}
             
             # Calculate dimension of continuity constraint
             #   Combine removeinds(X1), removeinds(X2), and removeinds(cc)
-            rmvec = sort(union(removeinds(x1),removeinds(x2),rminds))
+            # rmvec = sort(union(removeinds(x1),removeinds(x2),rminds))
+            rmvec = Vector{Int}()
+            append!(rmvec, rminds)
             
             ccdimension = vallength-length(rmvec) # D in FreeVariable{D,T}
 
@@ -119,13 +121,14 @@ function partials(cc::ContinuityConstraint, fv::FreeVariable{D,T}) where {D,T}
         return __dCC_dx1{D}() # TODO make this have a constructor that can take in fv, cc
     elseif fv == x2(cc)
         # Partial with respect to X2(0)
-        return __dCC_dx2{D}()
+        return __dCC_dx2{full_length(fv)}()
     elseif  fv == tof(cc) && active(tof(cc))
         # Partial with respect to T
         return __dCC_dt{D}()
     else
         # No partial
-        return __NP{D}()
+        # return __NP{D}()
+        return __NP{full_length(fv)}()
     end
 end
 

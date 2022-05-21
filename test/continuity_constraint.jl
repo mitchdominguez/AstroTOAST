@@ -49,7 +49,8 @@ using Test
     @test partials(cc, X2) == AstroTOAST.__dCC_dx2{6}()
     @test partials(cc, X3) == AstroTOAST.__NP{6}()
     @test partials(cc, T) == AstroTOAST.__dCC_dt{1}()
-    @test partials(ccf, Tf) == AstroTOAST.__NP{0}()
+    @test partials(ccf, Tf) == AstroTOAST.__NP{1}()
+
 
     # variables in an XVector still result in the right partial function being called
     @test partials(cc, xv[1]) == AstroTOAST.__dCC_dx1{6}()

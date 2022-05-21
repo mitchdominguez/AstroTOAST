@@ -5,14 +5,14 @@ using Test
 
 
 @testset "poms.jl" begin
-    # TARGET AN ORBIT NEAR THE 9:2 NRHO
+    # TARGET ORBITS NEAR THE 9:2 NRHO
 
     # Define the model
     model = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
 
     # Define some free variables
-    X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [2,4,6]) # fix x0, y0, xdot0, zdot0
-    # X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [2]) # fix y0
+    # X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [2,4,6]) # fix x0, y0, xdot0, zdot0
+    X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [1]) # fix y0
     X2 = FreeVariable("x2", [0.988, 0.023, -0.009,0.079, 0.488, -0.802])
     X3 = FreeVariable("x3", [1.021, 0.011, -0.178,0.015, -0.100, -0.058])
 
@@ -29,7 +29,7 @@ using Test
     # Define constraints
     #   removing states in X, keeping all constraints
     cc_rxfc = Vector{ContinuityConstraint}()
-    push!(cc_rxfc, ContinuityConstraint(X1, X2, T1, model, [2,4,6]))
+    push!(cc_rxfc, ContinuityConstraint(X1, X2, T1, model, []))
     push!(cc_rxfc, ContinuityConstraint(X2, X3, T2, model))
     push!(cc_rxfc, ContinuityConstraint(X3, X1, T3, model))
 
@@ -44,22 +44,43 @@ using Test
     fx_fxrc = FXVector(cc_fxrc...) # FX vector for full X, rm in FX
 
     # Define Targeter
-    maxiter = 15
+    maxiter = 20
     tol = 1e-12
     targ_fxrc = Targeter(xv_full, fx_fxrc, maxiter, tol);
+
+    # Target fx rc version
     Xhist, err = target(targ_fxrc);
     
-    println(err)
+    # Test that norm of vector and fullvector are different, but that both satisfy the tolerance
+    @test norm(fx_fxrc) == err[end]
+    @test norm(tovector(fx_fxrc)) == err[end]
+    @test norm(tofullvector(fx_fxrc)) != norm(fx_fxrc)
+    @test norm(fx_fxrc) == 4.57188950393644e-14
+    @test norm(tofullvector(fx_fxrc)) == 7.521894782093819e-14
+    @test norm(tofullvector(fx_fxrc)) < tol
 
-    # update!(xv, Xhist[end-4])
+    # Initial error
+    @test err[1] == 0.7464423331586798
+    @test norm(fx_fxrc, xv_full, Xhist[1]) == 0.7464423331586798 # Initial error
+
+    # Test number of iterations (this was a bad initial guess)
+    @test length(err) == 9
+
+    # Reset the test to run the alternate example where a free variable is fixed, and we use all the constraints
     update!(xv, Xhist[1])
 
-    println(norm(fx_rxfc))
+    @test norm(fx_rxfc) == 0.8417710513141402
 
     targ_rxfc = Targeter(xv, fx_rxfc, maxiter, tol);
     Xhist, err = target(targ_rxfc);
 
-    println(err)
+    # Number of iterations
+    @test length(err) == 15
+
+    # Test that norm of vector and fullvector are the same, since no constraints are removed
+    @test norm(fx_rxfc) == err[end]
+    @test norm(tovector(fx_rxfc)) == err[end]
+    @test norm(tofullvector(fx_rxfc)) == norm(fx_rxfc) == 4.2633838041538607e-13 < tol
 
 
 end

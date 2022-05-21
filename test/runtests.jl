@@ -7,4 +7,5 @@ using Test
     include("continuity_constraint.jl")
     include("constraint.jl")
     include("targeter.jl")
+    include("poms.jl")
 end

@@ -13,27 +13,42 @@ Performs x1(T) - x2(T), given x1(0) and x2(T). This constraint
 propagates x1 from time 0 to T to perform this operation
 """
 struct ContinuityConstraint{D} <: Constraint{D}
-    x1::FreeVariable{D,T} where {T}
-    x2::FreeVariable{D,T} where {T}
+    x1::FreeVariable{D1,T} where {D1,T} # TODO D for X1 and X2 should be allowed to differ
+    x2::FreeVariable{D2,T} where {D2,T}
     tof::FreeVariable{N,T} where {N,T}
     dm::DynamicalModel
+    removeinds::Vector{Int}
 
-    function ContinuityConstraint(x1, x2, T, dm)
-        if length(x1) == length(x2)
-            new{length(x1)}(x1,x2,T,dm)
+    function ContinuityConstraint(x1, x2, T, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+        if full_length(x1) == full_length(x2) == dimension(dm)
+            rmlength = Base.length(rminds)
+            vallength = full_length(x1)
+
+            # Check for correct bounds on removeinds
+            if !all(rminds.<=vallength) || !all(rminds.>=1) || rmlength>vallength
+                throw(BoundsError(value, removeinds))
+            end
+            
+            # Calculate dimension of continuity constraint
+            #   Combine removeinds(X1), removeinds(X2), and removeinds(cc)
+            rmvec = sort(union(removeinds(x1),removeinds(x2),rminds))
+            
+            ccdimension = vallength-length(rmvec) # D in FreeVariable{D,T}
+
+            new{ccdimension}(x1,x2,T,dm,rmvec)
         else
-            throw(DimensionMismatch("X1 and X2 must have the same dimensions"))
+            throw(DimensionMismatch("X1 and X2 must have the same full length"))
         end
     end
 end
 
 """
-    dimension(::ContinuityConstraint{D}) where {D}
+    full_length(cc::ContinuityConstraint)
 
-Return dimension of the ContinuityConstraint
+Return the full length of the ContinuityConstraint, without
+removing elements
 """
-dimension(::ContinuityConstraint{D}) where {D} = D
-Base.length(::ContinuityConstraint{D}) where {D} = D
+full_length(cc::ContinuityConstraint) = full_length(x1(cc))
 
 """
     x1(cc::ContinuityConstraint)
@@ -79,7 +94,7 @@ Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint)
     sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
-    return sol.u[end]-tovector(x2(cc)) ### TODO this needs to be changed
+    return sol.u[end]-tofullvector(x2(cc))
 end
 
 """
@@ -89,8 +104,7 @@ Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint, X1::FreeVariable, X2::FreeVariable)
     sol = solve(dm(cc), tofullsvector(X1), cctspan(cc))
-    # deleteat!(copy(fv.value),removeinds(fv))
-    return sol.u[end]-tovector(X2) ### TODO this needs to be changed
+    return sol.u[end]-tofullvector(X2)
 end
 
 """

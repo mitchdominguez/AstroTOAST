@@ -10,8 +10,50 @@ using LinearAlgebra
 
 Type Parameters
 - `D`: dimension of the model
+
+Every subtype of Constraint must have a removeinds field
+to allow for removing elements from FreeVariables and Constraints
 """
 abstract type Constraint{D} end
+
+"""
+    dimension(::ContinuityConstraint{D}) where {D}
+
+Return dimension of the ContinuityConstraint
+"""
+Base.length(::Constraint{D}) where {D} = D
+
+"""
+    removeinds(C::Constraint)
+
+Return the indices to remove from the constraint
+"""
+removeinds(C::Constraint) = copy(C.removeinds)
+
+"""
+    evalconstraint(C::Constraint)
+"""
+evalconstraint(C::Constraint) = throw(MethodError(evalconstraint, C))
+
+"""
+    tovector(C::Constraint)
+
+Return the constraint, removing elements
+"""
+function tovector(C::Constraint)
+    return evalconstraint(C)[setdiff(1:end,removeinds(C))]
+end
+
+"""
+    tofullvector(C::Constraint)
+
+Return the constraint, without removing elements
+"""
+function tofullvector(C::Constraint)
+    return evalconstraint(C)
+end
+
+
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
@@ -113,18 +155,46 @@ function Base.length(fx::FXVector)
 end
 
 """
-    tovector(fx::FXVector)
+    removeinds(fx::FXVector)
 
-Returns the FXVector as a Vector comprising all the elements of its component FreeVariables
+Output a vector containing the indices of removed elements in the full XVector
 """
-function tovector(fx::FXVector)
-    outvec = Vector{Float64}()
-    for c in fx
-        append!(outvec,evalconstraint(c))
+function removeinds(fx::FXVector)
+    ind = 0
+    outvec = Vector{Int}()
+    for i = 1:numels(fx)
+        append!(outvec, removeinds(fx[i]).+ind)
+        ind += full_length(fx[i])
     end
     return outvec
 end
 
+"""
+    tovector(fx::FXVector)
+
+Returns the FXVector as a Vector comprising all the elements of its component FreeVariables.
+This function removes the elements specified in removeinds
+"""
+function tovector(fx::FXVector)
+    outvec = Vector{Float64}()
+    for c in fx
+        append!(outvec,tovector(c))
+    end
+    return outvec
+end
+
+"""
+    tofullvector(fx::FXVector)
+
+Returns the FXVector as a Vector comprising all the elements of its component FreeVariables
+"""
+function tofullvector(fx::FXVector)
+    outvec = Vector{Float64}()
+    for c in fx
+        append!(outvec,tofullvector(c))
+    end
+    return outvec
+end
 
 """
     tovector(fx::FXVector, xvorig::XVector, xveval::XVector)

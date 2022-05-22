@@ -76,6 +76,9 @@ function evalDFXMatrix(T::Targeter)
 
     for j = 1:numels(X(T))
         for i = 1:numels(FX(T))
+            # println(i)
+            # println(j)
+            # println(DFX(T)[i,j](FX(T)[i]))
             evalmat[i,j] = DFX(T)[i,j](FX(T)[i])
         end
     end
@@ -131,7 +134,10 @@ function target(T::Targeter, maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     end
 
     if i>maxiter
-        println("Error history: $(err)")
+        # println("Error history: $(err)")
+        println("Error history")
+        show(stdout, "text/plain", err)
+        println("\n")
         error("maximum number of iterations reached")
     end
 

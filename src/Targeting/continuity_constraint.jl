@@ -141,6 +141,12 @@ which is the STM phi(0,T)
 struct __dCC_dx1{D} <: Partial{D} end
 function (::__dCC_dx1{C})(cc::ContinuityConstraint{R}) where {R,C}
     sol = tangent_solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+
+    # println("TSPAN")
+    # println(cctspan(cc))
+    # println("-----")
+    # show(stdout,"text/plain",sol.u[end][:,2:end])
+    # println("")
     return sol.u[end][:,2:end]
 end
 

@@ -1,5 +1,3 @@
-# TODO make continuity constraint an abstract type to allow for FullContinuityConstraint
-# and PartialContinuityConstraint (or PeriodicityConstraint) concrete types
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                                     CONTINUITY CONSTRAINT
@@ -171,16 +169,6 @@ struct __dCC_dt{D} <: Partial{D} end
 function (::__dCC_dt{C})(cc::ContinuityConstraint{R}) where {R,C}
     sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return dm(cc)((sol.u[end]))
-end
-
-"""
-    __no_partial
-
-Partial of the continuity constraint with respect to an
-unrelated free variable, which is just a matrix of zeros
-"""
-function __no_partial(cc::ContinuityConstraint{D}) where {D}
-    return zeros(D,D)
 end
 
 """

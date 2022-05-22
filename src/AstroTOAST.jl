@@ -49,13 +49,17 @@ export numels, tovector, tosvector, tofullsvector
 include("Targeting/constraint.jl")
 export FXVector
 
-include("Targeting/continuity_constraint.jl")
+include("Targeting/targeter.jl")
+export Targeter
+export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
+
+include("Targeting/Constraints/continuity_constraint.jl")
 export ContinuityConstraint
 export x1, x2, tof, dm
 export evalconstraint, partials, cctspan
 
-include("Targeting/targeter.jl")
-export Targeter
-export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
+include("Targeting/Constraints/tofconstraint.jl")
+export TOFConstraint
+export td, tvec
 
 end

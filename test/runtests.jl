@@ -8,4 +8,5 @@ using Test
     include("constraint.jl")
     include("targeter.jl")
     include("poms.jl")
+    include("poss.jl")
 end

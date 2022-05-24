@@ -62,4 +62,8 @@ include("Targeting/Constraints/tofconstraint.jl")
 export TOFConstraint
 export td, tvec
 
+include("Orbits/trajectory.jl")
+export Trajectory
+export tspan, solvec
+
 end

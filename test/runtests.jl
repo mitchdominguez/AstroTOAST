@@ -9,4 +9,5 @@ using Test
     include("targeter.jl")
     include("poms.jl")
     include("poss.jl")
+    include("tofconstraint.jl")
 end

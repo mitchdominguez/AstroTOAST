@@ -79,7 +79,7 @@ function evalconstraint(tofc::TOFConstraint)
     for Ti in T
         T_tot+=tofullvector(Ti)[1]
     end
-    return T_tot - td(tofc)
+    return [T_tot - td(tofc)]
 end
 
 """
@@ -89,7 +89,7 @@ Evaluate the continuity constraint
 """
 function evalconstraint(cc::TOFConstraint, Td::Real, T::XVector)
     temptofc = TOFConstraint(copy(Td), copy(T)...)
-    return evalconstraint(temptofc)
+    return [evalconstraint(temptofc)]
 end
 
 """

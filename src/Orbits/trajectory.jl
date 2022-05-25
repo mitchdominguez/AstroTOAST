@@ -3,7 +3,6 @@
 #                                     TRAJECTORY
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
-# using OrdinaryDiffEq
 
 """
     struct Trajectory{D}
@@ -12,12 +11,13 @@ Object that will represent trajectories within a given dynamical model
 """
 
 struct Trajectory{D}
-    X_0::Vector{Real}
-    tspan::NTuple{2,Real}
+    X_0::Vector{Float64}
+    tspan::Vector{Float64}
     dm::DynamicalModel 
     X::Vector{OrdinaryDiffEq.ODESolution} # State history
 
-    function Trajectory(dm::DynamicalModel, X0::AbstractVector{T}, proptime::Union{T, Vector{T}, NTuple{2,Real}}) where {T<:Real}
+    # Constructor for generating a trajectory from a single patch point
+    function Trajectory(dm::DynamicalModel, X0::AbstractVector{Float64}, proptime)
         # Check that dimensions all match
         if dimension(dm) != length(X0)
             throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
@@ -25,9 +25,9 @@ struct Trajectory{D}
         
         # Create tspan 
         if length(proptime) == 1
-            tspan = promote(T(0.0), proptime[1])
+            tspan = Vector{Float64}([0 proptime])
         elseif length(proptime) == 2
-            tspan = promote(T(proptime[1]), proptime[2])
+            tspan = Vector{Float64}([(proptime[1]), proptime[2]])
         else
             throw(DimensionMismatch("proptime must be of length 1 or 2"))
         end
@@ -37,7 +37,28 @@ struct Trajectory{D}
 
         new{dimension(dm)}(X0, tspan, dm, [sol])
     end
+
+    # Constructor for generating a trajectory from multiple patch points
+    function Trajectory(dm::DynamicalModel, X0, T)
+        if length(X0) != length(T)
+            throw(DimensionMismatch("Different numbers of patch points and times given"))
+        end
+
+        len = length(X0)
+
+        for i = 1:len
+            append!(traj, Trajectory(dm, X0[i], proptime[i]))
+        end
+
+    end
 end
+
+"""
+    x0(traj::Trajectory)
+
+Return the initial condition of the trajectory
+"""
+x0(traj::Trajectory) = traj.X_0
 
 """
     dm(traj::Trajectory)
@@ -75,6 +96,35 @@ Return the number of ODESolutions comprising the trajectory
 Base.length(traj::Trajectory) = length(solvec(traj))
 
 """
+    Base.append!(traj1::Trajectory, traj2::Trajectory)
+
+Extend Base.append! for trajectories.
+"""
+function Base.append!(traj1::Trajectory, trajn...)
+    # Loop through input trajectories
+    for i = 1:length(trajn)
+        # Check that trajn consists of Trajectory objects with the same dynamical model
+        if typeof(trajn[i]) <: Trajectory && dm(traj1) == dm(trajn[i])
+            # Recompute trajectory if initial time of trajn[i] is not 
+            # the same as the final time of traj1
+            tspan(trajn[i])
+            if tspan(traj1)[end] != tspan(trajn[i])[1]
+                traj2 = Trajectory(dm(trajn[i]), x0(trajn[i]), [0.0, tof(trajn[i])].+tspan(traj1)[end])
+                append!(traj1.X, traj2.X)
+            else
+                append!(traj1.X, trajn[i].X)
+            end
+
+
+            traj1.tspan[2]+=tof(trajn[i])
+        else
+            throw(TypeError(:append!, "", Trajectory, typeof(trajn[i])))
+        end
+    end
+
+end
+
+"""
     within(x::T, left::T, right::T)
 
 Check if x is within the range between left and right
@@ -94,7 +144,7 @@ end
 """
     (traj::Trajectory)(T::Real)
 
-Return the state along the trajectory at time T
+Return the state along the trajectory at time T or times "times"
 """
 function (traj::Trajectory)(T::Real)
     # Check that T is within tspan
@@ -110,6 +160,12 @@ function (traj::Trajectory)(T::Real)
     end
 
     throw(ErrorException("T was not within any element of traj.X"))
+end
+
+function (traj::Trajectory)(times) 
+    outvec = Vector{Vector{Real}}()
+    foreach(x->push!(outvec, traj(x)), times)
+    return outvec
 end
 
 """
@@ -136,6 +192,7 @@ Overload the show operator to pretty print the Trajectory to the console.
 function Base.show(io::IO, ::MIME"text/plain", traj::Trajectory{D}) where {D}
     print(io, "Trajectory\n")
     print(io, "- Dimension: $(D)\n")
+    print(io, "- Length: $(length(traj))\n")
     print(io, "- Time Span: $(traj.tspan)\n")
     print(io, "- X0: $(traj.X_0)\n")
 end
@@ -148,6 +205,10 @@ Overload the show operator to pretty print the Vector{ODESolution} to the consol
 function Base.show(io::IO, ::MIME"text/plain", solvec::Vector{OrdinaryDiffEq.ODESolution})
     for i = 1:length(solvec)
         println("ODESolution Number: $(i)\n≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡")
-        show(io, "text/plain", solvec[i])
+        if isassigned(solvec,i)
+            show(io, "text/plain", solvec[i])
+        else
+            println("#undef")
+        end
     end
 end

@@ -64,6 +64,6 @@ export td, tvec
 
 include("Orbits/trajectory.jl")
 export Trajectory
-export tspan, solvec
+export x0, tspan, solvec, isperiodic
 
 end

@@ -25,7 +25,7 @@ struct Trajectory{D}
         
         # Create tspan 
         if length(proptime) == 1
-            tspan = Vector{Float64}([0 proptime])
+            tspan = Vector{Float64}([0, proptime[1]])
         elseif length(proptime) == 2
             tspan = Vector{Float64}([(proptime[1]), proptime[2]])
         else
@@ -38,18 +38,39 @@ struct Trajectory{D}
         new{dimension(dm)}(X0, tspan, dm, [sol])
     end
 
-    # Constructor for generating a trajectory from multiple patch points
-    function Trajectory(dm::DynamicalModel, X0, T)
-        if length(X0) != length(T)
-            throw(DimensionMismatch("Different numbers of patch points and times given"))
-        end
+end
 
-        len = length(X0)
+"""
+    Trajectory(dm::DynamicalModel, X0, T)
 
-        for i = 1:len
-            append!(traj, Trajectory(dm, X0[i], proptime[i]))
-        end
+Constructor for generating a trajectory from multiple patch points
+"""
+function Trajectory(dm::DynamicalModel, X0, T)
+    if length(X0) != length(T)
+        throw(DimensionMismatch("Different numbers of patch points and times given"))
+    end
 
+    len = length(X0)
+
+    traj = Trajectory(dm, X0[1], T[1])
+
+    for i = 2:len
+        append!(traj, Trajectory(dm, X0[i], T[i]))
+    end
+
+    return traj
+end
+
+"""
+    Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
+
+Constructor for Trajectory object that uses FreeVariables as inputs
+"""
+function Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
+    if full_length(X0) == dimension(dm) && full_length(T) == 1
+        return Trajectory(dm, tofullvector(X0), tofullvector(T))
+    else
+        throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
     end
 end
 
@@ -129,7 +150,7 @@ end
 
 Check if x is within the range between left and right
 """
-function within(x::Real, left::Real, right::Real)
+function __within(x::Real, left::Real, right::Real)
     # Check that left < right
     if left > right
         throw(ErrorException("left must be <= right"))
@@ -148,13 +169,13 @@ Return the state along the trajectory at time T or times "times"
 """
 function (traj::Trajectory)(T::Real)
     # Check that T is within tspan
-    if !within(T, tspan(traj)[1], tspan(traj)[2])
+    if !__within(T, tspan(traj)[1], tspan(traj)[2])
         throw(ErrorException("T is not within tspan"))
     end
     
     # Return the state at time T
     for i = 1:length(traj)
-        if within(T, solvec(traj)[i].t[begin], solvec(traj)[i].t[end])
+        if __within(T, solvec(traj)[i].t[begin], solvec(traj)[i].t[end])
             return solvec(traj)[i](T)
         end
     end

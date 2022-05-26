@@ -45,6 +45,8 @@ struct TOFConstraint{D} <: Constraint{D}
 
         new{1}(Tvec, Td, Vector{Int}([]))
     end
+
+    TOFConstraint() = new{1}()
 end
 
 """

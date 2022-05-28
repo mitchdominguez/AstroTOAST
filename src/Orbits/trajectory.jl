@@ -35,7 +35,7 @@ struct Trajectory{D}
         # Propagate initial conditions for the desired time
         sol = solve(dm, X0, tspan)
 
-        new{dimension(dm)}(X0, tspan, dm, [sol])
+        new{dimension(dm)}(copy(X0), tspan, dm, [sol])
     end
 
 end
@@ -73,6 +73,25 @@ function Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
         throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
     end
 end
+
+"""
+    copy(traj::Trajectory)
+
+Return a shallow copy of traj
+"""
+function Base.copy(traj::Trajectory)
+    # Trajectory(dm::DynamicalModel, X0, T)
+
+    x0s = Vector{Vector}()
+    ts = Vector{Vector}()
+    for arc in traj
+        push!(x0s, arc[begin])
+        push!(ts, [arc.t[begin], arc.t[end]])
+    end
+
+    return Trajectory(dm(traj), x0s, ts)
+end
+
 
 """
     dimension(traj::Trajectory{D}) where D
@@ -152,6 +171,7 @@ Base.iterate(traj::Trajectory, state=1) = state>length(traj) ? nothing : (traj[s
 Extend Base.append! for trajectories.
 """
 function Base.append!(traj1::Trajectory, trajn...)
+    # TODO make append! work for trajectories with multiple segments
     # Loop through input trajectories
     for i = 1:length(trajn)
         # Check that trajn consists of Trajectory objects with the same dynamical model

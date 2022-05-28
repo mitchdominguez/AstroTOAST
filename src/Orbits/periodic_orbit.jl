@@ -15,9 +15,10 @@ struct PeriodicOrbit{D}
     M::Matrix{Float64}
     λ::Vector{ComplexF64}
     V::Vector{Vector{ComplexF64}}
-    JC::Float64
+    name::String
+    family::String
 
-    function PeriodicOrbit(traj::Trajectory{D}, tol=DEFAULT_ABS_TOL) where {D}
+    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_ABS_TOL) where {D}
         # Ensure that traj is periodic
         if !isperiodic(traj)
             throw(ErrorException("traj is not periodic!"))
@@ -41,6 +42,8 @@ struct PeriodicOrbit{D}
         end
         if !all(err.<tol)
             throw(ErrorException("Eigenvalues not paired properly"))
+            # TODO make a function to pair eigenvalues instead of just
+            # erroring out
         end
 
         V = Vector{Vector{ComplexF64}}(undef,D)
@@ -48,11 +51,8 @@ struct PeriodicOrbit{D}
             V[i] = vec[:,i]
         end
 
-        # Calculate Jacobi constant
-        JC = jacobi_constant(dm(traj), x0(traj))
-
         # Create new PeriodicOrbit
-        new{D}(traj, M, λ, V, JC)
+        new{D}(copy(traj), M, λ, V, name, family)
 
     end
 end

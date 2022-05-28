@@ -2,6 +2,7 @@
 using AstroTOAST
 using LinearAlgebra
 using StaticArrays
+using Roots
 using Test
 
 # Define the model
@@ -41,10 +42,10 @@ targ = Targeter(xv, fx, maxiter, tol);
 # Target fx rc version
 Xhist, err = target(targ);
 
-println("After first targeting")
-println(norm(tofullvector(fx)))
-println(tofullvector(T1)[1] + tofullvector(T2)[1] + tofullvector(T3)[1])
-println("---")
+# println("After first targeting")
+# println(norm(tofullvector(fx)))
+# println(tofullvector(T1)[1] + tofullvector(T2)[1] + tofullvector(T3)[1])
+# println("---")
 
 # Now that we have a periodic orbit, we need to reformulate the targeting problem
 # to get a periodic orbit with ICs on the x-z plane and with a period
@@ -67,7 +68,8 @@ X1_fix = FreeVariable("x1f", tofullvector(X1), [2,4,6])
 xv2 = XVector(X1_fix, X2, X3, T1, T2, T3)
 
 # Define time of flight constraint
-Td = 1.511261560928471 # 9:2 NRHO
+P_syn = 29.531*day2sec/dimensional_time(model) # Synodic period of the EM system wrt the Sun (ndim)
+Td = (2/9)*P_syn # 9:2 NRHO
 tofc = TOFConstraint(Td, T1, T2, T3)
 
 # Define a new set of continuity constraints
@@ -80,15 +82,15 @@ push!(cc2, ContinuityConstraint(X3, X1_fix, T3, model)) # Remove ydot constraint
 # Make a new FXVector to add in the TOF constraint
 fx2 = FXVector(cc2..., tofc)
 
-println("New constraint")
-println(norm(tofullvector(fx2)))
+# println("New constraint")
+# println(norm(tofullvector(fx2)))
 
 # Target with tof constraint
 targ2 = Targeter(xv2, fx2, maxiter, tol)
 Xhist2, err2 = target(targ2)
 
-println("After retargeting")
-println(norm(tofullvector(fx2)))
+# println("After retargeting")
+# println(norm(tofullvector(fx2)))
 
 println("\n9:2 NRHO")
 nrho92_traj = Trajectory(model, [X1_fix, X2, X3], [T1, T2, T3])

@@ -68,5 +68,6 @@ export x0, tspan, solvec, isperiodic, iscontinuous, stm
 
 include("Orbits/periodic_orbit.jl")
 export PeriodicOrbit
+export period, traj, monodromy, lambda, paireigs!
 
 end

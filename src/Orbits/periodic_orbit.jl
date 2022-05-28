@@ -11,12 +11,12 @@ using LinearAlgebra
 Object that represents periodic trajectories within a dynamical model
 """
 struct PeriodicOrbit{D}
-    traj::Trajectory{D}
-    M::Matrix{Float64}
-    λ::Vector{ComplexF64}
-    V::Vector{Vector{ComplexF64}}
-    name::String
-    family::String
+    traj::Trajectory{D} # Trajectory
+    M::Matrix{Float64} # Monodromy matrix
+    λ::Vector{ComplexF64} # Eigenvalues
+    V::Vector{Vector{ComplexF64}} # Eigenvectors
+    name::String # Name of orbit
+    family::String # Family that orbit belongs to
 
     function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_ABS_TOL) where {D}
         # Ensure that traj is periodic
@@ -35,21 +35,16 @@ struct PeriodicOrbit{D}
         # Calculate eigenvalues and eigenvectors
         λ, vec = eigen(M)
 
-        # Check that eigenvalues and eigenvectors are paired properly
-        err = Vector{Float64}(undef, D)
-        for i = 1:D
-            err[i] = norm((M-I(D)*λ[i])*vec[:,i])
-        end
-        if !all(err.<tol)
-            throw(ErrorException("Eigenvalues not paired properly"))
-            # TODO make a function to pair eigenvalues instead of just
-            # erroring out
-        end
-
         V = Vector{Vector{ComplexF64}}(undef,D)
         for i = 1:D
             V[i] = vec[:,i]
         end
+
+        # Make sure the eigenvalues and eigenvectors are paired properly
+        paireigs!(V, M, λ)
+
+        # Sort the eigenvalues and eigenvectors
+        # TODO Sort eigenvalues and eigenvectors
 
         # Create new PeriodicOrbit
         new{D}(copy(traj), M, λ, V, name, family)
@@ -117,6 +112,20 @@ Return the monodromy matrix of the periodic orbit
 monodromy(po::PeriodicOrbit) = po.M
 
 """
+    eigvals(po::PeriodicOrbit)
+
+Return eigenvalues of the PeriodicOrbit
+"""
+LinearAlgebra.eigvals(po::PeriodicOrbit) = copy(po.λ)
+
+"""
+    eigvecs(po::PeriodicOrbit)
+
+Return eigenvectors of the PeriodicOrbit
+"""
+LinearAlgebra.eigvecs(po::PeriodicOrbit) = copy(po.V)
+
+"""
     name(po::PeriodicOrbit)
 
 Print the name of the Periodic Orbit
@@ -135,9 +144,46 @@ family(po::PeriodicOrbit) = po.family
 ######################################################
 
 """
-    λ(po::PeriodicOrbit)
+    paireigs(po::PeriodicOrbit)
+
+Pair eigenvalues with their corresponding eigenvectors
 """
-#TODO make sure 9:2 NRHO has the correct synodic period
+function paireigs!(v::Vector{Vector{ComplexF64}}, M::Matrix{Float64}, λ::Vector{ComplexF64})
+    vcopy = copy(v)
+    D = length(λ)
+
+    err = Vector{Float64}(undef, D)
+
+    for i = 1:D
+        # Calculate error for each eigenvector
+        for j = 1:length(vcopy)
+            err[j] = norm((M-I(D)*λ[i])*vcopy[j])
+        end
+        
+        # Find element of vcopy that results in the minimum error
+        minval, ind = findmin(err)
+
+        # Write eigenvector corresponding to minval to index i in v
+        v[i] = vcopy[ind]
+
+        # Remove the element from vcopy and err
+        deleteat!(err, ind)
+        deleteat!(vcopy, ind)
+    end
+
+    return v
+end
+
+"""
+    sorteigs(po::PeriodicOrbit)
+
+Sort eigenvalues/eigenvectors
+"""
+function sorteigs(po::PeriodicOrbit)
+    return 0
+end
+
+
 #TODO periapsis, apoapsis
 #TODO eigenvalue/vector sorting
 #TODO stable/unstable/center eigenvalue/vector output

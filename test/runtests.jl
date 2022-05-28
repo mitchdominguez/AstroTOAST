@@ -10,4 +10,5 @@ using Test
     include("poms.jl")
     include("poss.jl")
     include("tofconstraint.jl")
+    include("trajectory.jl")
 end

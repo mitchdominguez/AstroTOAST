@@ -57,15 +57,99 @@ struct PeriodicOrbit{D}
     end
 end
 
-# """
-    # Base.show
+############################
+# General Utilities
+############################
+"""
+    traj(po::PeriodicOrbit)
 
-# Overload the show operator to pretty print the Trajectory to the console.
-# """
-# function Base.show(io::IO, ::MIME"text/plain", traj::Trajectory{D}) where {D}
-    # print(io, "Trajectory\n")
-    # print(io, "- Dimension: $(D)\n")
-    # print(io, "- Length: $(length(traj))\n")
-    # print(io, "- Time Span: $(traj.tspan)\n")
-    # print(io, "- X0: $(traj.X_0)\n")
-# end
+Return the Trajectory of the PO
+"""
+traj(po::PeriodicOrbit) = po.traj
+
+"""
+    dimension(po::PeriodicOrbit{D}) where D
+
+Return dimension of the dynamical model of traj
+"""
+dimension(po::PeriodicOrbit{D}) where {D} = D
+
+"""
+    x0(po::PeriodicOrbit)
+
+Return the initial condition of the trajectory
+"""
+x0(po::PeriodicOrbit) = x0(traj(po))
+
+"""
+    dm(po::PeriodicOrbit)
+
+Return the dynamical model of the trajectory
+"""
+dm(po::PeriodicOrbit) = dm(traj(po))
+
+"""
+    period(po::PeriodicOrbit)
+
+Return the time of flight of the trajectory
+"""
+period(po::PeriodicOrbit) = tof(traj(po))
+
+"""
+    jacobi_constant(po::PeriodicOrbit)
+
+Return the jacobi constant of the periodic orbit
+"""
+jacobi_constant(po::PeriodicOrbit) = typeof(dm(po)) <: Cr3bpModel ? jacobi_constant(dm(po), x0(po)) : throw(MethodError(jacobi_constant, po))
+
+"""
+    (po::PeriodicOrbit)(T)
+
+Return the state on the periodic orbit at time T
+"""
+(po::PeriodicOrbit)(T) = traj(po)(T)
+
+"""
+    monodromy(po::PeriodicOrbit)
+
+Return the monodromy matrix of the periodic orbit
+"""
+monodromy(po::PeriodicOrbit) = po.M
+
+"""
+    name(po::PeriodicOrbit)
+
+Print the name of the Periodic Orbit
+"""
+name(po::PeriodicOrbit) = po.name
+
+"""
+    family(po::PeriodicOrbit)
+
+Print the family of the Periodic Orbit
+"""
+family(po::PeriodicOrbit) = po.family
+
+######################################################
+# Stability, eigendecomoposition, manifolds
+######################################################
+
+"""
+    λ(po::PeriodicOrbit)
+"""
+#TODO make sure 9:2 NRHO has the correct synodic period
+#TODO periapsis, apoapsis
+#TODO eigenvalue/vector sorting
+#TODO stable/unstable/center eigenvalue/vector output
+
+"""
+    Base.show
+
+Overload the show operator to pretty print the PeriodicOrbit to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", po::PeriodicOrbit{D}) where {D}
+    print(io, "Periodic Orbit: $(name(po)) ($(family(po)))\n")
+    print(io, "- Dimension: $(D)\n")
+    print(io, "- Period: $(period(po)) ndim = $(period(po)*dimensional_time(dm(po))*sec2day) days\n")
+    print(io, "- X0: $(x0(po))\n")
+end

@@ -20,6 +20,10 @@ include("nrho92.jl")
 
     traj = Trajectory(model, [X1, X2, X3], [T1, T2, T3])
 
+    # Test dimension
+    @test dimension(traj_0) == dimension(traj_1) == dimension(traj_2) == 
+            dimension(traj_3) == dimension(traj) == 6
+
     # Test initial conditions
     @test x0(traj_0) == x0(traj_1) == x0(traj)
     @test x0(traj_2) != x0(traj)
@@ -43,9 +47,9 @@ include("nrho92.jl")
 
     # Test solvec final results
     @test solvec(traj_0)[end][end] == solvec(traj_1)[end][end]
-    @test solvec(traj_1)[end][end] ≈ x0(traj_2) atol=1e-14
-    @test solvec(traj_2)[end][end] ≈ x0(traj_3) atol=1e-14
-    @test solvec(traj)[end][end] ≈ solvec(traj_3)[end][end] atol=1e-13
+    @test solvec(traj_1)[end][end] ≈ x0(traj_2) atol=1e-12
+    @test solvec(traj_2)[end][end] ≈ x0(traj_3) atol=1e-12
+    @test solvec(traj)[end][end] ≈ solvec(traj_3)[end][end] atol=1e-12
 
     # Test length
     @test length(traj_0) == length(traj_1) == length(traj_2) == length(traj_3) == 1
@@ -59,6 +63,11 @@ include("nrho92.jl")
     @test length(traj_1) == 3 # Traj 1 gets appended to
     @test length(traj_2) == 1 # Traj 2 remains the same
     @test length(traj_3) == 1 # Traj 3 remains the same
+
+    # Test getindex
+    @test traj[1].t[end] == traj_1[1].t[end]
+    @test length(traj[1:2]) == 2
+    @test traj[1:2][2].t[end] == traj[2].t[end]
 
     # Test traj(time)
     @test traj(0) == tofullvector(X1)

@@ -75,6 +75,13 @@ function Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
 end
 
 """
+    dimension(traj::Trajectory{D}) where D
+
+Return dimension of the dynamical model of traj
+"""
+dimension(traj::Trajectory{D}) where {D} = D
+
+"""
     x0(traj::Trajectory)
 
 Return the initial condition of the trajectory
@@ -115,6 +122,29 @@ solvec(traj::Trajectory) = traj.X
 Return the number of ODESolutions comprising the trajectory
 """
 Base.length(traj::Trajectory) = length(solvec(traj))
+
+"""
+    getindex(traj::Trajectory, i::Int)
+
+Return i'th element in X
+"""
+Base.getindex(traj::Trajectory, i::Int) = traj.X[i]
+
+function Base.getindex(traj::Trajectory, r::UnitRange{Int})
+    outvec = Vector{eltype(solvec(traj))}()
+    for i in r
+        push!(outvec, traj[i])
+    end
+    return outvec
+end
+
+
+"""
+    iterate(::Trajectory)
+
+Method for iterating through FreeVariables
+"""
+Base.iterate(traj::Trajectory, state=1) = state>length(traj) ? nothing : (traj[state], state+1)
 
 """
     Base.append!(traj1::Trajectory, traj2::Trajectory)
@@ -190,7 +220,7 @@ function (traj::Trajectory)(times)
 end
 
 """
-    isperiodic(traj::Trajectory, tol=1e-12)
+    isperiodic(traj::Trajectory, tol=DEFAULT_ABS_TOL)
 
 Returns true if the final state and beginning state in traj are the same, within a tolerance
 """
@@ -204,6 +234,47 @@ function isperiodic(traj::Trajectory, tol=DEFAULT_ABS_TOL)
     end
 end
 
+"""
+    iscontinuous(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+
+Check that all segments in traj flow into the next one continuously, with a tolerance
+"""
+function iscontinuous(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+    for i = 1:length(traj)-1
+        abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
+        if all(abserr.<tol)
+            return true
+        else
+            return false
+        end
+
+    end
+
+end
+
+
+"""
+    stm(traj::Trajectory{D}) where {D}
+
+Return the monodromy matrix of the periodic orbit
+"""
+function stm(traj::Trajectory{D}) where {D}
+    mats = Vector{AbstractMatrix}()
+
+    for arc in traj
+        sol = tangent_solve(dm(traj), arc[begin], (arc.t[begin], arc.t[end]))
+        # println(size(sol.u[end]))
+        push!(mats, sol.u[end][:,2:end])
+    end
+
+    Φ = Matrix{Float64}(mats[end])
+    for i = length(traj)-1:-1:1
+        Φ = Φ*mats[i]
+    end
+    
+    return Φ
+
+end
 
 """
     Base.show
@@ -214,8 +285,8 @@ function Base.show(io::IO, ::MIME"text/plain", traj::Trajectory{D}) where {D}
     print(io, "Trajectory\n")
     print(io, "- Dimension: $(D)\n")
     print(io, "- Length: $(length(traj))\n")
-    print(io, "- Time Span: $(traj.tspan)\n")
-    print(io, "- X0: $(traj.X_0)\n")
+    print(io, "- Time Span: $(tspan(traj))\n")
+    print(io, "- X0: $(x0(traj))\n")
 end
 
 """
@@ -225,7 +296,7 @@ Overload the show operator to pretty print the Vector{ODESolution} to the consol
 """
 function Base.show(io::IO, ::MIME"text/plain", solvec::Vector{OrdinaryDiffEq.ODESolution})
     for i = 1:length(solvec)
-        println("ODESolution Number: $(i)\n≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡")
+        println("\n\nODESolution Number: $(i)\n≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡")
         if isassigned(solvec,i)
             show(io, "text/plain", solvec[i])
         else

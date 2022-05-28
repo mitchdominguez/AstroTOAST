@@ -256,6 +256,12 @@ end
 Calculate the Jacobi constant of an Array of states
 """
 function jacobi_constant(m::Cr3bpModel, q::T) where {T<:Array}
+    # Case where single state passed in
+    if eltype(q)<:Real && length(q) == dimension(m)
+        return jacobi_constant(m, SVector(Tuple(q)))
+    end
+
+    # Case where an array of states is passed in
     n = length(q)
     if eltype(q)<:SArray
         a = Vector{eltype(eltype(q))}(undef,n)

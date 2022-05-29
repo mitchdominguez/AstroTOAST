@@ -40,15 +40,11 @@ struct PeriodicOrbit{D}
             V[i] = vec[:,i]
         end
 
-        # Make sure the eigenvalues and eigenvectors are paired properly
-        paireigs!(V, M, λ)
-
-        # Sort the eigenvalues and eigenvectors
-        # TODO Sort eigenvalues and eigenvectors
+        # Make sure the eigenvalues and eigenvectors are paired and sorted properly
+        sorteigs!(V, λ, M)
 
         # Create new PeriodicOrbit
         new{D}(copy(traj), M, λ, V, name, family)
-
     end
 end
 
@@ -144,11 +140,13 @@ family(po::PeriodicOrbit) = po.family
 ######################################################
 
 """
-    paireigs(po::PeriodicOrbit)
+    paireigs(v::Vector{Vector{ComplexF64}}, M::Matrix{Float64}, λ::Vector{ComplexF64})
 
-Pair eigenvalues with their corresponding eigenvectors
+Pair eigenvalues with their corresponding eigenvectors.
+
+This function will change the value of v in place
 """
-function paireigs!(v::Vector{Vector{ComplexF64}}, M::Matrix{Float64}, λ::Vector{ComplexF64})
+function paireigs!(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Matrix{Float64})
     vcopy = copy(v)
     D = length(λ)
 
@@ -175,18 +173,55 @@ function paireigs!(v::Vector{Vector{ComplexF64}}, M::Matrix{Float64}, λ::Vector
 end
 
 """
-    sorteigs(po::PeriodicOrbit)
+    sorteigs(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Matrix{Float64})
 
-Sort eigenvalues/eigenvectors
+Sort pairs of eigenvalues from the pairs with the highest magnitude to pairs with the magnitude closest to 1
+
+This function will change the value of λ and v in place
 """
-function sorteigs(po::PeriodicOrbit)
-    return 0
+function sorteigs!(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Matrix{Float64})
+    # Error if odd number of eigenvalues
+    if length(λ)%2 != 0
+        throw(DimensionMismatch("Odd number of eigenvalues"))
+    end
+
+    # Pairs of eigenvalues
+    numpairs = Int(length(λ)/2)
+
+    # Copy λ
+    lamcopy = copy(λ)
+
+
+    for i = 1:2:numpairs*2
+        # Sort by eigenvalue magnitude
+        mags = map(x->abs(x), lamcopy)
+
+        # Find maximum 
+        maxval, maxind = findmax(mags)
+
+        # Find reciprocal of lamcopy[ind]
+        recip, recipind = findmin(map(x->abs(x), lamcopy.^(-1) .- lamcopy[maxind]))
+
+        # Write lamcopy[maxind] and lamcopy[recipind] into elements i, i+1 in λ
+        λ[i] = lamcopy[maxind]
+        λ[i+1] = lamcopy[recipind]
+
+        # Remove lamcopy[maxind] and lamcopy[recipind] from lamcopy
+        deleteat!(lamcopy, Tuple([x for x in sort([maxind,recipind])]))
+
+    end
+
+    # Re-pair eigenvalues and eigenvectors
+    paireigs!(v, λ, M)
+    
+
+    return (λ, v)
 end
 
 
 #TODO periapsis, apoapsis
-#TODO eigenvalue/vector sorting
 #TODO stable/unstable/center eigenvalue/vector output
+#TODO number of stable/unstable/center eigs
 
 """
     Base.show

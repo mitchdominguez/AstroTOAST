@@ -59,8 +59,8 @@ update!(X1, po1(peri_time).*[1,0,1,0,1,0])
 update!(X2, po1(tofullvector(T1)[1] + dt))
 update!(X3, po1(tofullvector(T1)[1] + tofullvector(T2)[1] + dt))
 
-println("After updating free variables")
-println(norm(tofullvector(fx)))
+# println("After updating free variables")
+# println(norm(tofullvector(fx)))
 
 X1_fix = FreeVariable("x1f", tofullvector(X1), [2,4,6])
 

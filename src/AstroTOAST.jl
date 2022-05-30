@@ -68,6 +68,9 @@ export x0, tspan, solvec, isperiodic, iscontinuous, stm
 
 include("Orbits/periodic_orbit.jl")
 export PeriodicOrbit
+export family
 export period, traj, monodromy, lambda, paireigs!, sorteigs!
+export unstable_eigs, center_eigs, unit_eigs, stable_eigs, classify_eigs
+export stability_index
 
 end

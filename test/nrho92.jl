@@ -92,9 +92,9 @@ Xhist2, err2 = target(targ2)
 # println("After retargeting")
 # println(norm(tofullvector(fx2)))
 
-println("\n9:2 NRHO")
+# println("\n9:2 NRHO")
 nrho92_traj = Trajectory(model, [X1_fix, X2, X3], [T1, T2, T3])
-println("Periodic? $(isperiodic(nrho92_traj))")
-println("Continuous? $(iscontinuous(nrho92_traj))")
+# println("Periodic? $(isperiodic(nrho92_traj))")
+# println("Continuous? $(iscontinuous(nrho92_traj))")
 
 update!(X1, tofullvector(X1_fix))

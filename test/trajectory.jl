@@ -9,7 +9,8 @@ include("nrho92.jl")
 
 @testset "trajectory.jl" begin
     # Test that we actually have the 9:2 NRHO
-    @test Td == 1.511261560928471
+    # @test Td == 1.511261560928471
+    @test Td == 1.5091706485621377
 
     # Create some different sample trajectories
     traj_0 = Trajectory(model, tofullvector(X1), (0, tofullvector(T1)[1]))
@@ -37,13 +38,13 @@ include("nrho92.jl")
     @test tspan(traj_1) == [0, tofullvector(T1)[1]]
     @test tspan(traj_2) == [0, tofullvector(T2)[1]]
     @test tspan(traj_3) == [0, tofullvector(T3)[1]]
-    @test tspan(traj) == [0, Td]
+    @test tspan(traj) ≈ [0, Td] atol=1e-12
 
     # Test overall time of flight
     @test tof(traj_1) == tofullvector(T1)[1]
     @test tof(traj_2) == tofullvector(T2)[1]
     @test tof(traj_3) == tofullvector(T3)[1]
-    @test tof(traj) == Td 
+    @test tof(traj) ≈ Td atol=1e-12
 
     # Test solvec final results
     @test solvec(traj_0)[end][end] == solvec(traj_1)[end][end]
@@ -57,9 +58,9 @@ include("nrho92.jl")
 
     # Test append
     append!(traj_1, traj_2, traj_3)
-    @test solvec(traj)[end][end] ≈ solvec(traj_1)[end][end] atol=1e-13
-    @test tspan(traj_1) == [0, Td]
-    @test tof(traj_1) == Td
+    @test solvec(traj)[end][end] ≈ solvec(traj_1)[end][end] atol=1e-12
+    @test tspan(traj_1) ≈ [0, Td] atol=1e-12
+    @test tof(traj_1) ≈ Td atol=1e-12
     @test length(traj_1) == 3 # Traj 1 gets appended to
     @test length(traj_2) == 1 # Traj 2 remains the same
     @test length(traj_3) == 1 # Traj 3 remains the same
@@ -76,7 +77,7 @@ include("nrho92.jl")
 
     # Test isperiodic
     @test isperiodic(traj)
-    @test !isperiodic(traj,1e-16)
+    @test isperiodic(traj,1e-16) == false
     @test isperiodic(traj,1e-5)
 
 

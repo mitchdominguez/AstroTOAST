@@ -307,6 +307,7 @@ end
 
 # TODO periapsis, apoapsis
 # TODO PO continuation
+# TODO export initial conditions for each segment with TOFs
 
 """
     Base.show

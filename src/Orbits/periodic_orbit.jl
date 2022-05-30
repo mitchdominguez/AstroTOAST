@@ -286,7 +286,27 @@ function stable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
     return (eigvals(po)[classify_eigs(po,ϵ)[4]], eigvecs(po)[classify_eigs(po,ϵ)[4]])
 end
 
-#TODO periapsis, apoapsis
+"""
+    stability_index(po::PeriodicOrbit)
+
+Return the stability index of the periodic orbit
+"""
+function stability_index(po::PeriodicOrbit{D}) where {D}
+    if D%2 != 0
+        throw(DimensionMismatch("Odd number of eigenvalues"))
+    end
+    λ = eigvals(po)
+    nu = Vector{Float64}()
+
+    for i = 1:2:D
+        push!(nu, 0.5*real(λ[i] + 1/λ[i]))
+    end
+
+    return nu, max(map(x->abs(x), nu)...)
+end
+
+# TODO periapsis, apoapsis
+# TODO PO continuation
 
 """
     Base.show

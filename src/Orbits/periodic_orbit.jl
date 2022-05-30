@@ -226,9 +226,10 @@ Classify eigenvalues, their associated eigenvectors, into the following categori
     - unit (value == 1 (±ϵ)
     - center (magnitude == 1 (±ϵ)
 
-Each eigenvalue can only belong to one of the above categories
+and return the indices within eigvals(po) that they correspond to.
+Each eigenvalue can only belong to one of the above categories.
 """
-function classifyeigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+function classify_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
     λ = eigvals(po)
 
     magmin1 = map(x->abs(x), λ) .- 1
@@ -239,21 +240,52 @@ function classifyeigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
     s_inds = findall(x ->x<-ϵ, magmin1) # Indices of stable eigenvalues
 
     # Find the unit eigenvalues
-    # clams = lam[c_inds]
-
     val1, unit1ind = findmin(map(x->abs(x), λ.-1))
     recip, unit2ind = findmin(map(x->abs(x), λ.^(-1) .- λ[unit1ind]))
-
     unit_inds = [unit1ind, unit2ind]
 
+    # Remove indices of unit eigenvalues from c_inds
     setdiff!(c_inds, unit_inds)
 
     return [sort(u_inds), sort(c_inds), sort(unit_inds), sort(s_inds)]
 end
 
+"""
+    unstable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 
-#TODO number of stable/unstable/center eigs
-#TODO stable/unstable/center eigenvalue/vector output
+Return the unstable eigenvalues and eigenvectors of the periodic orbit
+"""
+function unstable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    return (eigvals(po)[classify_eigs(po,ϵ)[1]], eigvecs(po)[classify_eigs(po,ϵ)[1]])
+end
+
+"""
+    center_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+
+Return the center eigenvalues and eigenvectors of the periodic orbit (not including unit eigs)
+"""
+function center_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    return (eigvals(po)[classify_eigs(po,ϵ)[2]], eigvecs(po)[classify_eigs(po,ϵ)[2]])
+end
+
+"""
+    unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+
+Return the unit eigenvalues and eigenvectors of the periodic orbit (not including unit eigs)
+"""
+function unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    return (eigvals(po)[classify_eigs(po,ϵ)[3]], eigvecs(po)[classify_eigs(po,ϵ)[3]])
+end
+
+"""
+    stable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+
+Return the stable eigenvalues and eigenvectors of the periodic orbit
+"""
+function stable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    return (eigvals(po)[classify_eigs(po,ϵ)[4]], eigvecs(po)[classify_eigs(po,ϵ)[4]])
+end
+
 #TODO periapsis, apoapsis
 
 """

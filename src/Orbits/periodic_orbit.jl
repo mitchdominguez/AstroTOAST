@@ -136,7 +136,7 @@ Print the family of the Periodic Orbit
 family(po::PeriodicOrbit) = po.family
 
 ######################################################
-# Stability, eigendecomoposition, manifolds
+# Stability, eigendecomposition, manifolds
 ######################################################
 
 """
@@ -213,15 +213,48 @@ function sorteigs!(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Mat
 
     # Re-pair eigenvalues and eigenvectors
     paireigs!(v, λ, M)
-    
 
     return (λ, v)
 end
 
+"""
+    classifyeigs(po::PeriodicOrbit)
 
-#TODO periapsis, apoapsis
-#TODO stable/unstable/center eigenvalue/vector output
+Classify eigenvalues, their associated eigenvectors, into the following categories
+    - stable (magnitude < 1 - ϵ)
+    - unstable (magnitude > 1 + ϵ)
+    - unit (value == 1 (±ϵ)
+    - center (magnitude == 1 (±ϵ)
+
+Each eigenvalue can only belong to one of the above categories
+"""
+function classifyeigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    λ = eigvals(po)
+
+    magmin1 = map(x->abs(x), λ) .- 1
+
+    # Separate into unstable, center, stable
+    u_inds = findall(x ->x>ϵ, magmin1) # Indices of unstable eigenvalues
+    c_inds = findall(x ->x<=ϵ && x>=-ϵ, magmin1) # Indices of center eigenvalues
+    s_inds = findall(x ->x<-ϵ, magmin1) # Indices of stable eigenvalues
+
+    # Find the unit eigenvalues
+    # clams = lam[c_inds]
+
+    val1, unit1ind = findmin(map(x->abs(x), λ.-1))
+    recip, unit2ind = findmin(map(x->abs(x), λ.^(-1) .- λ[unit1ind]))
+
+    unit_inds = [unit1ind, unit2ind]
+
+    setdiff!(c_inds, unit_inds)
+
+    return [sort(u_inds), sort(c_inds), sort(unit_inds), sort(s_inds)]
+end
+
+
 #TODO number of stable/unstable/center eigs
+#TODO stable/unstable/center eigenvalue/vector output
+#TODO periapsis, apoapsis
 
 """
     Base.show

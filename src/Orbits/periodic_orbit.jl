@@ -94,11 +94,13 @@ Return the jacobi constant of the periodic orbit
 jacobi_constant(po::PeriodicOrbit) = typeof(dm(po)) <: Cr3bpModel ? jacobi_constant(dm(po), x0(po)) : throw(MethodError(jacobi_constant, po))
 
 """
-    (po::PeriodicOrbit)(T)
+    (po::PeriodicOrbit)(T; ndtime=false)
 
-Return the state on the periodic orbit at time T
+Return the state on the periodic orbit at time T if ndtime = true, and 
+returns the state at θ_0 = 2πT/Period if ndtime = false. θ_0 is analagous
+to the longitudinal angle on a torus or the mean anomaly in a conic orbit
 """
-(po::PeriodicOrbit)(T) = traj(po)(T)
+(po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(T) : traj(po)(T*period(po)/(2*pi))
 
 """
     monodromy(po::PeriodicOrbit)

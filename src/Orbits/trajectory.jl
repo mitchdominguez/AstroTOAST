@@ -200,7 +200,7 @@ function Base.append!(traj1::Trajectory, trajn...)
 end
 
 """
-    within(x::T, left::T, right::T)
+    __within(x::T, left::T, right::T)
 
 Check if x is within the range between left and right
 """
@@ -280,19 +280,27 @@ end
 """
     stm(traj::Trajectory{D}) where {D}
 
-Return the monodromy matrix of the periodic orbit
+Return the state transition matrix of the trajectory, from the initial
+time to a final time (which is the TOF of the trajectory by default)
 """
-function stm(traj::Trajectory{D}) where {D}
+function stm(traj::Trajectory{D}, T::Real=tof(traj)) where {D}
     mats = Vector{AbstractMatrix}()
 
     for arc in traj
-        sol = tangent_solve(dm(traj), arc[begin], (arc.t[begin], arc.t[end]))
-        # println(size(sol.u[end]))
-        push!(mats, sol.u[end][:,2:end])
+        if __within(T, arc.t[begin], arc.t[end])
+            sol = tangent_solve(dm(traj), arc[begin], (arc.t[begin], T))
+            # println(size(sol.u[end]))
+            push!(mats, sol.u[end][:,2:end])
+            break # TODO need a more elegant solution
+        else
+            sol = tangent_solve(dm(traj), arc[begin], (arc.t[begin], arc.t[end]))
+            # println(size(sol.u[end]))
+            push!(mats, sol.u[end][:,2:end])
+        end
     end
 
     Φ = Matrix{Float64}(mats[end])
-    for i = length(traj)-1:-1:1
+    for i = length(mats)-1:-1:1
         Φ = Φ*mats[i]
     end
     

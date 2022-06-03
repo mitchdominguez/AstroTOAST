@@ -137,6 +137,20 @@ Print the family of the Periodic Orbit
 """
 family(po::PeriodicOrbit) = po.family
 
+"""
+    time2angle(po::PeriodicOrbit)
+
+Convert a ndim time to longitudinal angle
+"""
+time2angle(po::PeriodicOrbit, T::Real) = 2pi*T/period(po)
+
+"""
+    angle2time(po::PeriodicOrbit)
+
+Convert a longitudinal angle to ndim time
+"""
+angle2time(po::PeriodicOrbit, th::Real) = th*period(po)/(2pi)
+
 ######################################################
 # Stability, eigendecomposition, manifolds
 ######################################################
@@ -257,7 +271,8 @@ end
 
 Return the unstable eigenvalues and eigenvectors of the periodic orbit
 """
-function unstable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+function unstable_eigs(po::PeriodicOrbit; ϵ=1e-4::Float64)
+    # TODO support for if there are no unstable eigenvalues
     return (eigvals(po)[classify_eigs(po,ϵ)[1]], eigvecs(po)[classify_eigs(po,ϵ)[1]])
 end
 
@@ -266,7 +281,7 @@ end
 
 Return the center eigenvalues and eigenvectors of the periodic orbit (not including unit eigs)
 """
-function center_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+function center_eigs(po::PeriodicOrbit; ϵ=1e-4::Float64)
     return (eigvals(po)[classify_eigs(po,ϵ)[2]], eigvecs(po)[classify_eigs(po,ϵ)[2]])
 end
 
@@ -275,7 +290,7 @@ end
 
 Return the unit eigenvalues and eigenvectors of the periodic orbit (not including unit eigs)
 """
-function unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+function unit_eigs(po::PeriodicOrbit; ϵ=1e-4::Float64)
     return (eigvals(po)[classify_eigs(po,ϵ)[3]], eigvecs(po)[classify_eigs(po,ϵ)[3]])
 end
 
@@ -284,7 +299,7 @@ end
 
 Return the stable eigenvalues and eigenvectors of the periodic orbit
 """
-function stable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+function stable_eigs(po::PeriodicOrbit; ϵ=1e-4::Float64)
     return (eigvals(po)[classify_eigs(po,ϵ)[4]], eigvecs(po)[classify_eigs(po,ϵ)[4]])
 end
 
@@ -307,6 +322,8 @@ function stability_index(po::PeriodicOrbit{D}) where {D}
     return nu, max(map(x->abs(x), nu)...)
 end
 
+# TODO eigenvectors at points along the periodic orbit
+# TODO convert longitudinal angle to time and vice versa
 # TODO periapsis, apoapsis
 # TODO PO continuation
 # TODO export initial conditions for each segment with TOFs

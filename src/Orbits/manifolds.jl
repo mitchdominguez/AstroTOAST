@@ -28,5 +28,10 @@ orbit, starting at longitudinal angle theta_0 on the PO, stepping off d_dim dime
 position units, and propagating for proptime nondimensional time.
 """
 function stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real)
-    lam, v = stable_eigs(po)
+    # Retrieve eigenvalues, eigenvectors
+    lam, v = stable_eigs(po) 
+
+    # Obtain stepoff
+    # u0 = 
+
 end

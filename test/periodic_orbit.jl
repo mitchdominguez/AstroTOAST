@@ -6,6 +6,7 @@ using Test
 # Calculate the 9:2 NRHO
 #   This will define nrho_traj
 include("nrho92.jl") 
+nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
 
 @testset "trajectory.jl" begin
     # Test that we actually have the 9:2 NRHO
@@ -39,10 +40,13 @@ include("nrho92.jl")
     @test jacobi_constant(nrho92) == 3.04664708021343
 
     # Test getting periodic orbit state at a specific time
+    @test nrho92(2pi) == nrho92(2pi, ndtime=false)
     @test nrho92(0) == nrho92_traj(0) == tofullvector(X1)
-    @test nrho92(1) == nrho92_traj(1)
-    @test nrho92(period(nrho92)) ≈ tofullvector(X1) atol=1e-12
-    @test nrho92(period(nrho92)) ≈ nrho92_traj(tof(nrho92_traj)) atol=1e-12
+    @test nrho92(1, ndtime=true) == nrho92_traj(1)
+    @test nrho92(period(nrho92), ndtime=true) ≈ tofullvector(X1) atol=1e-12
+    @test nrho92(period(nrho92), ndtime=true) ≈ nrho92_traj(tof(nrho92_traj)) atol=1e-12
+    @test nrho92(0, ndtime=false) == nrho92(0) # Reference using longitudinal angle as well
+    @test nrho92(2*pi, ndtime=false) == nrho92(period(nrho92), ndtime=true) # Reference using longitudinal angle as well
 
     # name, family
     @test name(nrho92) == "9:2 NRHO"
@@ -86,6 +90,8 @@ include("nrho92.jl")
     @test c_eig[1][2] == eigvals(nrho92)[6]
     @test c_eig[2][1] == eigvecs(nrho92)[5]
     @test c_eig[2][2] == eigvecs(nrho92)[6]
+    
+    @test length(center_eigs(nrho92;ϵ=1e-12)[1])==0 # tolerance when retrieving types of eigs
     
     unit_eig = unit_eigs(nrho92)
     @test unit_eig[1][1] == eigvals(nrho92)[3]

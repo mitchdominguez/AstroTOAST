@@ -50,8 +50,46 @@ function stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime
             tempsol = solve(dm(po), G*q0, (0, proptime))
             sol = solve(dm(po), G*tempsol[end], (0, proptime))
             # TODO figure out a better way to propagate in negative time
+            # TODO positive and negative direction manifolds
         else
             throw(ErrorException("Negative propagation not implemented yet for this model"))
+        end
+
+        # Push to output vector
+        push!(mans, sol)
+    end
+
+    return q0, mans
+end
+
+"""
+    unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real)
+
+For each stable mode of the periodic orbit, propagate the stable manifold of the periodic
+orbit, starting at longitudinal angle theta_0 on the PO, stepping off d_dim dimensional 
+position units, and propagating for proptime nondimensional time.
+"""
+function unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
+    # Retrieve eigenvalues, eigenvectors
+    lam, vee = unstable_eigs(po, theta_0; ϵ) 
+
+    # Output vector
+    mans = Vector()
+    q0 = 0
+
+    # Loop through each stable mode
+    for v in vee
+        # Obtain stepoff
+        u0 = subspace_stepoff(v, d_dim, dm(po))
+
+        # Manifold initial state
+        q0 = [po(theta_0) + u0, po(theta_0) - u0]
+
+        # Propagate
+        if typeof(dm(po)) <: Cr3bpModel
+            sol = [solve(dm(po), q0[1], (0, proptime)), solve(dm(po), q0[2], (0, proptime))]
+        else
+            throw(ErrorException("Positive propagation not implemented yet for this model"))
         end
 
         # Push to output vector

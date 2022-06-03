@@ -70,7 +70,10 @@ include("Orbits/periodic_orbit.jl")
 export PeriodicOrbit
 export family
 export period, traj, monodromy, lambda, paireigs!, sorteigs!
+export angle2time, time2angle
 export unstable_eigs, center_eigs, unit_eigs, stable_eigs, classify_eigs
 export stability_index
+
+include("Orbits/manifolds.jl")
 
 end

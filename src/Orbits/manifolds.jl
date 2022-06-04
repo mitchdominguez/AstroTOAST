@@ -1,6 +1,4 @@
 # Functions that are useful for the generation of manifolds
-#
-# TODO stable/unstable manifold propagation
 
 """
     subpace_stepoff(v::AbstractVector, d::Real, model::DynamicalModel, theta::Real=0)
@@ -21,15 +19,15 @@ function subspace_stepoff(v::AbstractVector, d_dim::Real, model::Cr3bpModel, the
 end
 
 """
-    stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real)
+    stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real)
 
 For each stable mode of the periodic orbit, propagate the stable manifold of the periodic
-orbit, starting at longitudinal angle theta_0 on the PO, stepping off d_dim dimensional 
+orbit, starting at longitudinal angle theta_T on the PO, stepping off d_dim dimensional 
 position units, and propagating for proptime nondimensional time.
 """
-function stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
+function stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
     # Retrieve eigenvalues, eigenvectors
-    lam, vee = stable_eigs(po, theta_0; ϵ) 
+    lam, vee = stable_eigs(po, theta_T; ϵ) 
 
     # Output vector
     mans = Vector()
@@ -41,16 +39,13 @@ function stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime
         u0 = subspace_stepoff(v, d_dim, dm(po))
 
         # Manifold initial state
-        q0 = po(theta_0) + u0
-        println(q0)
+        q0 = [po(theta_T) + u0, po(theta_T) - u0]
 
         # Propagate
         if typeof(dm(po)) <: Cr3bpModel
             G = diagm([1, -1, 1, -1, 1, -1])
-            tempsol = solve(dm(po), G*q0, (0, proptime))
-            sol = solve(dm(po), G*tempsol[end], (0, proptime))
-            # TODO figure out a better way to propagate in negative time
-            # TODO positive and negative direction manifolds
+            tempsol = [solve(dm(po), G*q0[1], (0, proptime)), solve(dm(po), G*q0[2], (0, proptime))]
+            sol = [solve(dm(po), G*tempsol[1][end], (0, proptime)), solve(dm(po), G*tempsol[2][end], (0, proptime))]
         else
             throw(ErrorException("Negative propagation not implemented yet for this model"))
         end
@@ -63,15 +58,15 @@ function stable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime
 end
 
 """
-    unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real)
+    unstable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real)
 
 For each stable mode of the periodic orbit, propagate the stable manifold of the periodic
-orbit, starting at longitudinal angle theta_0 on the PO, stepping off d_dim dimensional 
+orbit, starting at longitudinal angle theta_T on the PO, stepping off d_dim dimensional 
 position units, and propagating for proptime nondimensional time.
 """
-function unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
+function unstable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
     # Retrieve eigenvalues, eigenvectors
-    lam, vee = unstable_eigs(po, theta_0; ϵ) 
+    lam, vee = unstable_eigs(po, theta_T; ϵ) 
 
     # Output vector
     mans = Vector()
@@ -83,7 +78,7 @@ function unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, propti
         u0 = subspace_stepoff(v, d_dim, dm(po))
 
         # Manifold initial state
-        q0 = [po(theta_0) + u0, po(theta_0) - u0]
+        q0 = [po(theta_T) + u0, po(theta_T) - u0]
 
         # Propagate
         if typeof(dm(po)) <: Cr3bpModel
@@ -97,4 +92,28 @@ function unstable_manifold(po::PeriodicOrbit, theta_0::Real, d_dim::Real, propti
     end
 
     return q0, mans
+end
+
+"""
+    linear_invariant_curve_2d(po::PeriodicOrbit, theta_T::Real, N::Int, d_dim::Real; ϵ=1e-4)
+
+Generate a guess for the invariant curve of size d_dim, parametrized by N points, about a
+fixed point on a periodic orbit at longitudinal angle theta_T
+"""
+function linear_invariant_curve_2d(po::PeriodicOrbit, theta_T::Real, N::Int, d_dim::Real; ϵ=1e-4)
+    ths =  LinRange(0, 2pi, N)
+    lam, vee = center_eigs(po, 0; ϵ=ϵ)
+
+    num_modes = Int(length(lam)/2)
+
+    u0vec = Vector{Vector{Float64}}()
+    for i = 1:2:2*num_modes
+        u0 = Vector{Float64}()
+        for theta_rho in ths
+            append!(u0, subspace_stepoff(vee[i], d_dim, dm(po), theta_rho))
+        end
+        push!(u0vec, u0)
+    end
+
+    return u0vec
 end

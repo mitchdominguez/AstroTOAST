@@ -75,5 +75,6 @@ export unstable_eigs, center_eigs, unit_eigs, stable_eigs, classify_eigs
 export stability_index
 
 include("Orbits/manifolds.jl")
+export subspace_stepoff, stable_manifold, unstable_manifold, linear_invariant_curve_2d
 
 end

@@ -275,43 +275,43 @@ function classify_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 end
 
 """
-    unstable_eigs(po::PeriodicOrbit, θ::Real=0; ϵ::Float64=1e-4)
+    unstable_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
 
 Return the unstable eigenvalues and eigenvectors of the periodic orbit
-at the specified longitudinal angle θ
+at the specified longitudinal angle theta_T
 """
-function unstable_eigs(po::PeriodicOrbit, θ::Real=0; ϵ::Float64=1e-4)
-    return (eigvals(po)[classify_eigs(po,ϵ)[1]], map(x->stm(po, θ)*x, eigvecs(po)[classify_eigs(po,ϵ)[1]]))
+function unstable_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
+    return (eigvals(po)[classify_eigs(po,ϵ)[1]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[1]]))
 end
 
 """
     center_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 
 Return the center eigenvalues and eigenvectors of the periodic orbit (not including unit eigs)
-at the specified longitudinal angle θ
+at the specified longitudinal angle theta_T
 """
-function center_eigs(po::PeriodicOrbit, θ::Real=0; ϵ::Float64=1e-4)
-    return (eigvals(po)[classify_eigs(po,ϵ)[2]], map(x->stm(po, θ)*x, eigvecs(po)[classify_eigs(po,ϵ)[2]]))
+function center_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
+    return (eigvals(po)[classify_eigs(po,ϵ)[2]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[2]]))
 end
 
 """
     unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 
 Return the unit eigenvalues and eigenvectors of the periodic orbit 
-at the specified longitudinal angle θ
+at the specified longitudinal angle theta_T
 """
-function unit_eigs(po::PeriodicOrbit, θ::Real=0; ϵ::Float64=1e-4)
-    return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, θ)*x, eigvecs(po)[classify_eigs(po,ϵ)[3]]))
+function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
+    return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[3]]))
 end
 
 """
     stable_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 
 Return the stable eigenvalues and eigenvectors of the periodic orbit
-at the specified longitudinal angle θ
+at the specified longitudinal angle theta_T
 """
-function stable_eigs(po::PeriodicOrbit, θ::Real=0; ϵ::Float64=1e-4)
-    return (eigvals(po)[classify_eigs(po,ϵ)[4]], map(x->stm(po, θ)*x, eigvecs(po)[classify_eigs(po,ϵ)[4]]))
+function stable_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
+    return (eigvals(po)[classify_eigs(po,ϵ)[4]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[4]]))
 end
 
 """

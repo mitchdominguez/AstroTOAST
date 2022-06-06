@@ -97,8 +97,8 @@ end
 """
     linear_invariant_curve_2d(po::PeriodicOrbit, theta_T::Real, N::Int, d_dim::Real; ϵ=1e-4)
 
-Generate a guess for the invariant curve of size d_dim, parametrized by N points, about a
-fixed point on a periodic orbit at longitudinal angle theta_T
+Generate a guess for the invariant curve of size `d_dim`, parametrized by `N` points, about a
+fixed point on a periodic orbit at longitudinal angle `theta_T`
 """
 function linear_invariant_curve_2d(po::PeriodicOrbit, theta_T::Real, N::Int, d_dim::Real; ϵ=1e-4)
     ths =  LinRange(0, 2pi, N)

@@ -62,6 +62,11 @@ include("Targeting/Constraints/tofconstraint.jl")
 export TOFConstraint
 export td, tvec
 
+include("Targeting/Constraints/invariance_constraint_2d.jl")
+export InvarianceConstraint2D
+export u0, xstar, strobetime, rotationangle, kvec, thvec, Dmat, Qmat
+export invariant_rotation
+
 include("Orbits/trajectory.jl")
 export Trajectory
 export x0, tspan, solvec, isperiodic, iscontinuous, stm

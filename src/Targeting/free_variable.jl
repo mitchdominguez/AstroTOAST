@@ -221,7 +221,11 @@ Overload the show operator to pretty print the FreeVariable to the console.
 function Base.show(io::IO, ::MIME"text/plain", fv::FreeVariable)
     print(io, "Free Variable: $(name(fv))\n")
     print(io, "- Length: $(length(fv))\n")
-    print(io, "- Value: $(tofullvector(fv))\n")
+    if full_length(fv) > 20
+        print(io, "- Value: [...]\n")
+    else
+        print(io, "- Value: $(tofullvector(fv))\n")
+    end
     print(io, "- Removed indices: $(removeinds(fv))\n")
 end
 

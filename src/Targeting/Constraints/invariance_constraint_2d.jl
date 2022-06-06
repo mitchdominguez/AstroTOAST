@@ -73,6 +73,13 @@ Return the invariant curve points as a vecotr
 u0vec(ic::InvarianceConstraint2D) = tofullvector(u0(ic))
 
 """
+    u0vec(ic::InvarianceConstraint2D)
+
+Return the invariant curve points as a vecotr
+"""
+u0svec(ic::InvarianceConstraint2D) = tofullsvector(u0(ic))
+
+"""
     xstar(ic::InvarianceConstraint2D)
 
 Return the fixed point of the invariant curve
@@ -84,14 +91,28 @@ xstar(ic::InvarianceConstraint2D) = ic.xstar
 
 Return the stroboscopic period of the torus to be targeted
 """
-strobetime(ic::InvarianceConstraint2D) = tofullvector(ic.T)[1]
+strobetime(ic::InvarianceConstraint2D) = ic.T
+
+"""
+    tof(ic::InvarianceConstraint2D)
+
+Return the stroboscopic period of the torus to be targeted
+"""
+tof(ic::InvarianceConstraint2D) = tofullvector(ic.T)[1]
 
 """
     rotationangle(ic::InvarianceConstraint2D)
 
 Return the angle by which the invariant curve will rotate after one period T
 """
-rotationangle(ic::InvarianceConstraint2D) = tofullvector(ic.ρ)[1]
+rotationangle(ic::InvarianceConstraint2D) = ic.ρ
+
+"""
+    rotationangle(ic::InvarianceConstraint2D)
+
+Return the angle by which the invariant curve will rotate after one period T
+"""
+rhoval(ic::InvarianceConstraint2D) = tofullvector(ic.ρ)[1]
 
 """
     full_length(ic::InvarianceConstraint2D)
@@ -177,16 +198,17 @@ time period
 """
 function propagate_invariant_curve(ic::InvarianceConstraint2D)
     N = numels(ic)
-    u0 = u0vec(ic)
-    utr = similar(u0)
+    u0 = u0svec(ic)
+    ut = similar(u0)
+    dim = dimension(dm(ic))
 
     for i = 1:N
-        q0 = u0[6*i-5:6*i] + xstar(ic) # Full state including fixed point
-        sol = solve(dm(ic), q0, strobetime(ic)) # Propagate state forwards
-        utr[6*i-5:6*i] = sol[end]-xstar(ic) # Remove fixed point from propagated answer
+        q0 = u0[dim*i-(dim-1):dim*i] + xstar(ic) # Full state including fixed point
+        sol = solve(dm(ic), SVector(q0...), tof(ic)) # Propagate state forwards
+        ut[dim*i-(dim-1):dim*i] = sol[end]-xstar(ic) # Remove fixed point from propagated answer
     end
 
-    return utr
+    return Vector(ut)
 end
 
 """
@@ -195,15 +217,110 @@ end
 Evaluate the invariance constraint
 """
 function evalconstraint(ic::InvarianceConstraint2D)
-    # # Calculate dQdrho
-    # dQdrho = Diagonal(vec(k))*(-im*Q)
-    # # Calculate partial of rotation matrix wrt rho
-    # dRdrho = D\dQdrho*D
-
     # Rotation matrix
-    R_nr = invariant_rotation(ic, -rotationangle(ic))
+    R_nr = invariant_rotation(ic, -rhoval(ic))
     
-    utr = kron(R_nr, I(6))*propagate_invariant_curve(ic)
+    utr = kron(R_nr, I(dimension(dm(ic))))*propagate_invariant_curve(ic)
     
     return utr - tofullvector(u0(ic))
+end
+
+"""
+    partials(ic::InvarianceConstraint2D, fv::FreeVariable)
+
+Return the matrix of partial derivatives for the partial of the constraint with
+respect to the given free variable
+"""
+function partials(ic::InvarianceConstraint2D, fv::FreeVariable{D,T}) where {D,T}
+    if fv == u0(ic)
+        # Partial with respect to the invariant curve states
+        return __dIC_du0{D}()
+
+    elseif fv == strobetime(ic) && active(strobetime(ic))
+        # Partial with respect to stroboscopic time
+        return __dIC_dT{D}()
+
+    elseif fv == rotationangle(ic1) && active(rotationangle(ic))
+        # Partial with respect to rotation angle
+        return __dIC_drho{D}()
+
+    else
+        # No partial
+        return __NP{full_length(fv)}()
+    end
+end
+
+"""
+    __dIC_du0
+
+Partial of the invariance constraint with respect to the states on the invariant curve
+"""
+struct __dIC_du0{D} <: Partial{D} end
+function (::__dIC_du0{C})(ic::InvarianceConstraint2D{R}) where {R,C}
+    N = numels(ic)
+    dim = dimension(dm(ic))
+    u0 = u0svec(ic)
+    phitilde = zeros(dim*N, dim*N) # Φ_tilde
+    Itilde = I(dim*N)
+    R_nr = invariant_rotation(ic, -rhoval(ic))
+
+    for i = 1:N
+        q0 = u0[dim*i-(dim-1):dim*i] + xstar(ic) # Full state including fixed point
+        sol = tangent_solve(dm(ic), SVector(q0...), tof(ic)) # Propagate state forwards
+        phitilde[dim*i-(dim-1):dim*i,dim*i-(dim-1):dim*i] = sol[end][:,2:end] # Remove fixed point from propagated answer
+    end
+
+    return kron(R_nr, I(dim))*phitilde - Itilde
+end
+
+"""
+    __dIC_dT
+
+Partial of the invariance constraint with respect to the states on the invariant curve
+"""
+struct __dIC_dT{D} <: Partial{D} end
+function (::__dIC_dT{C})(ic::InvarianceConstraint2D{R}) where {R,C}
+    N = numels(ic)
+    dim = dimension(dm(ic))
+    u0 = u0vec(ic)
+    udottr = similar(u0)
+
+    for i = 1:N
+        q0 = u0[dim*i-(dim-1):dim*i] + xstar(ic) # Full state including fixed point
+        sol = solve(dm(ic), SVector(q0...), tof(ic)) # Propagate state forwards
+        udottr[dim*i-(dim-1):dim*i] = dm(ic)(sol[end])
+    end
+
+    return udottr
+end
+
+"""
+    __dIC_drho
+
+Partial of the invariance constraint with respect to the states on the invariant curve
+"""
+struct __dIC_drho{D} <: Partial{D} end
+function (::__dIC_drho{C})(ic::InvarianceConstraint2D{R}; tol=1e-14) where {R,C}
+    N = numels(ic)
+    D = Dmat(N)
+    Q = Qmat(N, -rhoval(ic))
+    k = kvec(N)
+    th = thvec(N)
+    dim = dimension(dm(ic))
+
+    # Calculate dQdrho
+    dQdrho = Diagonal(vec(k))*(-im*Q)
+    # Calculate partial of rotation matrix wrt rho
+    dRdrho = D\dQdrho*D
+
+    # Remove imaginary values below a certain tolerance
+    maxval, maxind = findmax(x->abs(x), imag(dRdrho))
+    
+    if maxval < tol
+        dRdrho = real(dRdrho)
+    else
+        throw(ErrorException("Unacceptable imaginary numerical error"))
+    end
+
+    return kron(dRdrho, I(dim))*propagate_invariant_curve(ic)
 end

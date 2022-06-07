@@ -25,7 +25,7 @@ struct InvarianceConstraint2D{D} <: Constraint{D}
 
             # Check that N is odd
             if iseven(N)
-                throw(ExceptionError("There must be an odd number of nodes in the invariant curve"))
+                throw(InvalidStateException("There must be an odd number of nodes in the invariant curve"))
             end
 
             # Check that rho and T are both 1 dimensional
@@ -186,7 +186,7 @@ function invariant_rotation(ic::InvarianceConstraint2D, ρ::Float64; tol=1e-15)
     if maxval < tol
         R_nr = real(R_nr)
     else
-        throw(ErrorException("Unacceptable imaginary numerical error"))
+        throw(InvalidStateException("Unacceptable imaginary numerical error"))
     end
 end
 
@@ -319,7 +319,7 @@ function (::__dIC_drho{C})(ic::InvarianceConstraint2D{R}; tol=1e-14) where {R,C}
     if maxval < tol
         dRdrho = real(dRdrho)
     else
-        throw(ErrorException("Unacceptable imaginary numerical error"))
+        throw(InvalidStateException("Unacceptable imaginary numerical error"))
     end
 
     return kron(dRdrho, I(dim))*propagate_invariant_curve(ic)

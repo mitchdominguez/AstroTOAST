@@ -102,7 +102,7 @@ respect to the given free variable
 """
 function partials(tofc::TOFConstraint, fv::FreeVariable{D,T}) where {D,T}
     if fv in tvec(tofc)
-        return __dTOFC_dTi{D}()
+        return __dTOFC_dTi{full_length(fv)}()
     else
         # No partial
         # return __NP{D}()

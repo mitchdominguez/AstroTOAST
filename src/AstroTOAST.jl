@@ -64,8 +64,11 @@ export td, tvec
 
 include("Targeting/Constraints/invariance_constraint_2d.jl")
 export InvarianceConstraint2D
-export u0, xstar, strobetime, rotationangle, kvec, thvec, Dmat, Qmat
-export invariant_rotation
+export u0, u0vec, u0svec, xstar, strobetime, rotationangle, rhoval, kvec, thvec, Dmat, Qmat
+export invariant_rotation, propagate_invariant_curve
+
+include("Targeting/Constraints/jacobi_constraint.jl")
+export JacobiConstraint
 
 include("Orbits/trajectory.jl")
 export Trajectory

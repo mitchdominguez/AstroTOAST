@@ -17,8 +17,17 @@ struct ContinuityConstraint{D} <: Constraint{D}
     dm::DynamicalModel
     removeinds::Vector{Int}
 
-    function ContinuityConstraint(x1, x2, T, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+    # function ContinuityConstraint(x1, x2, T, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+    function ContinuityConstraint(x1, x2, T, dm; includeinds = Vector(1:dimension(dm)))
+
+
         if full_length(x1) == full_length(x2) == dimension(dm)
+
+            # Find which indices to remove. Note that because of how
+            # setdiff works, it is impossible to make rminds have 
+            # indices that are outside the bounds of x1 or x2
+            rminds = setdiff(Vector(1:dimension(dm)), includeinds)
+
             rmlength = Base.length(rminds)
             vallength = full_length(x1)
 

@@ -22,7 +22,10 @@ struct FreeVariable{D,T}
         # append!(valvec,value)
         # new{Base.length(value), eltype(value)}(name, valvec, active) 
     # end
-    function FreeVariable(name::String, value, removeinds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+    function FreeVariable(name::String, value; includeinds = Vector(1:length(value)))
+
+        removeinds = setdiff(Vector(1:length(value)), includeinds)
+
         # Determine the dimension of the FreeVariable using value and removeinds
         rmlength = Base.length(removeinds)
         vallength = Base.length(value)

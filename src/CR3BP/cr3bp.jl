@@ -69,7 +69,7 @@ struct Cr3bpModel{T, DQ, P} <: AutonomousDynamicalModel{6, false}
             DomainError(μ, "mass ratio must be on interval [0, 1]") |> throw
         end
         new{T,DQ,P}(μ, dquants, primaries)
-        # new{T,DQ,P}(0.0123, dquants, primaries)
+        # new{T,DQ,P}(0.012150585350562453, dquants, primaries) # DHRUV
     end
 end
 

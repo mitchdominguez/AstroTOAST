@@ -36,7 +36,7 @@ targ = Targeter(xv, fx, maxiter, tol);
 
 # Target initial PO
 target(targ);
-println(tofullvector(fx))
+# println(tofullvector(fx))
 
 # Range of periods to target
 tees = LinRange(tofullvector(T1)[1],Td,10)
@@ -54,8 +54,25 @@ for i = 1:length(tees)
     push!(Xhist,Xhist_temp)
     push!(err,err_temp)
 
-    # println(tofullvector(fx))
+    if maximum(map(x->abs(x), tofullvector(fx))) > tol*10
+        throw(ErrorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
+    end
+
 end
 
 halo21_traj = Trajectory(model, [X1], [T1])
-halo21 = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos")
+halo21 = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos");
+
+# Make θ_T=0 be at perilune
+update!(X1, halo21(pi).*[1,0,1,0,1,0])
+
+Xhist_temp2, err_temp2 = target(targ)
+push!(Xhist,Xhist_temp2)
+push!(err,err_temp2)
+if maximum(map(x->abs(x), tofullvector(fx))) > tol*10
+    throw(ErrorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
+end
+
+# Re-save the trajectory and periodic orbit object
+halo21_traj = Trajectory(model, [X1], [T1])
+halo21 = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos");

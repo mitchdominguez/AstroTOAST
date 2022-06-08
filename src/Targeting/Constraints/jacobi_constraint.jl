@@ -14,11 +14,12 @@ is the desired Jacobi constant.
 struct JacobiConstraint{D} <: Constraint{D}
     X::FreeVariable
     JCd::Real
+    refpt::Vector{Float64}
     model::DynamicalModel
     removeinds::Vector{Int}
 
     # Constructor
-    function JacobiConstraint(model::Cr3bpModel, JCd, X::FreeVariable)
+    function JacobiConstraint(model::Cr3bpModel, JCd, X::FreeVariable; refpt::Vector{Float64}=zeros(dimension(model)))
         μ = mass_ratio(model)
         dim = dimension(model)
 
@@ -27,6 +28,10 @@ struct JacobiConstraint{D} <: Constraint{D}
             throw(InvalidStateException("JCd must be nonnegative", :JCd))
         end
 
+        # Check that the reference point is the same dimension as dim
+        if length(refpt) != dim
+            throw(DimensionMismatch("Invalid reference point"))
+        end
 
         if full_length(X)%dim != 0
             throw(DimensionMismatch("All FreeVariables passed into the
@@ -35,7 +40,7 @@ struct JacobiConstraint{D} <: Constraint{D}
         end # Check X length
 
 
-        new{1}(X, JCd, model, Vector{Int}([]))
+        new{1}(X, JCd, refpt, model, Vector{Int}([]))
     end
 
     JacobiConstraint() = new{1}()
@@ -63,6 +68,13 @@ Return the dynamical model of the Jacobi constant constraint
 dm(jc::JacobiConstraint) = jc.model
 
 """
+    refpt(jc::JacobiConstraint)
+
+Return the dynamical model of the Jacobi constant constraint
+"""
+refpt(jc::JacobiConstraint) = jc.refpt
+
+"""
     full_length(jc::JacobiConstraint)
 
 Return the full length of the JacobiConstraint
@@ -79,15 +91,16 @@ function evalconstraint(jc::JacobiConstraint)
     X = xvar(jc)
     model = dm(jc)
     D = dimension(model)
+    xs = refpt(jc) 
 
     N = Int(full_length(X)/D)
     jcvec = Vector{Float64}(undef, N)
     for i = 1:N
-        jcvec[i] = jacobi_constant(model, X[D*i-(D-1):D*i])
+        jcvec[i] = jacobi_constant(model, X[D*i-(D-1):D*i]+xs)
     end
     jcv = vcat(jcvec...)
 
-    return sum(jcv)/length(jcv) - JCd
+    return [sum(jcv)/length(jcv) - JCd]
 end
 
 """
@@ -118,12 +131,13 @@ function (::__dJC_dX{C})(jc::JacobiConstraint{R}) where {R,C}
     model = dm(jc)
     D = dimension(model)
     N = Int(full_length(X)/D)
+    xs = refpt(jc) 
 
     outmat = zeros(R,C)
 
     for i = 1:N
         r = D*i-(D-1):D*i
-        outmat[r] = 2*vcat(pseudopotential_gradient(model, X[r]), -X[r[end-2:end]])
+        outmat[r] = (2/N)*vcat(pseudopotential_gradient(model, X[r]+xs), -(X[r[end-2:end]]+xs[end-2:end]))
     end
 
     return outmat

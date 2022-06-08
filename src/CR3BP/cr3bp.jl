@@ -70,6 +70,7 @@ struct Cr3bpModel{T, DQ, P} <: AutonomousDynamicalModel{6, false}
         end
         new{T,DQ,P}(μ, dquants, primaries)
         # new{T,DQ,P}(0.012150585350562453, dquants, primaries) # DHRUV
+        # new{T,DQ,P}(0.01215, dquants, primaries) # OLD MITCH
     end
 end
 

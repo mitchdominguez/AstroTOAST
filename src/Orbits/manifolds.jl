@@ -102,7 +102,7 @@ fixed point on a periodic orbit at longitudinal angle `theta_T`
 """
 function linear_invariant_curve_2d(po::PeriodicOrbit, theta_T::Real, N::Int, d_dim::Real; ϵ=1e-4)
     ths =  LinRange(0, 2pi, N)
-    lam, vee = center_eigs(po, 0; ϵ=ϵ)
+    lam, vee = center_eigs(po, theta_T; ϵ=ϵ)
 
     num_modes = Int(length(lam)/2)
 

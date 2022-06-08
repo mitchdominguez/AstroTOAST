@@ -101,7 +101,7 @@ end
 Solve the targeting problem, specifying maximum number of iterations,
 convergence tolerance, and attenuation factor
 """
-function target(T::Targeter, maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64, att=1.0::Float64)
+function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64, att=1.0::Float64)
     # Save a copy of the initial value
     Xhist = Vector{XVector}()
     push!(Xhist, copy(X(T)))

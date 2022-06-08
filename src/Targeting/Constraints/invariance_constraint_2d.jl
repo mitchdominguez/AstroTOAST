@@ -174,7 +174,7 @@ Qmat(N::Int, ρ::Float64) = Diagonal(vec(exp.(im*kvec(N)*ρ)))
 Calculate the rotation matrix for rotating an angle `ρ` about the
 invariant curve
 """
-function invariant_rotation(ic::InvarianceConstraint2D, ρ::Float64; tol=1e-15)
+function invariant_rotation(ic::InvarianceConstraint2D, ρ::Float64; tol=DEFAULT_CONVERGENCE_TOL)
     N = numels(ic)
     D = Dmat(N)
     Q = Qmat(N, ρ)
@@ -186,7 +186,9 @@ function invariant_rotation(ic::InvarianceConstraint2D, ρ::Float64; tol=1e-15)
     if maxval < tol
         R_nr = real(R_nr)
     else
-        throw(InvalidStateException("Unacceptable imaginary numerical error"))
+        println(maxval)
+        println(maxind)
+        throw(InvalidStateException("Unacceptable imaginary numerical error",:R_nr))
     end
 end
 
@@ -240,7 +242,7 @@ function partials(ic::InvarianceConstraint2D, fv::FreeVariable{D,T}) where {D,T}
         # Partial with respect to stroboscopic time
         return __dIC_dT{D}()
 
-    elseif fv == rotationangle(ic1) && active(rotationangle(ic))
+    elseif fv == rotationangle(ic) && active(rotationangle(ic))
         # Partial with respect to rotation angle
         return __dIC_drho{D}()
 
@@ -276,7 +278,7 @@ end
 """
     __dIC_dT
 
-Partial of the invariance constraint with respect to the states on the invariant curve
+Partial of the invariance constraint with respect to the stroboscopic time
 """
 struct __dIC_dT{D} <: Partial{D} end
 function (::__dIC_dT{C})(ic::InvarianceConstraint2D{R}) where {R,C}
@@ -297,10 +299,10 @@ end
 """
     __dIC_drho
 
-Partial of the invariance constraint with respect to the states on the invariant curve
+Partial of the invariance constraint with respect to the twist angle
 """
 struct __dIC_drho{D} <: Partial{D} end
-function (::__dIC_drho{C})(ic::InvarianceConstraint2D{R}; tol=1e-14) where {R,C}
+function (::__dIC_drho{C})(ic::InvarianceConstraint2D{R}; tol=DEFAULT_CONVERGENCE_TOL) where {R,C}
     N = numels(ic)
     D = Dmat(N)
     Q = Qmat(N, -rhoval(ic))

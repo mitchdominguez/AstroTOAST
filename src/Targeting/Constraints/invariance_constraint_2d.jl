@@ -17,7 +17,7 @@ struct InvarianceConstraint2D{D} <: Constraint{D}
     dm::DynamicalModel
     removeinds::Vector{Int}
 
-    function InvarianceConstraint2D(u0, xstar, T, ρ, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
+    function InvarianceConstraint2D(u0, xstar, T, ρ, dm; rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
         dim = dimension(dm)
 
         if full_length(u0)%dim == 0 && length(xstar) == dim

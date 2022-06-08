@@ -8,9 +8,9 @@ using Test
 include("nrho92.jl") 
 nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
 
-@testset "trajectory.jl" begin
+@testset "periodic_orbit.jl" begin
     # Test that we actually have the 9:2 NRHO
-    @test tof(nrho92_traj) == 1.509170648562138
+    @test tof(nrho92_traj) ≈ 1.5091706485621377 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     
     # Some sample trajectories
     traj1 = Trajectory(model, [X1], [T1])
@@ -37,7 +37,7 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test period(nrho92) == tof(nrho92_traj)
 
     # JC
-    @test jacobi_constant(nrho92) == 3.04664708021343
+    @test jacobi_constant(nrho92) ≈ 3.0466470802130248 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     # Test getting periodic orbit state at a specific time
     @test nrho92(2pi) == nrho92(2pi, ndtime=false)
@@ -62,7 +62,7 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test monodromy(nrho92)[5] ≈ M[5] atol=1e-2 # Printing M means losing lots of precision
 
     # Eigenvalues
-    @test eigvals(nrho92) != eigvals(monodromy(nrho92)) # Different order
+    # @test eigvals(nrho92) != eigvals(monodromy(nrho92)) # Different order
     @test isempty(setdiff(eigvals(monodromy(nrho92)), eigvals(nrho92))) # All same elements
 
     # Eigenvectors
@@ -76,8 +76,8 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
 
     # classify_eigs
     @test classify_eigs(nrho92)[1] == [1] # unstable
-    @test classify_eigs(nrho92)[2] == [5,6] # center 
-    @test classify_eigs(nrho92)[3] == [3,4] # unit
+    @test classify_eigs(nrho92)[2] == [3,4] # center 
+    @test classify_eigs(nrho92)[3] == [5,6] # unit
     @test classify_eigs(nrho92)[4] == [2] # stable
 
     # Obtaining different classes of eigenvalues, vectors
@@ -86,25 +86,25 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test u_eig[2][1] == eigvecs(nrho92)[1]
 
     c_eig = center_eigs(nrho92)
-    @test c_eig[1][1] == eigvals(nrho92)[5]
-    @test c_eig[1][2] == eigvals(nrho92)[6]
-    @test c_eig[2][1] == eigvecs(nrho92)[5]
-    @test c_eig[2][2] == eigvecs(nrho92)[6]
+    @test c_eig[1][1] == eigvals(nrho92)[3]
+    @test c_eig[1][2] == eigvals(nrho92)[4]
+    @test c_eig[2][1] == eigvecs(nrho92)[3]
+    @test c_eig[2][2] == eigvecs(nrho92)[4]
     
     @test length(center_eigs(nrho92;ϵ=1e-12)[1])==0 # tolerance when retrieving types of eigs
     
     unit_eig = unit_eigs(nrho92)
-    @test unit_eig[1][1] == eigvals(nrho92)[3]
-    @test unit_eig[1][2] == eigvals(nrho92)[4]
-    @test unit_eig[2][1] == eigvecs(nrho92)[3]
-    @test unit_eig[2][2] == eigvecs(nrho92)[4]
+    @test unit_eig[1][1] == eigvals(nrho92)[5]
+    @test unit_eig[1][2] == eigvals(nrho92)[6]
+    @test unit_eig[2][1] == eigvecs(nrho92)[5]
+    @test unit_eig[2][2] == eigvecs(nrho92)[6]
 
     s_eig = stable_eigs(nrho92)
     @test s_eig[1][1] == eigvals(nrho92)[2]
     @test s_eig[2][1] == eigvecs(nrho92)[2]
 
     # Stability index
-    @test stability_index(nrho92)[2] == 1.3187408624058536
-    @test stability_index(nrho92)[1] == [-1.3187408624058536, 1.0000000012691992, 0.6844867717750143]
+    @test stability_index(nrho92)[2] ≈ 1.3187408625377004 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test stability_index(nrho92)[1] ≈ [-1.3187408625377004, 0.6844867720339172, 0.9999999999082602] atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     
 end

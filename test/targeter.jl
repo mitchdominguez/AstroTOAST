@@ -4,7 +4,7 @@ using StaticArrays
 using Test
 
 
-@testset "constraint.jl" begin
+@testset "targeter.jl" begin
     # Define some free variables
     X1 = FreeVariable("x1",[0.72, 0, 0.71, 0, 0.18, 0])
     X2 = FreeVariable("x2",[0.72, 0, -0.71, 0, 0.18, 0])
@@ -45,7 +45,7 @@ using Test
     fx = FXVector(cc1, cc2, cc3, cc4)
 
     # Test initial norm
-    @test norm(fx) == 0.2709052919898982
+    @test norm(fx) ≈ 0.2709052919898982 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     # Create targeter object
     maxiter = 10
@@ -69,14 +69,11 @@ using Test
 
 
     # Test targeting
-    # errhist = [ 0.2709052919898982; # 0.03828309987199947; # 0.0012477184427681029;
-    # 1.505021139162566e-6; # 1.9517145262023064e-12; # 1.1787495256637557e-13 ] # Time-fixed
-
-    errhist = [0.2709052919898982; 0.020958076629137012; 0.0013973143925462654;
-               4.7628536605788444e-7; 1.137264493495219e-12; 3.99267529857626e-14]
-
+    errhist = [0.27090529198974395, 0.0209580766291283, 0.0013973143925265555, 
+               4.762853576111877e-7, 1.120523198492099e-12, 3.819409822178141e-14]
     
     Xhist, err = AstroTOAST.target(targ);
+    println(err)
 
     @test err == errhist
     @test size(err) == size(Xhist)

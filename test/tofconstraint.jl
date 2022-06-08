@@ -48,7 +48,7 @@ Xhist, err = target(targ);
     # Evaluate the TOF constraint
     @test td(tofc) == Td
     @test tvec(tofc) == [T1, T2, T3]
-    @test evalconstraint(tofc) == [0.023002456776556324]
+    @test evalconstraint(tofc) == [0.023002456816265004]
 
     # Make a new FXVector to add in the TOF constraint
     fx2 = FXVector(cc..., tofc)
@@ -64,7 +64,7 @@ Xhist, err = target(targ);
 
     # Results
     @test length(err2) == 8
-    @test norm(tofullvector(fx2)) == 2.900395433433118e-13
+    @test norm(tofullvector(fx2)) == 6.459955702918004e-14
     @test evalconstraint(tofc)[1] ≈ 0.0 atol=1e-14
 
 

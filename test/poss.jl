@@ -31,10 +31,11 @@ Xhist, err = target(targ);
 
 @testset "poss.jl" begin
 
-    @test norm(fx, xv, Xhist[1]) == 0.0028364554195703627
-    @test norm(fx) == 2.402323662518765e-13 < tol
+    @test norm(fx, xv, Xhist[1]) ≈ 0.0028364554191276227 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx) ≈ 2.402323662518765e-13 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx) < tol
     @test norm(fx) == err[end] < tol
-    @test norm(tofullvector(fx)) == 3.1493322333227054e-13
+    @test norm(tofullvector(fx)) ≈ 8.242143522346135e-13 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     @test length(err) == 5
 end

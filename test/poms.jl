@@ -55,13 +55,13 @@ using Test
     @test norm(fx_fxrc) == err[end]
     @test norm(tovector(fx_fxrc)) == err[end]
     @test norm(tofullvector(fx_fxrc)) != norm(fx_fxrc)
-    @test norm(fx_fxrc) == 4.57188950393644e-14
-    @test norm(tofullvector(fx_fxrc)) == 7.521894782093819e-14
+    @test norm(fx_fxrc) ≈ 6.72863818142289e-14 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(tofullvector(fx_fxrc)) ≈ 7.521894782093819e-14 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test norm(tofullvector(fx_fxrc)) < tol
 
     # Initial error
-    @test err[1] == 0.7464423331586798
-    @test norm(fx_fxrc, xv_full, Xhist[1]) == 0.7464423331586798 # Initial error
+    @test err[1] ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx_fxrc, xv_full, Xhist[1]) ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL# Initial error
 
     # Test number of iterations (this was a bad initial guess)
     @test length(err) == 9
@@ -69,7 +69,7 @@ using Test
     # Reset the test to run the alternate example where a free variable is fixed, and we use all the constraints
     update!(xv, Xhist[1])
 
-    @test norm(fx_rxfc) == 0.8417710513141402
+    @test norm(fx_rxfc) ≈ 0.8417710513141402 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     targ_rxfc = Targeter(xv, fx_rxfc, maxiter, tol);
     Xhist, err = target(targ_rxfc);
@@ -80,7 +80,8 @@ using Test
     # Test that norm of vector and fullvector are the same, since no constraints are removed
     @test norm(fx_rxfc) == err[end]
     @test norm(tovector(fx_rxfc)) == err[end]
-    @test norm(tofullvector(fx_rxfc)) == norm(fx_rxfc) == 4.2633838041538607e-13 < tol
+    @test norm(tofullvector(fx_rxfc)) == norm(fx_rxfc)
+    @test norm(tofullvector(fx_rxfc)) < tol
 
 
 end

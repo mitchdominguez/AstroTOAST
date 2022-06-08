@@ -12,7 +12,7 @@ using Test
 
     # Define some free variables
     # X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [2,4,6]) # fix x0, y0, xdot0, zdot0
-    X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], [1]) # fix y0
+    X1 = FreeVariable("x1", [0.987, 0, 0.008, 0, 1.667, 0], includeinds=2:6) # fix y0
     X2 = FreeVariable("x2", [0.988, 0.023, -0.009,0.079, 0.488, -0.802])
     X3 = FreeVariable("x3", [1.021, 0.011, -0.178,0.015, -0.100, -0.058])
 
@@ -29,7 +29,7 @@ using Test
     # Define constraints
     #   removing states in X, keeping all constraints
     cc_rxfc = Vector{ContinuityConstraint}()
-    push!(cc_rxfc, ContinuityConstraint(X1, X2, T1, model, []))
+    push!(cc_rxfc, ContinuityConstraint(X1, X2, T1, model))
     push!(cc_rxfc, ContinuityConstraint(X2, X3, T2, model))
     push!(cc_rxfc, ContinuityConstraint(X3, X1, T3, model))
 
@@ -37,7 +37,7 @@ using Test
     cc_fxrc = Vector{ContinuityConstraint}()
     push!(cc_fxrc, ContinuityConstraint(X1_full, X2, T1, model))
     push!(cc_fxrc, ContinuityConstraint(X2, X3, T2, model))
-    push!(cc_fxrc, ContinuityConstraint(X3, X1_full, T3, model, 5)) # Remove ydot constraint
+    push!(cc_fxrc, ContinuityConstraint(X3, X1_full, T3, model, includeinds=[1,2,3,4,6])) # Remove ydot constraint
 
     # Define FXVector
     fx_rxfc = FXVector(cc_rxfc...) # FX vector for rm in X, full FX

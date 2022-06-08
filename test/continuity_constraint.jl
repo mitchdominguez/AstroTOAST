@@ -10,7 +10,7 @@ using Test
     X2 = FreeVariable("x2", [0.95, 0.05, 0, 0.48, -0.2, 0])
     X3 = FreeVariable("x2", [0.85, 0.85, 3, 1.48, -0.9, -2])
     T = FreeVariable("T", 2.0)
-    Tf = FreeVariable("T", 2.0, 1) # inactive time
+    Tf = FreeVariable("T", 2.0, includeinds=[]) # inactive time
 
     # Define a free variable vector
     xv = XVector(X1, X2, T)

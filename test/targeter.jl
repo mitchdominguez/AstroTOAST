@@ -11,7 +11,7 @@ using Test
     X3 = FreeVariable("x3",[0.72, 0, 0.71, 0, 0.18, 0])
     X4 = FreeVariable("x4",[0.72, 0, -0.71, 0, 0.18, 0])
     X5 = FreeVariable("x5",[0.72, 0, 0.71, 0, 0.18, 0])
-    T = FreeVariable("T", 3.0, 1) # inactive time
+    T = FreeVariable("T", 3.0, includeinds=[]) # inactive time
     # T = FreeVariable("T", 3.0) # active time
     Tvec = Vector{FreeVariable}()
     push!(Tvec,FreeVariable("T1", 3.0))# active time

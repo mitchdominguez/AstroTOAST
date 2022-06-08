@@ -9,14 +9,14 @@ using Test
 model = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
 
 # Define some free variables
-X1 = FreeVariable("x1", [1.178977343109523, 0, -0.042926770700000, 0, -0.165685370741522, 0], [2,4,6]) # 2:1 Halo
-T1 = FreeVariable("T1", 3.400338564669278, 1)
+X1 = FreeVariable("x1", [1.178977343109523, 0, -0.042926770700000, 0, -0.165685370741522, 0], includeinds=[1,3,5]) # 2:1 Halo
+T1 = FreeVariable("T1", 3.400338564669278, includeinds=[])
 
 # Define XVector
 xv = XVector(X1, T1)
 
 # Define constraints
-cc = ContinuityConstraint(X1,X1,T1,model,[1,3,5]) # constrain s.t we have a perpendicular crossing, must constrain y, xdot, zdot
+cc = ContinuityConstraint(X1,X1,T1,model,includeinds=[2,4,6]) # constrain s.t we have a perpendicular crossing, must constrain y, xdot, zdot
 
 # Define FXVector
 fx = FXVector(cc) # FX vector for rm in X, full FX
@@ -43,13 +43,13 @@ end
 ## Test an overconstrained example. In this case, I am fixing both x0 and period, which overconstrains the system
 
 # Define some free variables
-X1_oc = FreeVariable("x1", [1.178977343109523, 0, -0.042926770700000, 0, -0.165685370741522, 0], [1,2,4,6]) # 2:1 Halo
+X1_oc = FreeVariable("x1", [1.178977343109523, 0, -0.042926770700000, 0, -0.165685370741522, 0], includeinds=[3,5]) # 2:1 Halo
 
 # Define XVector
 xv_oc = XVector(X1_oc, T1)
 
 # Define constraints
-cc_oc = ContinuityConstraint(X1_oc,X1_oc,T1,model,[1,3,5]) # constrain s.t we have a perpendicular crossing, must constrain y, xdot, zdot
+cc_oc = ContinuityConstraint(X1_oc,X1_oc,T1,model,includeinds=[2,4,6]) # constrain s.t we have a perpendicular crossing, must constrain y, xdot, zdot
 
 # Define FXVector
 fx_oc = FXVector(cc_oc) # FX vector for rm in X, full FX

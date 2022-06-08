@@ -26,7 +26,7 @@ xv = XVector(X1, X2, X3, T1, T2, T3)
 cc = Vector{ContinuityConstraint}()
 push!(cc, ContinuityConstraint(X1, X2, T1, model))
 push!(cc, ContinuityConstraint(X2, X3, T2, model))
-push!(cc, ContinuityConstraint(X3, X1, T3, model, 5)) # Remove ydot constraint
+push!(cc, ContinuityConstraint(X3, X1, T3, model, includeinds=[1,2,3,4,6])) # Remove ydot constraint
 
 # Define FXVector
 fx = FXVector(cc...) # FX vector for full X, rm in FX

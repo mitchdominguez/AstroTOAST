@@ -17,9 +17,11 @@ using Test
     X1 = FreeVariable("x1",x1vec)
     X2 = FreeVariable("x2",[1.0,2.0,3.0,4.0,5.0,6.0])
     X3 = FreeVariable("x3",[1,2,3,4,5,6,7,8,9])
-    X4 = FreeVariable("x4",[0.72, 0, 0.71, 0, 0.18, 0],[2,4,6])
-    X5 = FreeVariable("x5",[0.72, -1, 0.71, 0.39, 0.18, 0.46],3)
-    T = FreeVariable("T",2.0,1)
+    @test_throws MethodError X4 = FreeVariable("x4",[0.72, 0, 0.71, 0, 0.18, 0],[2,4,6])
+    @test_throws MethodError X5 = FreeVariable("x5",[0.72, -1, 0.71, 0.39, 0.18, 0.46],3)
+    X4 = FreeVariable("x4", [0.72, 0, 0.71, 0, 0.18, 0], includeinds = [1,3,5])
+    X5 = FreeVariable("x5", [0.72, -1, 0.71, 0.39, 0.18, 0.46], includeinds = [1,2,4,5,6])
+    T = FreeVariable("T", 2.0, includeinds=[])
 
     # removeinds
     @test removeinds(X0) == []

@@ -28,7 +28,7 @@ xv = XVector(X1, X2, X3, T1, T2, T3)
 cc = Vector{ContinuityConstraint}()
 push!(cc, ContinuityConstraint(X1, X2, T1, model))
 push!(cc, ContinuityConstraint(X2, X3, T2, model))
-push!(cc, ContinuityConstraint(X3, X1, T3, model, 5)) # Remove ydot constraint
+push!(cc, ContinuityConstraint(X3, X1, T3, model, includeinds=[1,2,3,4,6])) # Remove ydot constraint
 # push!(cc, ContinuityConstraint(X3, X1, T3, model, [1,5])) # Remove ydot constraint
 
 # Define FXVector
@@ -62,7 +62,7 @@ update!(X3, po1(tofullvector(T1)[1] + tofullvector(T2)[1] + dt))
 # println("After updating free variables")
 # println(norm(tofullvector(fx)))
 
-X1_fix = FreeVariable("x1f", tofullvector(X1), [2,4,6])
+X1_fix = FreeVariable("x1f", tofullvector(X1), includeinds=[1,3,5])
 
 # New XVector
 xv2 = XVector(X1_fix, X2, X3, T1, T2, T3)
@@ -74,7 +74,7 @@ tofc = TOFConstraint(Td, T1, T2, T3)
 
 # Define a new set of continuity constraints
 cc2 = Vector{ContinuityConstraint}()
-push!(cc2, ContinuityConstraint(X1_fix, X2, T1, model,[1,3,5]))
+push!(cc2, ContinuityConstraint(X1_fix, X2, T1, model,includeinds=[2,4,6]))
 push!(cc2, ContinuityConstraint(X2, X3, T2, model))
 push!(cc2, ContinuityConstraint(X3, X1_fix, T3, model)) # Remove ydot constraint
 # push!(cc2, ContinuityConstraint(X3, X1, T3, model, [1,5])) # Remove ydot constraint

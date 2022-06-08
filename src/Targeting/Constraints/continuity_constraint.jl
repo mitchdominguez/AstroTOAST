@@ -114,8 +114,12 @@ Return the matrix of partial derivatives for the partial of the constraint with
 respect to the given free variable
 """
 function partials(cc::ContinuityConstraint, fv::FreeVariable{D,T}) where {D,T}
-    if fv == x1(cc)
-        # Partial with respect to X1(0)
+    if fv == x1(cc) == x2(cc)
+        # Constraint takes the form X1(T) - X1(0)
+        # Note that this is the single shooter case
+        return __dCC_dx_ss{D}()
+    elseif fv == x1(cc) 
+        # Partial with respect to X1(T)
         return __dCC_dx1{D}() 
     elseif fv == x2(cc)
         # Partial with respect to X2(0)
@@ -128,6 +132,24 @@ function partials(cc::ContinuityConstraint, fv::FreeVariable{D,T}) where {D,T}
         # return __NP{D}()
         return __NP{full_length(fv)}()
     end
+end
+
+"""
+    __dCC_dx_ss
+
+Partial of the continuity constraint with respect to x1(0),
+which is the STM phi(0,T)
+"""
+struct __dCC_dx_ss{D} <: Partial{D} end
+function (::__dCC_dx_ss{C})(cc::ContinuityConstraint{R}) where {R,C}
+    sol = tangent_solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+
+    # println("TSPAN")
+    # println(cctspan(cc))
+    # println("-----")
+    # show(stdout,"text/plain",sol.u[end][:,2:end])
+    # println("")
+    return sol.u[end][:,2:end] - I(full_length(x1(cc)))
 end
 
 """

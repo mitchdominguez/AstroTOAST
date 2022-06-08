@@ -113,6 +113,7 @@ function target(T::Targeter, maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     i = 1
     cont = true
     while i<=maxiter && cont
+        println(tofullvector(X(T)))
         # Evaluate DF Matrix
         DFmat = evalDFXMatrix(T)
 

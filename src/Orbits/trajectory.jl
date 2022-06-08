@@ -244,11 +244,11 @@ function (traj::Trajectory)(times)
 end
 
 """
-    isperiodic(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+    isperiodic(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
 
 Returns true if the final state and beginning state in traj are the same, within a tolerance
 """
-function isperiodic(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+function isperiodic(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
     abserr = map(x->abs(x),traj(tspan(traj)[1]) - traj(tspan(traj)[2]))
 
     if all(abserr.<tol)
@@ -259,11 +259,11 @@ function isperiodic(traj::Trajectory, tol=DEFAULT_ABS_TOL)
 end
 
 """
-    iscontinuous(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+    iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
 
 Check that all segments in traj flow into the next one continuously, with a tolerance
 """
-function iscontinuous(traj::Trajectory, tol=DEFAULT_ABS_TOL)
+function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
     for i = 1:length(traj)-1
         abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
         if all(abserr.<tol)

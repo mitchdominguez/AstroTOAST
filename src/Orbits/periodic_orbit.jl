@@ -18,7 +18,7 @@ struct PeriodicOrbit{D}
     name::String # Name of orbit
     family::String # Family that orbit belongs to
 
-    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_ABS_TOL) where {D}
+    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL) where {D}
         # Ensure that traj is periodic
         if !isperiodic(traj)
             throw(ErrorException("traj is not periodic!"))

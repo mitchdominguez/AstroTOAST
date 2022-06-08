@@ -10,14 +10,21 @@ Adapted from code written by Rolfe Power
 
 Default absolute tolerance used for integration.
 """
-const DEFAULT_ABS_TOL = 1e-12
+const DEFAULT_ABS_TOL = 1e-18
 
 """
     DEFAULT_REL_TOL
 
 Default relative tolerance used for integration.
 """
-const DEFAULT_REL_TOL = 1e-12
+const DEFAULT_REL_TOL = 1e-13
+
+"""
+    DEFAULT_CONVERGENCE_TOL
+
+Default convergence tolerance
+"""
+const DEFAULT_CONVERGENCE_TOL = 1e-12
 
 """
     UNIVERSAL_GRAVITATIONAL_CONSTANT

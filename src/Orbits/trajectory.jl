@@ -264,6 +264,9 @@ end
 Check that all segments in traj flow into the next one continuously, with a tolerance
 """
 function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
+    if length(traj) == 1
+        return true
+    end
     for i = 1:length(traj)-1
         abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
         if all(abserr.<tol)

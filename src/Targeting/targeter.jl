@@ -101,7 +101,7 @@ end
 Solve the targeting problem, specifying maximum number of iterations,
 convergence tolerance, and attenuation factor
 """
-function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64, att=1.0::Float64)
+function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64, att=1.0::Float64, debug=false)
     # Save a copy of the initial value
     Xhist = Vector{XVector}()
     push!(Xhist, copy(X(T)))
@@ -109,6 +109,9 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     # Save the error history
     err = Vector{Float64}()
     push!(err, norm(FX(T)))
+    if debug
+        println("Iteration $(1): |F(X)| = $(err[1])")
+    end
 
     i = 1
     cont = true
@@ -130,7 +133,9 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         end
         i+=1
         # println(size(Xhist))
-        # println(i)
+        if debug
+            println("Iteration $(i): |F(X)| = $(err[i])")
+        end
     end
 
     if i>maxiter

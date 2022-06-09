@@ -56,6 +56,6 @@ maxiter = 25
 tol = 1e-10
 targ = Targeter(xv, fx, maxiter, tol);
 
-Xhist, err = target(targ);
+Xhist, err = target(targ,debug=true);
 
 err

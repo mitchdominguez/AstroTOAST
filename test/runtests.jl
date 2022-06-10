@@ -12,4 +12,5 @@ using Test
     include("tofconstraint.jl")
     include("trajectory.jl")
     include("periodic_orbit.jl")
+    include("qposs.jl")
 end

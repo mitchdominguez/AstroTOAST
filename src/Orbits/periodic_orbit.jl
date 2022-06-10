@@ -20,12 +20,12 @@ struct PeriodicOrbit{D}
 
     function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL) where {D}
         # Ensure that traj is periodic
-        if !isperiodic(traj)
+        if !isperiodic(traj, tol)
             throw(ErrorException("traj is not periodic!"))
         end
 
         # Ensure that all segments of traj are continuous
-        if !iscontinuous(traj)
+        if !iscontinuous(traj, tol)
             throw(ErrorException("traj is not continuous!"))
         end
 

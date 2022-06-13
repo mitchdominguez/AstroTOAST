@@ -74,6 +74,9 @@ include("Orbits/trajectory.jl")
 export Trajectory
 export x0, tspan, solvec, isperiodic, iscontinuous, stm
 
+include("Orbits/trajectory_set.jl")
+export TrajectorySet
+
 include("Orbits/periodic_orbit.jl")
 export PeriodicOrbit
 export family

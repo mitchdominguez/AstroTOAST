@@ -97,4 +97,6 @@ nrho92_traj = Trajectory(model, [X1_fix, X2, X3], [T1, T2, T3])
 # println("Periodic? $(isperiodic(nrho92_traj))")
 # println("Continuous? $(iscontinuous(nrho92_traj))")
 
+nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
+
 update!(X1, tofullvector(X1_fix))

@@ -90,5 +90,6 @@ export subspace_stepoff, stable_manifold, unstable_manifold, linear_invariant_cu
 
 include("Orbits/quasiperiodic_orbit.jl")
 export QuasiPeriodicOrbit
+export invariantcurve, DGmat
 
 end

@@ -82,6 +82,7 @@ dimension(ts::TrajectorySet{D,N}) where {D,N} = D
 Return number of trajectories in `ts`
 """
 numels(ts::TrajectorySet{D,N}) where {D,N} = N
+length(ts::TrajectorySet{D,N}) where {D,N} = N
 
 """
     x0(ts::TrajectorySet)

@@ -48,6 +48,16 @@ struct PeriodicOrbit{D}
     end
 end
 
+"""
+    PeriodicOrbit(dm::DynamicalModel, X0, T, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL)
+
+Constructor for generating a trajectory from multiple patch points
+"""
+function PeriodicOrbit(dm::DynamicalModel, X0, T, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL)
+    traj = Trajectory(dm, X0, T)
+    return PeriodicOrbit(traj, name, family, tol)
+end
+
 ############################
 # General Utilities
 ############################

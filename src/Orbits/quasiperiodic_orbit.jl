@@ -14,7 +14,7 @@ struct QuasiPeriodicOrbit{D,N}
     ic::TrajectorySet{D,N} # Invariant curve
     T::Float64 # Stroboscopic time
     ρ::Float64 # Twist angle
-    fixedpt::Vector{Float64} # Fixed point used to generate invariant curve
+    fixedpt::Vector{Float64} # Fixed point used to generate invariant curve # TODO make this a PO
     DG::Matrix{Float64} # DG matrix
     λ::Vector{ComplexF64} # Eigenvalues of DG
     V::Vector{Vector{ComplexF64}} # Eigenvectors of DG
@@ -124,6 +124,50 @@ function u0(qpo::QuasiPeriodicOrbit{D,N}) where {D,N}
 end
 
 """
+    u2x(u::AbstractVector, xfixed::AbstractVector)
+
+Add fixed point `xfixed` to a relative state on the qpo `u`
+"""
+function u2x(u::AbstractVector, xfixed::AbstractVector)
+    D = length(xfixed)
+
+    if length(u)%D != 0
+        throw(ErrorException("Lengths of u and xfixed are incompatible"))
+    end
+
+    N = Int(length(u)/D)
+
+    xvec = similar(u)
+    for i = 1:N
+        xvec[D*i-(D-1):D*i] = u[D*i-(D-1):D*i] + xfixed # Full state including fixed point
+    end
+    return xvec
+
+end
+
+"""
+    x2u(x::AbstractVector, xfixed::AbstractVector)
+
+Add fixed point `xfixed` to a relative state on the qpo `u`
+"""
+function x2u(x::AbstractVector, xfixed::AbstractVector)
+    D = length(xfixed)
+
+    if length(x)%D != 0
+        throw(ErrorException("Lengths of u and xfixed are incompatible"))
+    end
+
+    N = Int(length(x)/D)
+
+    uvec = similar(x)
+    for i = 1:N
+        uvec[D*i-(D-1):D*i] = x[D*i-(D-1):D*i] - xfixed # Full state including fixed point
+    end
+    return uvec
+
+end
+
+"""
     strobetime(qpo::QuasiPeriodicOrbit)
 
 Return the stroboscopic period of the torus to be targeted
@@ -150,6 +194,20 @@ invariantcurve(qpo::QuasiPeriodicOrbit) = qpo.ic
 Return the dynamical model of the trajectory
 """
 dm(qpo::QuasiPeriodicOrbit) = dm(invariantcurve(qpo))
+
+"""
+    dimension(qpo::QuasiPeriodicOrbit)
+
+Return the dimension of the dynamical model of the QPO
+"""
+dimension(qpo::QuasiPeriodicOrbit{D,N}) where {D,N} = D
+
+"""
+    numels(qpo::QuasiPeriodicOrbit)
+
+Return the dimension of the dynamical model of the QPO
+"""
+numels(qpo::QuasiPeriodicOrbit{D,N}) where {D,N} = N
 
 """
     jacobi_constant(qpo::QuasiPeriodicOrbit)
@@ -212,3 +270,43 @@ time2angle(qpo::QuasiPeriodicOrbit, T::Real) = 2pi*T/strobetime(qpo)
 Convert a longitudinal angle to ndim time
 """
 angle2time(qpo::QuasiPeriodicOrbit, th::Real) = th*strobetime(qpo)/(2pi)
+
+"""
+    (qpo::QuasiPeriodicOrbit)(thT; ndtime=false)
+
+Return the invariant curve of the quasiperiodic orbit at time T if ndtime = true, and 
+returns the state at thT = 2πT/Period if ndtime = false. thT is the
+longitudinal angle on the torus
+"""
+(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+
+"""
+    (qpo::QuasiPeriodicOrbit)(thT, thrho; ndtime=false)
+
+For the invariant curve `ic` at longitudinal angle `thT` or time `T`, return the 
+state on `ic` at latitudinal angle `thrho`
+"""
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
+    uvec = x2u(qpo(thT; ndtime), xstar(qpo))
+
+    Ut = reshape(uvec, dim, N)
+
+    k = kvec(N)
+    Dt = Matrix(transpose(Dmat(N)))
+
+
+    u = Ut*Dt*Vector(vec(transpose(exp.(im*thrho*k))))
+
+    # Remove imaginary values below a certain tolerance
+    maxval, maxind = findmax(x->abs(x), imag(u))
+    
+    if maxval < tol
+        u = real(u)
+    else
+        println(maxval)
+        println(maxind)
+        throw(InvalidStateException("Unacceptable imaginary numerical error",:u))
+    end
+    return u
+
+end

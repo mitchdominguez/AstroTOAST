@@ -346,6 +346,27 @@ end
 # TODO periapsis, apoapsis
 # TODO PO continuation
 # TODO export initial conditions for each segment with TOFs
+#
+"""
+    wrapTo2Pi(th)
+
+Map angles (in radians) to the range [0, 2π]. In general, 0 will map to 0.
+"""
+function wrapto2pi(th)
+    if th>=0 && th<=2π
+        return th
+    end
+
+    if th % 2pi == 0.0 && th > 0
+        return th_wrapped = 2π
+    elseif th%2π == 0.0 && th < 0
+        return th_wrapped = 0.0
+    end
+
+    th_wrapped = ((th % 2π) + 2π) % 2π # theta mod 2pi
+
+        
+end
 
 """
     Base.show

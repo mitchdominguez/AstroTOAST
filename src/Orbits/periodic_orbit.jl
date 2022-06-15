@@ -17,8 +17,21 @@ struct PeriodicOrbit{D}
     V::Vector{Vector{ComplexF64}} # Eigenvectors
     name::String # Name of orbit
     family::String # Family that orbit belongs to
+    ##################################################
+    # Define where the zero longitudinal angle of the PeriodicOrbit as defined
+    # is located relative to the desired zero longitudinal angle. 
+    #
+    # For example, if the desired thT = 0 is located at periapsis, and the
+    # PeriodicOrbit was targeted from apoapsis, then those initial conditions
+    # can be passed into the constructor with thT_offset = π. 
+    #
+    # This prevents having to re-target orbits from where the desired thT = 0
+    # actually is
+    thT_offset::Float64 
+    
 
-    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL) where {D}
+
+    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0) where {D}
         # Ensure that traj is periodic
         if !isperiodic(traj, tol)
             throw(ErrorException("traj is not periodic!"))
@@ -27,6 +40,11 @@ struct PeriodicOrbit{D}
         # Ensure that all segments of traj are continuous
         if !iscontinuous(traj, tol)
             throw(ErrorException("traj is not continuous!"))
+        end
+
+        # Ensure that thT_offset lies within [0, 2π]
+        if !__within(thT_offset, 0, 2π)
+            throw(ErrorException("thT must be within [0, 2pi]"))
         end
 
         # Calculate monodromy matrix
@@ -44,7 +62,7 @@ struct PeriodicOrbit{D}
         sorteigs!(V, λ, M)
 
         # Create new PeriodicOrbit
-        new{D}(copy(traj), M, λ, V, name, family)
+        new{D}(copy(traj), M, λ, V, name, family, thT_offset)
     end
 end
 
@@ -53,9 +71,9 @@ end
 
 Constructor for generating a trajectory from multiple patch points
 """
-function PeriodicOrbit(dm::DynamicalModel, X0, T, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL)
+function PeriodicOrbit(dm::DynamicalModel, X0, T, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0)
     traj = Trajectory(dm, X0, T)
-    return PeriodicOrbit(traj, name, family, tol)
+    return PeriodicOrbit(traj, name, family, tol; thT_offset=thT_offset)
 end
 
 ############################
@@ -97,6 +115,13 @@ Return the time of flight of the trajectory
 period(po::PeriodicOrbit) = tof(traj(po))
 
 """
+    offset(po::PeriodicOrbit)
+
+Return the offset in longitudinal angle for `po` from the desired
+"""
+offset(po::PeriodicOrbit) = po.thT_offset
+
+"""
     jacobi_constant(po::PeriodicOrbit)
 
 Return the jacobi constant of the periodic orbit
@@ -110,7 +135,8 @@ Return the state on the periodic orbit at time T if ndtime = true, and
 returns the state at θ_0 = 2πT/Period if ndtime = false. θ_0 is analagous
 to the longitudinal angle on a torus or the mean anomaly in a conic orbit
 """
-(po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(T) : traj(po)(angle2time(po, T))
+# (po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(T) : traj(po)(angle2time(po, T))
+(po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(__local_time(po,T)) : traj(po)(angle2time(po, __local_longitudinal_angle(po,T)))
 
 """
     monodromy(po::PeriodicOrbit)
@@ -168,6 +194,75 @@ Return the state transition matrix at longitudinal angle θ.
 Calling this function with θ=2π results in the monodromy matrix
 """
 stm(po::PeriodicOrbit, θ::Real) = stm(traj(po), angle2time(po, θ))
+
+"""
+    wrapto2pi(th)
+
+Map angles (in radians) to the range [0, 2π]. In general, 0 will map to 0.
+"""
+function wrapto2pi(th)
+    if th>=0 && th<=2π
+        return th
+    end
+
+    # if th % 2pi == 0.0 && th > 0
+        # return th_wrapped = 2π
+    # elseif th%2π == 0.0 && th < 0
+        # return th_wrapped = 0.0
+    # end
+
+    th_wrapped = ((th % 2π) + 2π) % 2π # theta mod 2pi
+end
+
+"""
+    wraptoperiod(T, P)
+
+Map times (in ndtime) to the range [0, period]. In general, 0 will map to 0.
+"""
+function wraptoperiod(T, P)
+    if T>=0 && T<=P
+        return T
+    end
+
+    # if T % 2pi == 0.0 && T > 0
+        # return T_wrapped = P
+    # elseif T%P == 0.0 && T < 0
+        # return T_wrapped = 0.0
+    # end
+
+    T_wrapped = ((T % P) + P) % P # Teta mod 2pi
+end
+
+"""
+    __local_longitudinal_angle(po::PeriodicOrbit, th_G::Real; acceptable_range=[0,2π]::Vector)
+    
+Using the thT_offset, calculate what the local longitudinal angle must be
+in order to output the state at the desired global longitudinal angle
+"""
+function __local_longitudinal_angle(po::PeriodicOrbit, th_G::Real; acceptable_range=[0,2π]::Vector)
+    thT_offset = offset(po)
+    if !__within(th_G, acceptable_range...)
+        throw(ErrorException("th_G=$(th_G) is outside the range of acceptable values, $(acceptable_range)"))
+    end
+
+    return th_L = wrapto2pi(th_G - thT_offset)
+end
+
+"""
+    __local_time(po::PeriodicOrbit, T_G::Real; acceptable_range=[0,2π]::Vector)
+    
+Using the thT_offset, calculate what the local longitudinal angle must be
+in order to output the state at the desired global longitudinal angle
+"""
+function __local_time(po::PeriodicOrbit, T_G::Real; acceptable_range=[0,period(po)]::Vector)
+    if !__within(T_G, acceptable_range...)
+        throw(ErrorException("T_G=$(T_G) is outside the range of acceptable values, $(acceptable_range)"))
+    end
+    thT_offset = offset(po)
+    T_offset = angle2time(po, thT_offset)
+
+    return t_L = wraptoperiod(T_G - T_offset, period(po))
+end
 
 ######################################################
 # Stability, eigendecomposition, manifolds
@@ -346,27 +441,6 @@ end
 # TODO periapsis, apoapsis
 # TODO PO continuation
 # TODO export initial conditions for each segment with TOFs
-#
-"""
-    wrapTo2Pi(th)
-
-Map angles (in radians) to the range [0, 2π]. In general, 0 will map to 0.
-"""
-function wrapto2pi(th)
-    if th>=0 && th<=2π
-        return th
-    end
-
-    if th % 2pi == 0.0 && th > 0
-        return th_wrapped = 2π
-    elseif th%2π == 0.0 && th < 0
-        return th_wrapped = 0.0
-    end
-
-    th_wrapped = ((th % 2π) + 2π) % 2π # theta mod 2pi
-
-        
-end
 
 """
     Base.show

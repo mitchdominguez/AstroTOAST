@@ -64,4 +64,6 @@ end
 
 qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1], 
                            tofullvector(rho)[1], fixedpt, tol=tol;
-                          name="quasi92", family="9:2 Quasihalos")
+                           name="quasi92", family="9:2 Quasihalos", 
+                           # thT_offset=thT)
+                           thT_offset=time2angle(tofullvector(T)[1], angle2time(ref, thT)))

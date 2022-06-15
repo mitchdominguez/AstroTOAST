@@ -14,7 +14,8 @@ struct QuasiPeriodicOrbit{D,N}
     ic::TrajectorySet{D,N} # Invariant curve
     T::Float64 # Stroboscopic time
     ρ::Float64 # Twist angle
-    fixedpt::Vector{Float64} # Fixed point used to generate invariant curve # TODO make this a PO or trajectory # TODO make an offset in long. angle
+    # fixedpt::Vector{Float64} # Fixed point used to generate invariant curve # TODO make this a PO or trajectory # TODO make an offset in long. angle
+    fixedpt::Trajectory{D} 
     DG::Matrix{Float64} # DG matrix
     λ::Vector{ComplexF64} # Eigenvalues of DG
     V::Vector{Vector{ComplexF64}} # Eigenvectors of DG
@@ -82,7 +83,10 @@ struct QuasiPeriodicOrbit{D,N}
             throw(ErrorException("The given states do not correspond to a 2D torus, given the tolerance provided"))
         end
 
-        # Generate DG matrix and its eigendecomposition
+        ############### Generate trajectory from fixed point ###############
+        fixedpttraj = Trajectory(model, xstar, tof(ts))
+
+        ############### Generate DG matrix and its eigendecomposition ###############
         DG = __dIC_du0{D*N}()(ic) + I(D*N)
 
         lam, vee = eigen(DG)
@@ -92,7 +96,8 @@ struct QuasiPeriodicOrbit{D,N}
             V[i] = vee[:,i]
         end
 
-        return new{D,N}(ts, tof(ts), rho, xstar, DG, lam, V, name, family, thT_offset)
+        # return new{D,N}(ts, tof(ts), rho, xstar, DG, lam, V, name, family, thT_offset)
+        return new{D,N}(ts, tof(ts), rho, fixedpttraj, DG, lam, V, name, family, thT_offset)
     end
 end
 
@@ -118,7 +123,17 @@ x0(qpo::QuasiPeriodicOrbit) = x0(qpo.ic)
 
 Return the fixed point at the initial states of the invariant curve of the QPO
 """
-xstar(qpo::QuasiPeriodicOrbit) = qpo.fixedpt
+# xstar(qpo::QuasiPeriodicOrbit) = x0(qpo.fixedpt)
+xstar(qpo::QuasiPeriodicOrbit, thT=offset(qpo); ndtime=false) = ndtime ? reftraj(qpo)(__local_time(qpo,thT)) : reftraj(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
+
+"""
+    reforbit(qpo::QuasiPeriodicOrbit)
+
+Return the underlying periodic trajectory of the QPO. 
+
+NOTE that this returns a Trajectory, and not a PeriodicOrbit
+"""
+reftraj(qpo::QuasiPeriodicOrbit) = qpo.fixedpt
 
 """
     u0(qpo::QuasiPeriodicOrbit)
@@ -281,6 +296,7 @@ family(qpo::QuasiPeriodicOrbit) = qpo.family
 Convert a ndim time to longitudinal angle
 """
 time2angle(qpo::QuasiPeriodicOrbit, T::Real) = 2pi*T/strobetime(qpo)
+time2angle(P::Real, T::Real) = 2pi*T/P
 
 """
     angle2time(qpo::QuasiPeriodicOrbit)
@@ -288,6 +304,38 @@ time2angle(qpo::QuasiPeriodicOrbit, T::Real) = 2pi*T/strobetime(qpo)
 Convert a longitudinal angle to ndim time
 """
 angle2time(qpo::QuasiPeriodicOrbit, th::Real) = th*strobetime(qpo)/(2pi)
+angle2time(P::Real, th::Real) = th*P/(2pi)
+
+"""
+    __local_longitudinal_angle(qpo::QuasiPeriodicOrbit, th_G::Real; acceptable_range=[0,2π]::Vector)
+    
+Using the thT_offset, calculate what the local longitudinal angle must be
+in order to output the state at the desired global longitudinal angle
+"""
+function __local_longitudinal_angle(qpo::QuasiPeriodicOrbit, th_G::Real; acceptable_range=[0,2π]::Vector)
+    thT_offset = offset(qpo)
+    if !__within(th_G, acceptable_range...)
+        throw(ErrorException("th_G=$(th_G) is outside the range of acceptable values, $(acceptable_range)"))
+    end
+
+    return th_L = wrapto2pi(th_G - thT_offset)
+end
+
+"""
+    __local_time(qpo::QuasiPeriodicOrbit, T_G::Real; acceptable_range=[0,2π]::Vector)
+    
+Using the thT_offset, calculate what the local longitudinal angle must be
+in order to output the state at the desired global longitudinal angle
+"""
+function __local_time(qpo::QuasiPeriodicOrbit, T_G::Real; acceptable_range=[0,strobetime(qpo)]::Vector)
+    if !__within(T_G, acceptable_range...)
+        throw(ErrorException("T_G=$(T_G) is outside the range of acceptable values, $(acceptable_range)"))
+    end
+    thT_offset = offset(qpo)
+    T_offset = angle2time(qpo, thT_offset)
+
+    return t_L = wraptoperiod(T_G - T_offset, strobetime(qpo))
+end
 
 """
     (qpo::QuasiPeriodicOrbit)(thT; ndtime=false)
@@ -296,7 +344,8 @@ Return the invariant curve of the quasiperiodic orbit at time T if ndtime = true
 returns the state at thT = 2πT/Period if ndtime = false. thT is the
 longitudinal angle on the torus
 """
-(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+# (qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(__local_time(qpo,thT)) : invariantcurve(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
 
 """
     (qpo::QuasiPeriodicOrbit)(thT, thrho; ndtime=false)

@@ -140,9 +140,9 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
 
     if i>maxiter
         # println("Error history: $(err)")
-        println("Error history")
-        show(stdout, "text/plain", err)
-        println("\n")
+        # println("Error history")
+        # show(stdout, "text/plain", err)
+        # println("\n")
         error("maximum number of iterations reached")
     end
 

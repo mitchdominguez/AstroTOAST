@@ -60,7 +60,7 @@ targ_oc = Targeter(xv_oc, fx_oc, maxiter, tol);
 @testset "poss_overconstrained.jl" begin
 
     # Targeter fails
-    @test_throws Exception Xhist_oc, err_oc = target(targ_oc);
+    @test_throws Exception Xhist_oc, err_oc = target(targ_oc, debug=false);
     @test_throws UndefVarError Xhist_oc
     @test_throws UndefVarError err_oc
 

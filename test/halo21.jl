@@ -62,6 +62,7 @@ end
 
 halo21_traj = Trajectory(model, [X1], [T1])
 halo21 = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos");
+halo21_off = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos";thT_offset=π)
 
 # Make θ_T=0 be at perilune
 update!(X1, halo21(pi).*[1,0,1,0,1,0])

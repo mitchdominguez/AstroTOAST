@@ -6,7 +6,7 @@
 using LinearAlgebra
 
 """
-    struct QuasiPeriodicOrbit{D}
+    struct QuasiPeriodicOrbit{D,N}
 
 Object that represents periodic trajectories within a dynamical model
 """
@@ -14,15 +14,26 @@ struct QuasiPeriodicOrbit{D,N}
     ic::TrajectorySet{D,N} # Invariant curve
     T::Float64 # Stroboscopic time
     ρ::Float64 # Twist angle
-    fixedpt::Vector{Float64} # Fixed point used to generate invariant curve # TODO make this a PO
+    fixedpt::Vector{Float64} # Fixed point used to generate invariant curve # TODO make this a PO or trajectory # TODO make an offset in long. angle
     DG::Matrix{Float64} # DG matrix
     λ::Vector{ComplexF64} # Eigenvalues of DG
     V::Vector{Vector{ComplexF64}} # Eigenvectors of DG
     name::String # Name of QPO
     family::String # Family that QPO belongs to
+    ##################################################
+    # Define where the zero longitudinal angle of the QuasiPeriodicOrbit as defined
+    # is located relative to the desired zero longitudinal angle. 
+    #
+    # For example, if the desired thT = 0 is located at periapsis, and the
+    # QuasiPeriodicOrbit was targeted from apoapsis, then those initial
+    # conditions can be passed into the constructor with thT_offset = π. 
+    #
+    # This prevents having to re-target orbits from where the desired thT = 0
+    # actually is
+    thT_offset::Float64 
 
     function QuasiPeriodicOrbit(ts::TrajectorySet{D,N}, rho::Float64, xstar::Vector{Float64}, 
-            name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL) where {D,N}
+            name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL, thT_offset=0) where {D,N}
         # Check that fixed point has the right dimension
         if length(xstar) != D
             throw(DimensionMismatch("dimension of xstar, and DynamicalModel are incompatible"))
@@ -81,16 +92,16 @@ struct QuasiPeriodicOrbit{D,N}
             V[i] = vee[:,i]
         end
 
-        return new{D,N}(ts, tof(ts), rho, xstar, DG, lam, V, name, family)
+        return new{D,N}(ts, tof(ts), rho, xstar, DG, lam, V, name, family, thT_offset)
     end
 end
 
 ########################## OUTER CONSTRUCTORS ##########################
 function QuasiPeriodicOrbit(dm::DynamicalModel, X0::Vector{Float64}, T::Float64,  
         rho::Float64, xstar::Vector{Float64}; 
-        name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL) 
+        name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL, thT_offset=0) 
     ts = TrajectorySet(dm, X0, T)
-    return QuasiPeriodicOrbit(ts, rho, xstar, name, family, tol)
+    return QuasiPeriodicOrbit(ts, rho, xstar, name, family, tol, thT_offset)
 end
 
 ########################## Basic Utilities ##########################
@@ -309,4 +320,16 @@ function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAUL
     end
     return u
 
+end
+
+"""
+    Base.show
+
+Overload the show operator to pretty print the PeriodicOrbit to the console.
+"""
+function Base.show(io::IO, ::MIME"text/plain", qpo::QuasiPeriodicOrbit{D,N}) where {D,N}
+    print(io, "QuasiPeriodic Orbit: $(name(qpo)) ($(family(qpo)))\n")
+    print(io, "- Dimension: $(D)\n")
+    print(io, "- Stroboscopic Period: $(strobetime(qpo)) ndim = $(strobetime(qpo)*dimensional_time(dm(qpo))*sec2day) days\n")
+    # print(io, "- X0: $(x0(po))\n")
 end

@@ -221,6 +221,13 @@ Return the dimension of the dynamical model of the QPO
 numels(qpo::QuasiPeriodicOrbit{D,N}) where {D,N} = N
 
 """
+    offset(qpo::QuasiPeriodicOrbit)
+
+Return the offset in longitudinal angle for `qpo` from the desired
+"""
+offset(qpo::QuasiPeriodicOrbit) = qpo.thT_offset
+
+"""
     jacobi_constant(qpo::QuasiPeriodicOrbit)
 
 Return the average jacobi constant of the states on the invariant curve
@@ -331,5 +338,6 @@ function Base.show(io::IO, ::MIME"text/plain", qpo::QuasiPeriodicOrbit{D,N}) whe
     print(io, "QuasiPeriodic Orbit: $(name(qpo)) ($(family(qpo)))\n")
     print(io, "- Dimension: $(D)\n")
     print(io, "- Stroboscopic Period: $(strobetime(qpo)) ndim = $(strobetime(qpo)*dimensional_time(dm(qpo))*sec2day) days\n")
-    # print(io, "- X0: $(x0(po))\n")
+    print(io, "- Twist Angle: $(rotationangle(qpo)) rad, $(rad2deg(rotationangle(qpo))) deg\n")
+    print(io, "- Longitudinal Offset: $(offset(qpo)/π)π rad\n")
 end

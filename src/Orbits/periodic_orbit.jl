@@ -468,4 +468,5 @@ function Base.show(io::IO, ::MIME"text/plain", po::PeriodicOrbit{D}) where {D}
     print(io, "- Dimension: $(D)\n")
     print(io, "- Period: $(period(po)) ndim = $(period(po)*dimensional_time(dm(po))*sec2day) days\n")
     print(io, "- X0: $(x0(po))\n")
+    print(io, "- Longitudinal Offset: $(offset(po)/π)π rad\n")
 end

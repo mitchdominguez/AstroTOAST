@@ -198,7 +198,7 @@ end
 Propagate each node on the invariant curve for one stroboscopic
 time period
 """
-function propagate_invariant_curve(ic::InvarianceConstraint2D)
+function propagate_invariant_curve(ic::InvarianceConstraint2D, proptime = tof(ic))
     N = numels(ic)
     u0 = u0svec(ic)
     ut = similar(u0)
@@ -206,7 +206,7 @@ function propagate_invariant_curve(ic::InvarianceConstraint2D)
 
     for i = 1:N
         q0 = u0[dim*i-(dim-1):dim*i] + xstar(ic) # Full state including fixed point
-        sol = solve(dm(ic), SVector(q0...), tof(ic)) # Propagate state forwards
+        sol = solve(dm(ic), SVector(q0...), proptime) # Propagate state forwards
         ut[dim*i-(dim-1):dim*i] = sol[end]-xstar(ic) # Remove fixed point from propagated answer
     end
 

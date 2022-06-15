@@ -48,8 +48,22 @@ struct PeriodicOrbit{D}
         end
 
         # Calculate monodromy matrix
-        M = stm(traj)
-        
+        if thT_offset == 0
+            M = stm(traj)
+        else
+            phi_tP_t = stm(traj) # ***
+
+            P = tof(traj)
+            T_offset = thT_offset*P/(2pi)
+
+            t0_L = wraptoperiod(0-T_offset, P)
+            q0 = traj(t0_L)
+
+            phi_t_0 = tangent_solve(dm(traj), q0, (0, T_offset)).u[end][:,2:end] # ***
+
+            M = phi_t_0\phi_tP_t*phi_t_0
+        end
+
         # Calculate eigenvalues and eigenvectors
         λ, vec = eigen(M)
 
@@ -97,6 +111,8 @@ dimension(po::PeriodicOrbit{D}) where {D} = D
     x0(po::PeriodicOrbit)
 
 Return the initial condition of the trajectory
+
+NOTE that this is only equivalent to po(0) if `thT_offset`=0
 """
 x0(po::PeriodicOrbit) = x0(traj(po))
 

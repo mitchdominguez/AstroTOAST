@@ -63,4 +63,5 @@ for i = 1:N
 end
 
 qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1], 
-                           tofullvector(rho)[1], fixedpt, tol=tol)
+                           tofullvector(rho)[1], fixedpt, tol=tol;
+                          name="quasi92", family="9:2 Quasihalos")

@@ -123,8 +123,7 @@ x0(qpo::QuasiPeriodicOrbit) = x0(qpo.ic)
 
 Return the fixed point at the initial states of the invariant curve of the QPO
 """
-# xstar(qpo::QuasiPeriodicOrbit) = x0(qpo.fixedpt)
-xstar(qpo::QuasiPeriodicOrbit, thT=offset(qpo); ndtime=false) = ndtime ? reftraj(qpo)(__local_time(qpo,thT)) : reftraj(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
+xstar(qpo::QuasiPeriodicOrbit, thT=offset(qpo); ndtime=false) = ndtime ? reftraj(qpo)(thT) : reftraj(qpo)(angle2time(qpo, thT))
 
 """
     reforbit(qpo::QuasiPeriodicOrbit)
@@ -318,7 +317,7 @@ function __local_longitudinal_angle(qpo::QuasiPeriodicOrbit, th_G::Real; accepta
         throw(ErrorException("th_G=$(th_G) is outside the range of acceptable values, $(acceptable_range)"))
     end
 
-    return th_L = wrapto2pi(th_G - thT_offset)
+    return th_L = th_G - thT_offset
 end
 
 """
@@ -333,8 +332,6 @@ function __local_time(qpo::QuasiPeriodicOrbit, T_G::Real; acceptable_range=[0,st
     end
     thT_offset = offset(qpo)
     T_offset = angle2time(qpo, thT_offset)
-
-    return t_L = wraptoperiod(T_G - T_offset, strobetime(qpo))
 end
 
 """

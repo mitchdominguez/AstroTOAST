@@ -169,6 +169,27 @@ Calculate Q matrix used in the DFT
 Qmat(N::Int, ρ::Float64) = Diagonal(vec(exp.(im*kvec(N)*ρ)))
 
 """
+    ignore_imag(v, tol=DEFAULT_CONVERGENCE_TOL)
+
+If the absolute values of the imaginary parts of `v` are below `tol`, then return
+just the real parts of `v`
+"""
+function ignore_imag(v, tol=DEFAULT_CONVERGENCE_TOL)
+    # Remove imaginary values below a certain tolerance
+    maxval, maxind = findmax(x->abs(x), imag(v))
+    
+    if maxval < tol
+        v = real(v)
+    else
+        println(maxval)
+        println(maxind)
+        throw(InvalidStateException("Unacceptable imaginary numerical error",:v))
+    end
+
+    return v
+end
+
+"""
     invariant_rotation(ic::InvarianceConstraint2D, ρ::Float64)
 
 Calculate the rotation matrix for rotating an angle `ρ` about the

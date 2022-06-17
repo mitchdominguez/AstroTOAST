@@ -123,7 +123,17 @@ x0(qpo::QuasiPeriodicOrbit) = x0(qpo.ic)
 
 Return the fixed point at the initial states of the invariant curve of the QPO
 """
-xstar(qpo::QuasiPeriodicOrbit, thT=offset(qpo); ndtime=false) = ndtime ? reftraj(qpo)(thT) : reftraj(qpo)(angle2time(qpo, thT))
+# xstar(qpo::QuasiPeriodicOrbit, thT=offset(qpo); ndtime=false) = ndtime ? reftraj(qpo)(thT) : reftraj(qpo)(angle2time(qpo, thT))
+# xstar(qpo::QuasiPeriodicOrbit, thT=0; ndtime=false) = ndtime ? reftraj(qpo)(thT) : reftraj(qpo)(angle2time(qpo, thT))
+
+function xstar(qpo::QuasiPeriodicOrbit, thT=0; ndtime=false)
+    if ndtime
+        out = reftraj(qpo)(thT)
+    else
+        out = reftraj(qpo)(angle2time(qpo, thT))
+    end
+    return out
+end
 
 """
     reforbit(qpo::QuasiPeriodicOrbit)
@@ -341,8 +351,8 @@ Return the invariant curve of the quasiperiodic orbit at time T if ndtime = true
 returns the state at thT = 2πT/Period if ndtime = false. thT is the
 longitudinal angle on the torus
 """
-# (qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
-(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(__local_time(qpo,thT)) : invariantcurve(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
+(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+# (qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(__local_time(qpo,thT)) : invariantcurve(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
 
 """
     (qpo::QuasiPeriodicOrbit)(thT, thrho; ndtime=false)
@@ -351,7 +361,8 @@ For the invariant curve `ic` at longitudinal angle `thT` or time `T`, return the
 state on `ic` at latitudinal angle `thrho`
 """
 function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
-    uvec = x2u(qpo(thT; ndtime), xstar(qpo))
+    fixedpt = xstar(qpo, thT, ndtime=ndtime)
+    uvec = x2u(qpo(thT; ndtime), fixedpt)
 
     Ut = reshape(uvec, dim, N)
 
@@ -371,7 +382,7 @@ function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAUL
         println(maxind)
         throw(InvalidStateException("Unacceptable imaginary numerical error",:u))
     end
-    return u
+    return u2x(u, fixedpt)
 
 end
 

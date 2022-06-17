@@ -111,6 +111,7 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     push!(err, norm(FX(T)))
     if debug
         println("Iteration $(1): |F(X)| = $(err[1])")
+        # println("\t X = $(tofullvector(X(T)))")
     end
 
     i = 1
@@ -135,6 +136,7 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         # println(size(Xhist))
         if debug
             println("Iteration $(i): |F(X)| = $(err[i])")
+            # println("\t X = $(tofullvector(X(T)))")
         end
     end
 

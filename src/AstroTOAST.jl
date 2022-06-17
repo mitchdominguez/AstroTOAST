@@ -53,22 +53,9 @@ include("Targeting/targeter.jl")
 export Targeter
 export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
 
-include("Targeting/Constraints/continuity_constraint.jl")
-export ContinuityConstraint
-export x1, x2, tof, dm
-export evalconstraint, partials, cctspan
-
-include("Targeting/Constraints/tofconstraint.jl")
-export TOFConstraint
-export td, tvec
-
-include("Targeting/Constraints/invariance_constraint_2d.jl")
-export InvarianceConstraint2D
-export u0, u0vec, u0svec, xstar, strobetime, rotationangle, rhoval, kvec, thvec, Dmat, Qmat
-export invariant_rotation, propagate_invariant_curve
-
-include("Targeting/Constraints/jacobi_constraint.jl")
-export JacobiConstraint
+##################################################################
+########################### ORBITS ##############################
+##################################################################
 
 include("Orbits/trajectory.jl")
 export Trajectory
@@ -93,5 +80,30 @@ export subspace_stepoff, stable_manifold, unstable_manifold, linear_invariant_cu
 include("Orbits/quasiperiodic_orbit.jl")
 export QuasiPeriodicOrbit
 export reftraj,invariantcurve, DGmat, x2u, u2x
+
+##################################################################
+######################### CONSTRAINTS ############################
+##################################################################
+
+include("Targeting/Constraints/continuity_constraint.jl")
+export ContinuityConstraint
+export x1, x2, tof, dm
+export evalconstraint, partials, cctspan
+
+include("Targeting/Constraints/tofconstraint.jl")
+export TOFConstraint
+export td, tvec
+
+include("Targeting/Constraints/invariance_constraint_2d.jl")
+export InvarianceConstraint2D
+export u0, u0vec, u0svec, xstar, strobetime, rotationangle, rhoval, kvec, thvec, Dmat, Qmat
+export invariant_rotation, propagate_invariant_curve, ignore_imag
+
+include("Targeting/Constraints/jacobi_constraint.jl")
+export JacobiConstraint
+
+include("Targeting/Constraints/q2p_rcont_constraint.jl")
+export Q2P_PositionContinuityConstraint
+export q2p_qpo, q2p_po, q2p_tht, q2p_thr, q2p_tau
 
 end

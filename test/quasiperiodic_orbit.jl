@@ -53,7 +53,7 @@ tol = 1e-10
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target QPO
-Xhist, err = target(targ,debug=true);
+Xhist, err = target(targ,debug=false);
 
 ############### QUASIPERIODIC ORBIT OBJECT ############### 
 u0vec = tofullvector(U0)
@@ -66,3 +66,9 @@ qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1],
                            tofullvector(rho)[1], fixedpt, tol=tol;
                            name="quasi92", family="9:2 Quasihalos", 
                            thT_offset=time2angle(tofullvector(T)[1], angle2time(ref, thT)))
+
+
+
+# @testset "quasiperiodic_orbit.jl" begin
+    # @test typeof(qpo92) == QuasiPeriodicOrbit{6,35}
+# end

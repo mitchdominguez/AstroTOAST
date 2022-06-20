@@ -9,9 +9,10 @@ include("nrho92.jl");
 include("quasiperiodic_orbit.jl");
 
 ######## Define FreeVariables ########
-thT = FreeVariable("thT", 0., includeinds=[])
-thR = FreeVariable("thR", 0.)
-tau = FreeVariable("τ", Float64(pi))
+# thT = FreeVariable("thT", 0., includeinds=[])
+thT = FreeVariable("thT", 0.001710)
+thR = FreeVariable("thR", 0.363052)
+tau = FreeVariable("τ", 3.114937396)
 xv = XVector(thT, thR, tau)
 
 ######## Define Constraint ########
@@ -22,16 +23,18 @@ fx = FXVector(q2p)
 maxiter = 100
 tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
+Xhist, err = target(targ,debug=false)
+err
 
 # Target Position Correspondence
-ths = LinRange(0, 2pi, 151)
-for th in ths
-    update!(thT, [th])
-    update!(tau, [th])
-    try
-        target(targ,debug=false);
-        println("$(th) DID WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    catch
-        println("$(th) did not work")
-    end
-end
+# ths = LinRange(0, 2pi, 151)
+# for th in ths
+    # update!(thT, [th])
+    # update!(tau, [th])
+    # try
+        # target(targ,debug=false);
+        # println("$(th) DID WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # catch
+        # println("$(th) did not work")
+    # end
+# end

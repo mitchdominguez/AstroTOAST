@@ -48,7 +48,7 @@ end
 Take in a dynamical model, a vector `X0` which holds `N` initial conditions,
 and generates a TrajectorySet with `T` time of flight
 """
-function TrajectorySet(dm::DynamicalModel, X0::Vector{Float64}, T::Float64)
+function TrajectorySet(dm::DynamicalModel, X0::Vector{Float64}, T::Float64; backprop=false)
     D = dimension(dm)
 
     # Check that there are an integer number of initial condition sets within X0
@@ -63,7 +63,16 @@ function TrajectorySet(dm::DynamicalModel, X0::Vector{Float64}, T::Float64)
     # Create vector of trajectories
     for i = 1:N
         q0 = X0[D*i-(D-1):D*i]
-        trajvec[i] = Trajectory(dm, q0, T)
+
+        if backprop && typeof(dm)<:Cr3bpModel
+            # Backwards propagation
+            trajvec[i] = Trajectory(dm, q0, -T)
+
+        elseif !backprop && typeof(dm)<:Cr3bpModel
+            # Forwards propagation
+            trajvec[i] = Trajectory(dm, q0, T)
+        end
+
     end
 
     return TrajectorySet(dm, trajvec)

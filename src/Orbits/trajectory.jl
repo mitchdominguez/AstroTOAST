@@ -39,7 +39,7 @@ struct Trajectory{D}
         # Propagate initial conditions for the desired time
         sol = solve(dm, X0, tspan)
 
-        new{dimension(dm)}(copy(X0), tspan, dm, [sol])
+        new{dimension(dm)}(copy(X0), sort(tspan), dm, [sol])
     end
 
 end
@@ -184,6 +184,7 @@ function Base.append!(traj1::Trajectory, trajn...)
             # the same as the final time of traj1
             tspan(trajn[i])
             if tspan(traj1)[end] != tspan(trajn[i])[1]
+                # println("reprop")
                 traj2 = Trajectory(dm(trajn[i]), x0(trajn[i]), [0.0, tof(trajn[i])].+tspan(traj1)[end])
                 append!(traj1.X, traj2.X)
             else
@@ -207,7 +208,10 @@ Check if x is within the range between left and right
 function __within(x::Real, left::Real, right::Real)
     # Check that left < right
     if left > right
-        throw(ErrorException("left must be <= right"))
+        # Swap left and right
+        temp = left
+        left = right
+        right = temp # old left
     end
     if x <= right && x >= left
         return true
@@ -224,7 +228,7 @@ Return the state along the trajectory at time T or times "times"
 function (traj::Trajectory)(T::Real)
     # Check that T is within tspan
     if !__within(T, tspan(traj)[1], tspan(traj)[2])
-        throw(ErrorException("T is not within tspan"))
+        throw(ErrorException("T = $(T) is not within tspan, $(tspan(traj))"))
     end
     
     # Return the state at time T
@@ -268,7 +272,8 @@ function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
         return true
     end
     for i = 1:length(traj)-1
-        abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
+        # abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
+        abserr = map(x->abs(x),traj[i+1](minimum(traj[i+1].t))-traj[i](maximum(traj[i].t)))
         if all(abserr.<tol)
             return true
         else

@@ -83,8 +83,16 @@ struct QuasiPeriodicOrbit{D,N}
             throw(ErrorException("The given states do not correspond to a 2D torus, given the tolerance provided"))
         end
 
+        ############### Generate TrajectorySet from -2π ≤ θ_T ≤ 2π ###############
+        T = tof(ts)
+        ts_backprop = TrajectorySet(dm(ts), x0(ts), T;backprop=true)
+
+        for i = 1:N
+            append!(ts_backprop[i], ts[i])
+        end
+
         ############### Generate trajectory from fixed point ###############
-        fixedpttraj = Trajectory(model, xstar, tof(ts))
+        fixedpttraj = Trajectory(model, [xstar, xstar], [-tof(ts), tof(ts)])
 
         ############### Generate DG matrix and its eigendecomposition ###############
         DG = __dIC_du0{D*N}()(ic) + I(D*N)
@@ -97,7 +105,7 @@ struct QuasiPeriodicOrbit{D,N}
         end
 
         # return new{D,N}(ts, tof(ts), rho, xstar, DG, lam, V, name, family, thT_offset)
-        return new{D,N}(ts, tof(ts), rho, fixedpttraj, DG, lam, V, name, family, thT_offset)
+        return new{D,N}(ts_backprop, T, rho, fixedpttraj, DG, lam, V, name, family, thT_offset)
     end
 end
 

@@ -59,6 +59,12 @@ targ = Targeter(xv, fx, maxiter, tol);
 
 # dim_state_0 = dimensionalize_state(dimensional_quantity_set(model), U0[1:6])
 # println("\nDimensional State 0: $(dim_state_0)")
+#
+u0vec = tofullvector(U0)
+q0 = similar(u0vec)
+for i = 1:N
+    q0[6*i-5:6*i] = u0vec[6i-5:6i] + fixedpt
+end
 
 qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1], 
                            tofullvector(rho)[1], fixedpt, tol=tol;

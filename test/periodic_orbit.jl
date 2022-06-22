@@ -76,8 +76,8 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
 
     # classify_eigs
     @test classify_eigs(nrho92)[1] == [1] # unstable
-    @test classify_eigs(nrho92)[2] == [3,4] # center 
-    @test classify_eigs(nrho92)[3] == [5,6] # unit
+    @test classify_eigs(nrho92)[2] == [5,6] # center 
+    @test classify_eigs(nrho92)[3] == [3,4] # unit
     @test classify_eigs(nrho92)[4] == [2] # stable
 
     # Obtaining different classes of eigenvalues, vectors
@@ -86,25 +86,25 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test u_eig[2][1] == eigvecs(nrho92)[1]
 
     c_eig = center_eigs(nrho92)
-    @test c_eig[1][1] == eigvals(nrho92)[3]
-    @test c_eig[1][2] == eigvals(nrho92)[4]
-    @test c_eig[2][1] == eigvecs(nrho92)[3]
-    @test c_eig[2][2] == eigvecs(nrho92)[4]
+    @test c_eig[1][1] == eigvals(nrho92)[5]
+    @test c_eig[1][2] == eigvals(nrho92)[6]
+    @test c_eig[2][1] == eigvecs(nrho92)[5]
+    @test c_eig[2][2] == eigvecs(nrho92)[6]
     
     @test length(center_eigs(nrho92;ϵ=1e-12)[1])==0 # tolerance when retrieving types of eigs
     
     unit_eig = unit_eigs(nrho92)
-    @test unit_eig[1][1] == eigvals(nrho92)[5]
-    @test unit_eig[1][2] == eigvals(nrho92)[6]
-    @test unit_eig[2][1] == eigvecs(nrho92)[5]
-    @test unit_eig[2][2] == eigvecs(nrho92)[6]
+    @test unit_eig[1][1] == eigvals(nrho92)[3]
+    @test unit_eig[1][2] == eigvals(nrho92)[4]
+    @test unit_eig[2][1] == eigvecs(nrho92)[3]
+    @test unit_eig[2][2] == eigvecs(nrho92)[4]
 
     s_eig = stable_eigs(nrho92)
     @test s_eig[1][1] == eigvals(nrho92)[2]
     @test s_eig[2][1] == eigvecs(nrho92)[2]
 
     # Stability index
-    @test stability_index(nrho92)[2] ≈ 1.3187408625377004 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
-    @test stability_index(nrho92)[1] ≈ [-1.3187408625377004, 0.6844867720339172, 0.9999999999082602] atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test stability_index(nrho92)[2] ≈ 1.3187408625616328 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test stability_index(nrho92)[1] ≈ [-1.3187408625616328, 0.9999999997142959, 0.6844867720570231] atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     
 end

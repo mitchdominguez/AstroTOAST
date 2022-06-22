@@ -419,10 +419,11 @@ function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::Real; ndti
 end
 
 function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::AbstractVector; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
-    outvec = Matrix{Vector{Float64}}(undef, length(thT), length(thrho))
-    for i = 1:length(thT)
-        for j = 1:length(thrho)
-            outvec[i,j] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
+    outvec = Vector{Matrix{Float64}}(undef, length(thrho))
+    for j = 1:length(thrho)
+        outvec[j] = Matrix(undef, dimension(qpo), length(thT))
+        for i = 1:length(thT)
+            outvec[j][:,i] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
         end
     end
     return outvec

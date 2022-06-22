@@ -359,8 +359,16 @@ Return the invariant curve of the quasiperiodic orbit at time T if ndtime = true
 returns the state at thT = 2πT/Period if ndtime = false. thT is the
 longitudinal angle on the torus
 """
-(qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+(qpo::QuasiPeriodicOrbit)(thT::Real; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
 # (qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(__local_time(qpo,thT)) : invariantcurve(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
+
+function (qpo::QuasiPeriodicOrbit)(thT::AbstractVector; ndtime=false)
+    outvec = Vector{Vector{Float64}}(undef, length(thT))
+    for i = 1:length(thT)
+        outvec[i] = qpo(thT[i]; ndtime=ndtime)
+    end
+    return outvec
+end
 
 """
     (qpo::QuasiPeriodicOrbit)(thT, thrho; ndtime=false)
@@ -368,7 +376,7 @@ longitudinal angle on the torus
 For the invariant curve `ic` at longitudinal angle `thT` or time `T`, return the 
 state on `ic` at latitudinal angle `thrho`
 """
-function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::Real, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
     fixedpt = xstar(qpo, thT, ndtime=ndtime)
     uvec = x2u(qpo(thT; ndtime), fixedpt)
 
@@ -394,6 +402,31 @@ function (qpo::QuasiPeriodicOrbit{dim,N})(thT, thrho; ndtime=false, tol = DEFAUL
 
 end
 
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::Real, thrho::AbstractVector; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
+    outvec = Vector{Vector{Float64}}(undef, length(thrho))
+    for i = 1:length(thrho)
+        outvec[i] = qpo(thT, thrho[i]; ndtime=ndtime, tol=tol)
+    end
+    return outvec
+end
+
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
+    outvec = Vector{Vector{Float64}}(undef, length(thT))
+    for i = 1:length(thT)
+        outvec[i] = qpo(thT[i], thrho; ndtime=ndtime, tol=tol)
+    end
+    return outvec
+end
+
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::AbstractVector; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
+    outvec = Matrix{Vector{Float64}}(undef, length(thT), length(thrho))
+    for i = 1:length(thT)
+        for j = 1:length(thrho)
+            outvec[i,j] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
+        end
+    end
+    return outvec
+end
 """
     Base.show
 

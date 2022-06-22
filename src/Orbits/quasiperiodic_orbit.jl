@@ -33,7 +33,7 @@ struct QuasiPeriodicOrbit{D,N}
     # actually is
     thT_offset::Float64 
 
-    function QuasiPeriodicOrbit(ts::TrajectorySet{D,N}, rho::Float64, xstar::Vector{Float64}, 
+    function QuasiPeriodicOrbit(ts::TrajectorySet{D,N}, rho::Float64, xstar::AbstractVector{Float64}, 
             name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL, thT_offset=0) where {D,N}
         # Check that fixed point has the right dimension
         if length(xstar) != D
@@ -111,7 +111,7 @@ end
 
 ########################## OUTER CONSTRUCTORS ##########################
 function QuasiPeriodicOrbit(dm::DynamicalModel, X0::Vector{Float64}, T::Float64,  
-        rho::Float64, xstar::Vector{Float64}; 
+        rho::Float64, xstar::AbstractVector{Float64}; 
         name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL, thT_offset=0) 
     ts = TrajectorySet(dm, X0, T)
     return QuasiPeriodicOrbit(ts, rho, xstar, name, family, tol, thT_offset)

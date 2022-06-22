@@ -23,18 +23,6 @@ fx = FXVector(q2p)
 maxiter = 100
 tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
-Xhist, err = target(targ,debug=false)
+Xhist, err = target(targ,debug=true)
 err
 
-# Target Position Correspondence
-# ths = LinRange(0, 2pi, 151)
-# for th in ths
-    # update!(thT, [th])
-    # update!(tau, [th])
-    # try
-        # target(targ,debug=false);
-        # println("$(th) DID WORK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    # catch
-        # println("$(th) did not work")
-    # end
-# end

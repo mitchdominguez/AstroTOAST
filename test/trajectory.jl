@@ -72,8 +72,8 @@ include("nrho92.jl")
 
     # Test traj(time)
     @test traj(0) == tofullvector(X1)
-    @test traj(Td) ≈ tofullvector(X1) atol=1e-12
-    @test traj([0, Td]) ≈ [tofullvector(X1), tofullvector(X1)] atol=1e-12
+    @test traj(tof(traj)) ≈ tofullvector(X1) atol=1e-12
+    @test traj([0, tof(traj)]) ≈ [tofullvector(X1), tofullvector(X1)] atol=1e-12
 
     # Test isperiodic
     @test isperiodic(traj)

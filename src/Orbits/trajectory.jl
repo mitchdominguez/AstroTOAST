@@ -229,7 +229,14 @@ Return the state along the trajectory at time T or times "times"
 function (traj::Trajectory)(T::Real)
     # Check that T is within tspan
     if !__within(T, tspan(traj)[1], tspan(traj)[2])
-        throw(ErrorException("T = $(T) is not within tspan, $(tspan(traj))"))
+        if isapprox(tspan(traj)[1],T) 
+            T = tspan(traj)[1]
+
+        elseif isapprox(tspan(traj)[2],T)
+            T = tspan(traj)[2]
+        else
+            throw(ErrorException("T = $(T) is not within tspan, $(tspan(traj))"))
+        end
     end
     
     # Return the state at time T

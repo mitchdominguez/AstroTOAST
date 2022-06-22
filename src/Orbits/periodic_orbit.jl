@@ -152,7 +152,15 @@ returns the state at θ_0 = 2πT/Period if ndtime = false. θ_0 is analagous
 to the longitudinal angle on a torus or the mean anomaly in a conic orbit
 """
 # (po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(T) : traj(po)(angle2time(po, T))
-(po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(__local_time(po,T)) : traj(po)(angle2time(po, __local_longitudinal_angle(po,T)))
+(po::PeriodicOrbit)(T::Real; ndtime=false) = ndtime ? traj(po)(__local_time(po,T)) : traj(po)(angle2time(po, __local_longitudinal_angle(po,T)))
+
+function (po::PeriodicOrbit)(T::AbstractVector; ndtime=false)
+    outvec = Vector{Vector{Float64}}(undef, length(T))
+    for i = 1:length(T)
+        outvec[i] = po(T[i]; ndtime=ndtime)
+    end
+    return outvec
+end
 
 """
     monodromy(po::PeriodicOrbit)

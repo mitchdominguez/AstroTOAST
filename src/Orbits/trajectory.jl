@@ -26,6 +26,8 @@ struct Trajectory{D}
         if dimension(dm) != length(X0)
             throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
         end
+
+        println(typeof(proptime))
         
         # Create tspan 
         if length(proptime) == 1
@@ -35,6 +37,7 @@ struct Trajectory{D}
         else
             throw(DimensionMismatch("proptime must be of length 1 or 2"))
         end
+        println(typeof(tspan))
 
         # Propagate initial conditions for the desired time
         sol = solve(dm, X0, tspan)

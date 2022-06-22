@@ -150,6 +150,7 @@ Return the states along the trajectory at time T or times "times"
 """
 function (ts::TrajectorySet{D,N})(T::Real) where {D,N}
     # Check that T is within tspan
+    if !__within(T, tspan(ts)[1], tspan(ts)[2])
         if isapprox(tspan(ts)[1],T) 
             T = tspan(ts)[1]
 
@@ -158,6 +159,7 @@ function (ts::TrajectorySet{D,N})(T::Real) where {D,N}
         else
             throw(ErrorException("T = $(T) is not within tspan, $(tspan(ts))"))
         end
+    end
     
     # Return the state at time T
     xT = similar(x0(ts))

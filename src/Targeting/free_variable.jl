@@ -195,7 +195,7 @@ end
 
 Update the values of the FreeVariable in place
 """
-function update!(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+function update!(fv::FreeVariable{D,T}, newval::AbstractVector{T}) where {D,T}
     if length(newval)!=full_length(fv)
         throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
     end
@@ -209,7 +209,7 @@ end
 
 Update the values of the FreeVariable out of place
 """
-function update(fv::FreeVariable{D,T}, newval::Vector{T}) where {D,T}
+function update(fv::FreeVariable{D,T}, newval::AbstractVector{T}) where {D,T}
     if length(newval)!=full_length(fv)
         throw(DimensionMismatch("Update value and FreeVariable value have different dimensions"))
     end

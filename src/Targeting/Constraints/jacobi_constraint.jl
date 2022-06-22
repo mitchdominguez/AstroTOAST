@@ -19,7 +19,7 @@ struct JacobiConstraint{D} <: Constraint{D}
     removeinds::Vector{Int}
 
     # Constructor
-    function JacobiConstraint(model::Cr3bpModel, JCd, X::FreeVariable; refpt::Vector{Float64}=zeros(dimension(model)))
+    function JacobiConstraint(model::Cr3bpModel, JCd, X::FreeVariable; refpt::AbstractVector{Float64}=zeros(dimension(model)))
         μ = mass_ratio(model)
         dim = dimension(model)
 

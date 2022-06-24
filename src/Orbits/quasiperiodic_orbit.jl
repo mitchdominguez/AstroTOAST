@@ -8,7 +8,7 @@ using LinearAlgebra
 """
     struct QuasiPeriodicOrbit{D,N}
 
-Object that represents periodic trajectories within a dynamical model
+Object that represents quasiperiodic trajectories within a dynamical model
 """
 struct QuasiPeriodicOrbit{D,N}
     ic::TrajectorySet{D,N} # Invariant curve

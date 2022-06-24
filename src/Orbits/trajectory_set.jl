@@ -164,6 +164,8 @@ function (ts::TrajectorySet{D,N})(T::Real) where {D,N}
     # Return the state at time T
     xT = similar(x0(ts))
     for i = 1:N
+        println(typeof(ts[i](T)))
+        println(ts[i](T))
         xT[D*i-(D-1):D*i] = ts[i](T)
     end
 

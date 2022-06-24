@@ -108,6 +108,12 @@ function evalconstraint(q2p::Q2P_PositionContinuityConstraint)
 
     return (qpo(thT,thR)-po(tau))[1:3]
 end
+function evalconstraint(q2p::Q2P_PositionContinuityConstraint, thT, thR, tau)
+    po = q2p_po(q2p)
+    qpo = q2p_qpo(q2p)
+
+    return (qpo(thT,thR)-po(tau))[1:3]
+end
 
 """
     partials(q2p::Q2P_PositionContinuityConstraint, fv::FreeVariable)

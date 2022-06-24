@@ -265,9 +265,9 @@ in order to output the state at the desired global longitudinal angle
 """
 function __local_longitudinal_angle(po::PeriodicOrbit, th_G::Real; acceptable_range=[0,2π]::Vector)
     thT_offset = offset(po)
-    if !__within(th_G, acceptable_range...)
-        throw(ErrorException("th_G=$(th_G) is outside the range of acceptable values, $(acceptable_range)"))
-    end
+    # if !__within(th_G, acceptable_range...)
+        # throw(ErrorException("th_G=$(th_G) is outside the range of acceptable values, $(acceptable_range)"))
+    # end
 
     return th_L = wrapto2pi(th_G - thT_offset)
 end
@@ -279,9 +279,9 @@ Using the thT_offset, calculate what the local longitudinal angle must be
 in order to output the state at the desired global longitudinal angle
 """
 function __local_time(po::PeriodicOrbit, T_G::Real; acceptable_range=[0,period(po)]::Vector)
-    if !__within(T_G, acceptable_range...)
-        throw(ErrorException("T_G=$(T_G) is outside the range of acceptable values, $(acceptable_range)"))
-    end
+    # if !__within(T_G, acceptable_range...)
+        # throw(ErrorException("T_G=$(T_G) is outside the range of acceptable values, $(acceptable_range)"))
+    # end
     thT_offset = offset(po)
     T_offset = angle2time(po, thT_offset)
 

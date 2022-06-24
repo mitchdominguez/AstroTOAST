@@ -242,8 +242,8 @@ function (traj::Trajectory)(T::Real)
     # Return the state at time T
     for i = 1:length(traj)
         if __within(T, solvec(traj)[i].t[begin], solvec(traj)[i].t[end])
-            println(typeof(solvec(traj)[i](T)))
-            return solvec(traj)[i](T)
+            # println(typeof(solvec(traj)[i](T)))
+            return Vector(solvec(traj)[i](T))
         end
     end
 

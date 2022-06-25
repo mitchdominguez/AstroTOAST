@@ -204,7 +204,7 @@ function (::__dQ2P_dtau{C})(q2p::Q2P_PositionContinuityConstraint{R}) where {R,C
     tau = tofullvector(q2p_tau(q2p))[1]
     model = dm(q2p)
 
-    return -model(po(tau))[1:3]
+    return -model(po(tau))[1:3]*period(po)/(2pi)
 end
 
 """

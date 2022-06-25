@@ -162,7 +162,8 @@ function (ts::TrajectorySet{D,N})(T::Real) where {D,N}
     end
     
     # Return the state at time T
-    xT = similar(x0(ts))
+    # xT = similar(x0(ts))
+    xT = Vector{Real}(undef, size(x0(ts)))
     for i = 1:N
         xT[D*i-(D-1):D*i] = ts[i](T)
     end

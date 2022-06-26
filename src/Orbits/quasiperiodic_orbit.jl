@@ -143,6 +143,15 @@ function xstar(qpo::QuasiPeriodicOrbit, thT=0; ndtime=false)
     return out
 end
 
+function xstar(qpo::QuasiPeriodicOrbit, thT::AbstractVector; ndtime=false)
+    outvec = Vector{Vector{Real}}(undef,length(thT))
+    for i = 1:length(thT)
+        outvec[i] = xstar(qpo, thT[i], ndtime=ndtime)
+    end
+
+    return outvec
+end
+
 """
     reforbit(qpo::QuasiPeriodicOrbit)
 

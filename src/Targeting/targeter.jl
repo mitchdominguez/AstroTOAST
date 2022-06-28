@@ -113,8 +113,8 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         println("Iteration $(1): |F(X)| = $(err[1])")
         # println("\t X = $(tofullvector(X(T)))")
     end
-    if err[end] < tol
-        cont = false
+    if err[1] < tol
+        return (Xhist, err) 
     end
 
     i = 1

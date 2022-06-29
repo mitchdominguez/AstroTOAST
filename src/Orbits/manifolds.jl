@@ -13,7 +13,7 @@ function subspace_stepoff(v::AbstractVector, d_dim::Real, model::Cr3bpModel, the
     d = d_dim/dimensional_length(model)
 
     # Stepoff vector
-    u0 = d*(real(v_norm)*cosd(theta) - imag(v_norm)*sind(theta))
+    u0 = d*(real(v_norm)*cos(theta) - imag(v_norm)*sin(theta))
     
     return u0
 end

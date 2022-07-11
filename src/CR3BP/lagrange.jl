@@ -137,3 +137,44 @@ function equilibrium_solutions(m::Cr3bpModel; max_iter=100, tolerance=1e-12)
 
     @SVector [L1, L2, L3, L4, L5]
 end
+
+"""
+    lyapunov_linear_ics(model::Cr3bpModel, xi_0::Real, eta_0::Real, index::Int)
+
+Calculate the linear approximation for the Lyapunov orbit around the 
+collinear lagrange points. `index` determines which collinear lagrange point
+the initial conditions will be taken about, and so it must be equal to either
+1,2, or 3.
+"""
+function lyapunov_linear_ics(model::Cr3bpModel, xi_0::Real, eta_0::Real, index::Int)
+    if index!=1 && index!=2 && index!=3
+        throw(InvalidStateException("index must be equal to 1, 2, or 3", :index))
+    end
+
+    Li = equilibrium_solutions(model)[index]
+
+    r_L = Li[1:3]
+
+    r_0 = r_L + [xi_0,eta_0,0]
+
+    U = pseudopotential_jacobian(model, Li)
+    U_xx = U[1,1]
+    U_yy = U[2,2]
+
+    # Solve for beta_1, beta_2
+    beta_1 = 2 - ((U_xx+U_yy)/2)
+    beta_2 = sqrt(complex(-U_xx*U_yy))
+
+    # Solve for s, beta_3
+    s = sqrt(beta_1 + sqrt(beta_1^2 + beta_2^2))
+    beta_3 = (s^2 + U_xx)/(2*s)
+
+    # Position is r_L1 + [xi_0,eta_0]
+    # Velocity is [xi_0_dot, eta_0_dot]
+
+    xi_0_dot = eta_0*s/beta_3
+    eta_0_dot = -beta_3*xi_0*s
+    v_0 = [xi_0_dot,eta_0_dot,0]
+
+    return IC = ignore_imag(vcat(r_0, v_0))
+end

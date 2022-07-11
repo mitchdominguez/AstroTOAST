@@ -39,6 +39,7 @@ export mass_ratio, primary_bodies
 export distance_to_primary, primary_state
 export pseudopotential, pseudopotential_gradient, pseudopotential_jacobian
 export jacobi_constant
+export lyapunov_linear_ics
 
 include("Targeting/free_variable.jl")
 export FreeVariable

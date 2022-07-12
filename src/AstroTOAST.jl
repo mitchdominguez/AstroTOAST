@@ -107,4 +107,8 @@ include("Targeting/Constraints/q2p_rcont_constraint.jl")
 export Q2P_PositionContinuityConstraint
 export q2p_qpo, q2p_po, q2p_tht, q2p_thr, q2p_tau
 
+include("Targeting/Constraints/perpendicular_crossing_constraint.jl")
+export PerpendicularCrossingConstraint
+export pcc_x1, pcc_T, pcc_tmax, xz_plane_crossing
+
 end

@@ -123,6 +123,13 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         # Evaluate DF Matrix
         DFmat = evalDFXMatrix(T)
 
+        # show(stdout,"text/plain",tovector(X(T)))
+        # println()
+        # show(stdout,"text/plain",tovector(FX(T)))
+        # println()
+        # show(stdout,"text/plain",DFmat)
+        # println()
+
         # Perform update
         update!(X(T),tovector(X(T)) - att*(DFmat\tovector(FX(T))))
 

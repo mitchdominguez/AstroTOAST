@@ -202,3 +202,32 @@ function Base.show(io::IO, ::MIME"text/plain", pcc::PerpendicularCrossingConstra
     print(io, "- T: $(name(pcc_tof(pcc)))\n")
     print(io, "- Tmax: $(pcc_tmax(pcc))\n")
 end
+
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
+#                PERIODIC ORBIT CONSTRUCTOR FROM PERPENDICULAR CROSSING
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
+
+"""
+    PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL)
+
+Constructor for generating a trajectory from multiple patch points
+"""
+function PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0)
+    # Unpack FreeVariables
+    X1 = pcc_x1(pcc)
+    T = pcc_T(pcc)
+    model = dm(pcc)
+
+    # Calculate positive time and negative time trajectories
+    trajp = Trajectory(model, tofullsvector(X1), tofullvector(T)[1])
+    trajn = Trajectory(model, tofullsvector(X1), (2*tofullvector(T)[1], tofullvector(T)[1]))
+
+    # Create full orbit
+    append!(trajp, trajn)
+
+    # show(stdout, "text/plain", eigen(stm(trajp)))
+
+    return PeriodicOrbit(trajp, name, family, tol; thT_offset=thT_offset)
+end

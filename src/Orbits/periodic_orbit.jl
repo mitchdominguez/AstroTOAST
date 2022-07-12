@@ -31,7 +31,7 @@ struct PeriodicOrbit{D}
     
 
 
-    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0) where {D}
+    function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0, M_mat = nothing) where {D}
         # Ensure that traj is periodic
         if !isperiodic(traj, tol)
             throw(ErrorException("traj is not periodic!"))
@@ -47,26 +47,32 @@ struct PeriodicOrbit{D}
             throw(ErrorException("thT must be within [0, 2pi]"))
         end
 
-        # Calculate monodromy matrix
-        if thT_offset == 0
-            M = stm(traj)
+        if isnothing(M_mat)
+            # Calculate monodromy matrix
+            if thT_offset == 0
+                M = stm(traj)
+            else
+                phi_tP_t = stm(traj) # ***
+
+                P = tof(traj)
+                T_offset = thT_offset*P/(2pi)
+
+                t0_L = wraptoperiod(0-T_offset, P)
+                q0 = traj(t0_L)
+
+                phi_t_0 = tangent_solve(dm(traj), q0, (0, T_offset)).u[end][:,2:end] # ***
+
+                M = phi_t_0\phi_tP_t*phi_t_0
+            end
         else
-            phi_tP_t = stm(traj) # ***
-
-            P = tof(traj)
-            T_offset = thT_offset*P/(2pi)
-
-            t0_L = wraptoperiod(0-T_offset, P)
-            q0 = traj(t0_L)
-
-            phi_t_0 = tangent_solve(dm(traj), q0, (0, T_offset)).u[end][:,2:end] # ***
-
-            M = phi_t_0\phi_tP_t*phi_t_0
+            # Monodromy matrix provided
+            M = M_mat
         end
 
         # Calculate eigenvalues and eigenvectors
         λ, vec = eigen(M)
 
+        λ = Vector{ComplexF64}(λ)
         V = Vector{Vector{ComplexF64}}(undef,D)
         for i = 1:D
             V[i] = vec[:,i]

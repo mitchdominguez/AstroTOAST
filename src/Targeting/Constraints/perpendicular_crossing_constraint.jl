@@ -221,13 +221,25 @@ function PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family =
     model = dm(pcc)
 
     # Calculate positive time and negative time trajectories
+    traj = Trajectory(model, tofullsvector(X1), tofullvector(T)[1])
     trajp = Trajectory(model, tofullsvector(X1), tofullvector(T)[1])
     trajn = Trajectory(model, tofullsvector(X1), (2*tofullvector(T)[1], tofullvector(T)[1]))
 
     # Create full orbit
-    append!(trajp, trajn)
+    append!(traj, trajn)
 
     # show(stdout, "text/plain", eigen(stm(trajp)))
 
-    return PeriodicOrbit(trajp, name, family, tol; thT_offset=thT_offset)
+    S = [zeros(3,3) I(3);-I(3) zeros(3,3)]
+    Om = [0 1 0;-1 0 0;0 0 0]
+    V = [I(3) zeros(3,3);-Om I(3)]
+    G = Diagonal([1;-1;1;-1;1;-1])
+    phi_half_P = stm(trajp)
+    mat1 = [zeros(3,3) -I(3);I(3) -2*Om]
+    mat2 = [-2*Om I(3);-I(3) zeros(3,3)]
+
+    M = G*mat1*phi_half_P'*mat2*G*phi_half_P # Monodromy matrix
+
+
+    return PeriodicOrbit(traj, name, family, tol; thT_offset=thT_offset, M_mat = M)
 end

@@ -13,4 +13,5 @@ using Test
     include("trajectory.jl")
     include("periodic_orbit.jl")
     include("qposs.jl")
+    include("perpendicular_crossing.jl")
 end

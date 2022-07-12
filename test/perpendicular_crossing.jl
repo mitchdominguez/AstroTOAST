@@ -35,9 +35,12 @@ targ = Targeter(xv, fx, maxiter, tol);
 # Target perpendicular crossing
 Xhist, err = target(targ,debug=false);
 
-err
+@testset "perpendicular_crossing.jl" begin
+    @test length(err) == 6
+    sol = solve(model, tofullsvector(X1), tofullvector(T)[1])
 
-# @testset "perpendicular_crossing.jl" begin
-    # @test 1==1
-# end
+    @test sol[end][2] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test sol[end][4] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test sol[end][6] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+end
 

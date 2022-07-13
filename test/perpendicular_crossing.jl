@@ -42,5 +42,10 @@ Xhist, err = target(targ,debug=false);
     @test sol[end][2] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test sol[end][4] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test sol[end][6] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+
+    
+    # Test that T is updated to be the time for the next xz plane crossing
+    sol2 = solve(model, tofullsvector(X1), 2tofullvector(T)[1], callback=xz_plane_crossing(pcc))
+    @test sol2.t[end] == tofullvector(T)[1]
 end
 

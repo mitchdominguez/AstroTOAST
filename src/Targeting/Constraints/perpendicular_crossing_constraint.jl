@@ -1,4 +1,5 @@
 using OrdinaryDiffEq
+using StaticArrays
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                            PERPENDICULAR CROSSING CONSTRAINT
@@ -129,6 +130,16 @@ function evalconstraint(pcc::PerpendicularCrossingConstraint)
     return sol.u[end]#[[4,6]]
 end
 
+
+# function evalconstraint(pcc::PerpendicularCrossingConstraint, xv::AbstractVector)
+function evalconstraint(pcc::PerpendicularCrossingConstraint, xv)
+    x1 = SVector(xv[1:6]...)
+    T = xv[7]
+
+    sol = solve(dm(pcc), x1, (0, T), callback = xz_plane_crossing(pcc))
+
+    return sol.u[end]
+end
 # """
     # evalconstraint(pcc::PerpendicularCrossingConstraint, X1::FreeVariable, X2::FreeVariable)
 

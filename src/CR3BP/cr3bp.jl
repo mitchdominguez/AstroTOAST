@@ -308,7 +308,8 @@ For the three parameter call, `p` must be an `AbstractArray` where `p[1] = mu`.
 This function is provided to allow evaluation of sensitivities with respect to the mass ratio as well
 as adhering to the API required by `DifferentialEquations.jl`.`
 """
-function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
+# function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
+function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::Real)
     mu = p[1]
     mTemp = Cr3bpModel(mu)
 

@@ -223,7 +223,7 @@ angle2time(po::PeriodicOrbit, th::Real) = th*period(po)/(2pi)
 Return the state transition matrix at longitudinal angle θ. 
 Calling this function with θ=2π results in the monodromy matrix
 """
-stm(po::PeriodicOrbit, θ::Real) = stm(traj(po), angle2time(po, θ))
+stm(po::PeriodicOrbit, θ::Real; ndtime=false) = ndtime ? stm(traj(po), θ) : stm(traj(po), angle2time(po, θ))
 
 """
     wrapto2pi(th)
@@ -377,13 +377,13 @@ function sorteigs!(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Mat
 end
 
 """
-    classifyeigs(po::PeriodicOrbit)
+    classify_eigs(po::PeriodicOrbit)
 
 Classify eigenvalues, their associated eigenvectors, into the following categories
-    - stable (magnitude < 1 - ϵ)
     - unstable (magnitude > 1 + ϵ)
-    - unit (value == 1 (±ϵ)
     - center (magnitude == 1 (±ϵ)
+    - unit (value == 1 (±ϵ)
+    - stable (magnitude < 1 - ϵ)
 
 and return the indices within eigvals(po) that they correspond to.
 Each eigenvalue can only belong to one of the above categories.

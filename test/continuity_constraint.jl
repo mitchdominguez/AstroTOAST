@@ -71,6 +71,6 @@ using Test
 
     constvec = [0.4791760210447607, -0.16233842917687474, 0.0, 
                 1.2621101313341967, -3.679141924348646, -0.0] 
-    @test AstroTOAST.__dCC_dt{1}()(cc) ≈ constvec atol=1e-12
+    @test AstroTOAST.__dCC_dt{1}()(cc) ≈ constvec atol=1e-10
 
 end

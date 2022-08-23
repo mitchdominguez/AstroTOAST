@@ -75,13 +75,13 @@ using Test
     Xhist, err = AstroTOAST.target(targ);
     println(err)
 
-    @test err == errhist
+    @test err≈errhist atol=1e-10
     @test size(err) == size(Xhist)
     @test size(Xhist) == (6,)
 
     # Test norm(fx, xvorig, xveval)
     for i=1:length(Xhist)
-        @test norm(fx, xv, Xhist[i]) == errhist[i]
+        @test norm(fx, xv, Xhist[i])≈errhist[i] atol=1e-10
     end
     @test tovector(Xhist[1][1]) == [0.72, 0, 0.71, 0, 0.18, 0]
 

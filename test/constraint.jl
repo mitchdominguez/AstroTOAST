@@ -45,10 +45,10 @@ using Test
                  0.04885903430988203, -0.8443322399737069, -3.0, 
                  -1.5427004376495064, 0.48472341766236055, 2.0]
 
-    @test tovector(fx) == fx_evaled
+    @test tovector(fx)≈fx_evaled atol=1e-10
 
     # tosvector
-    @test tosvector(fx) == SVector(Tuple(fx_evaled))
+    @test tosvector(fx)≈SVector(Tuple(fx_evaled)) atol=1e-10
 
     # getindex, x1, x2, tof, model
     @test x1(fx[1]) == X1

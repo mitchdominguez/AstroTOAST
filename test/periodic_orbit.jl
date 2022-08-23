@@ -104,7 +104,7 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test s_eig[2][1] == eigvecs(nrho92)[2]
 
     # Stability index
-    @test stability_index(nrho92)[2] ≈ 1.3187408625616328 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
-    @test stability_index(nrho92)[1] ≈ [-1.3187408625616328, 0.9999999997142959, 0.6844867720570231] atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test stability_index(nrho92)[2] ≈ 1.3187408625616328 atol=1e-9
+    @test stability_index(nrho92)[1] ≈ [-1.3187408625616328, 0.9999999997142959, 0.6844867720570231] atol=1e-9
     
 end

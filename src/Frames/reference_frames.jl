@@ -49,14 +49,20 @@ struct EM_MCI <: ReferenceFrame end
 """
     EM_TCR
 
-EM CR3BP rotating frame, centered on a target spacecraft
+EM CR3BP rotating frame, centered on a target spacecraft.
+
+This frame will always be reported with `target` in `EM_BCR` and `chaser` in
+the target centered frame that rotates with the EM CR3BP
 """
 struct EM_TCR <: ReferenceFrame end
 
 """
     EM_LVLH
 
-LVLH frame defined wrt a target spacecraft in the EM CR3BP
+LVLH frame defined wrt a target spacecraft in the EM CR3BP. 
+
+This frame will always be reported with `target` in `EM_BCR` and `chaser` in
+the LVLH frame
 """
 struct EM_LVLH <: ReferenceFrame end
 
@@ -65,10 +71,13 @@ struct EM_LVLH <: ReferenceFrame end
 
 In-track, cross-track, radial frame defined wrt a target spacecraft in the EM CR3BP
 
-The difference between EM_ICR and EM_LVLH is that inertial velocity is used
-in the EM_ICR frame to calculate the angular momentum direction
+The difference between `EM_ICR` and `EM_LVLH` is that inertial velocity is used in
+the `EM_ICR` frame to calculate the angular momentum direction.  
+
+This frame will always be reported with `target` in `EM_BCR` and `chaser` in
+the target centered ICR frame.
 """
-struct EM_ICR <: ReferenceFrame end
+struct EM_TCICR <: ReferenceFrame end
 
 
 

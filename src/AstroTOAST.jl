@@ -113,7 +113,7 @@ export pcc_x1, pcc_T, pcc_tmax, xz_plane_crossing
 
 include("Frames/reference_frames.jl")
 export ReferenceFrame
-export EM_BCR, EM_ECR, EM_MCR, EM_LVLH, EM_ICR, EM_TCR, EM_ECI, EM_MCI
+export EM_BCR, EM_ECR, EM_MCR, EM_LVLH, EM_ICR, EM_TCR, EM_ECI, EM_MCI, EM_TCICR
 export frameconvert
 
 end

@@ -104,6 +104,28 @@ function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
     end
 end
 
+function frameconvert(states::Vector{Vector{T}}, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
+    outstate = similar(states)
+    for i = 1:length(states)
+        outstate[i] = frameconvert(states[i], f1, f2)
+    end
+    return outstate
+end
+
+function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
+    if !(length(targets) == length(chasers))
+        DimensionMismatch("targets and chasers must be the same length") |> throw
+    end
+
+    out_t = similar(targets)
+    out_c = similar(chasers)
+
+    for i = 1:length(targets)
+        out_t, out_c = frameconvert(targets[i], chasers[i], f1, f2)
+    end
+    return out_t, out_c
+end
+
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                             REGISTER FRAME CONVERSIONS

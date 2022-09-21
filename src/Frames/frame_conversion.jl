@@ -121,7 +121,7 @@ function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, f1
     out_c = similar(chasers)
 
     for i = 1:length(targets)
-        out_t, out_c = frameconvert(targets[i], chasers[i], f1, f2)
+        out_t[i], out_c[i] = frameconvert(targets[i], chasers[i], f1, f2)
     end
     return out_t, out_c
 end

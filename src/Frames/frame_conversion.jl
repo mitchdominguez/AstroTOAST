@@ -48,16 +48,19 @@ Function to convert the `target` state from coordinates expressed in frame `f1` 
 coordinates expressed in frame `f2`
 """
 function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
-    # dist = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    numframes = nv(fc_graph)
+    dist_g = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    if dist_g >= numframes
+        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
+    end
     path = a_star(fc_graph, fc_graph[f1, :frame], fc_graph[f2, :frame])
     dist = length(path)
-    numframes = nv(fc_graph)
 
     # Check if either f1 or f2 is a relative frame
     f1_isrelative = f1 in relative_frames
     f2_isrelative = f2 in relative_frames
 
-    if dist == 0
+    if dist == 0 && f1 == f2
         # f1 and f2 are the same frame, so the state should just be returned as normal
         return (target, chaser)
     elseif dist == 1
@@ -80,23 +83,25 @@ function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
             # Case where both f1 and f2 are not relative
             return (frameconvert(target, f1, f2), frameconvert(chaser, f1, f2))
         else
-            # Case where one of f1 or f2 are a relative frame
+            # Case where at least one of f1 or f2 are a relative frame
             newtarget = target
             newchaser = chaser
             for p in path
                 src_f = fc_graph[src(p), :frame]
                 dst_f = fc_graph[dst(p), :frame]
                 if !(src_f in relative_frames) && !(dst_f in relative_frames)
+                    # Case where both src_f and dst_f are not relative
                     newtarget, newchaser = (frameconvert(newtarget, src_f, dst_f), frameconvert(newchaser, src_f, dst_f))
                 else
+                    # Case where at least one of src_f and dst_f are a relative frame
                     newtarget, newchaser = fc(newtarget, newchaser, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
                 end
             end
             return newtarget, newchaser
         end
 
-    else
-        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
+    # else
+        # ErrorException("No such frame transformation exists in AstroTOAST") |> throw
     end
 end
 
@@ -135,6 +140,10 @@ set_indexing_prop!(fc_graph, :frame)
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_MCR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_ECR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_TCR(), :frame])
+add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_LVLH(), :frame])
+
+
+# TODO function to plot the frame conversion graph
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
@@ -171,3 +180,5 @@ end
 function fc(target, chaser, f1::EM_TCR, f2::EM_BCR)
     return (target, chaser+target)
 end
+
+include("lvlh_frameconversion.jl")

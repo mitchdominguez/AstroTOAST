@@ -17,10 +17,13 @@ function frameconvert(state, f1::ReferenceFrame, f2::ReferenceFrame)
         ErrorException("Cannot use only one state to convert into a relative frame") |> throw
     end
 
-    # dist = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    numframes = nv(fc_graph)
+    dist_g = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    if dist_g >= numframes
+        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
+    end
     path = a_star(fc_graph, fc_graph[f1, :frame], fc_graph[f2, :frame])
     dist = length(path)
-    numframes = nv(fc_graph)
 
     if dist == 0
         # f1 and f2 are the same frame, so the state should just be returned as normal
@@ -28,7 +31,7 @@ function frameconvert(state, f1::ReferenceFrame, f2::ReferenceFrame)
     elseif dist == 1
         # There exists a function to directly convert between f1 and f2
         return fc(state, f1, f2)
-    elseif dist < numframes
+    else
         # Traverse the graph of frame conversions one at a time until arriving
         # at the final state
         newstate = state
@@ -36,8 +39,6 @@ function frameconvert(state, f1::ReferenceFrame, f2::ReferenceFrame)
             newstate = fc(newstate, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
         end
         return newstate
-    else
-        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
     end
 end
 
@@ -75,7 +76,7 @@ function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
             return fc(target, chaser, f1, f2)
         end
 
-    elseif dist < numframes
+    else
         # Traverse the graph of frame conversions one at a time until arriving
         # at the final state
         #
@@ -100,8 +101,6 @@ function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
             return newtarget, newchaser
         end
 
-    # else
-        # ErrorException("No such frame transformation exists in AstroTOAST") |> throw
     end
 end
 
@@ -181,4 +180,5 @@ function fc(target, chaser, f1::EM_TCR, f2::EM_BCR)
     return (target, chaser+target)
 end
 
+### EM_BCR <-> EM_LVLH ###
 include("lvlh_frameconversion.jl")

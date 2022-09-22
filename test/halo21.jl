@@ -47,7 +47,7 @@ err = []
 # Continue in position towards 2:1 Halo
 for i = 1:length(tees)
     # Update tof
-    update!(T1, [tees[i]])
+    AstroTOAST.update!(T1, [tees[i]])
 
     # Target new PO
     Xhist_temp, err_temp = target(targ)
@@ -65,7 +65,7 @@ halo21 = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos");
 halo21_off = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos";thT_offset=π)
 
 # Make θ_T=0 be at perilune
-update!(X1, halo21(pi).*[1,0,1,0,1,0])
+AstroTOAST.update!(X1, halo21(pi).*[1,0,1,0,1,0])
 
 Xhist_temp2, err_temp2 = target(targ)
 push!(Xhist,Xhist_temp2)

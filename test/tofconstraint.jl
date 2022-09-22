@@ -56,7 +56,7 @@ Xhist, err = target(targ);
     @test fx2[4] == tofc
     
     # Reset XVector
-    update!(xv, Xhist[1])
+    AstroTOAST.update!(xv, Xhist[1])
 
     # Target with tof constraint
     targ2 = Targeter(xv, fx2, maxiter, tol)

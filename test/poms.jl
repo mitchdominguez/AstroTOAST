@@ -67,7 +67,7 @@ using Test
     @test length(err) == 9
 
     # Reset the test to run the alternate example where a free variable is fixed, and we use all the constraints
-    update!(xv, Xhist[1])
+    AstroTOAST.update!(xv, Xhist[1])
 
     @test norm(fx_rxfc) ≈ 0.8417710513141402 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 

@@ -55,9 +55,9 @@ Xhist, err = target(targ);
 po1 = Trajectory(model, [X1, X2, X3], [T1, T2, T3])
 peri_time = find_zero(t -> po1(t)[2], (tof(po1)-0.2, tof(po1)), Roots.Bisection())
 dt = peri_time-tof(po1)
-update!(X1, po1(peri_time).*[1,0,1,0,1,0])
-update!(X2, po1(tofullvector(T1)[1] + dt))
-update!(X3, po1(tofullvector(T1)[1] + tofullvector(T2)[1] + dt))
+AstroTOAST.update!(X1, po1(peri_time).*[1,0,1,0,1,0])
+AstroTOAST.update!(X2, po1(tofullvector(T1)[1] + dt))
+AstroTOAST.update!(X3, po1(tofullvector(T1)[1] + tofullvector(T2)[1] + dt))
 
 # println("After updating free variables")
 # println(norm(tofullvector(fx)))
@@ -99,4 +99,4 @@ nrho92_traj = Trajectory(model, [X1_fix, X2, X3], [T1, T2, T3])
 
 nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
 
-update!(X1, tofullvector(X1_fix))
+AstroTOAST.update!(X1, tofullvector(X1_fix))

@@ -135,13 +135,13 @@ using Test
 
     ######################################################
 
-    # setindex! and update!
+    # setindex! and AstroTOAST.update!
     @test value(X1) == [1,2,3]
     X1[2] = 17
     @test value(X1) == [1,17,3]
     @test_throws BoundsError X1[5]=99
     @test_throws MethodError X1[2]=4.5
-    update!(X1, [9,99,999])
+    AstroTOAST.update!(X1, [9,99,999])
     @test value(X1) == [9, 99, 999]
     @test value(xv[1]) == [9, 99, 999]
 
@@ -160,14 +160,14 @@ using Test
     @test xvc ≢ xv
     @test tovector(xvc) == tovector(xv)
 
-    # setindex! and update! (XVector)
+    # setindex! and AstroTOAST.update! (XVector)
     X1f = FreeVariable("x1",[1.0, 2.0, 3.0])
     X2f = FreeVariable("x2",[1.3, 2.3, 3.3])
     X3f = FreeVariable("x3",[1.6, 2.6, 3.6])
     xvf = XVector(X1f, X2f, X3f) # all floats version
     xvf2 = XVector(copy(X3f), copy(X2f), copy(X1f))
     @test_throws DimensionMismatch xvc[2] = X2f
-    update!(xvf, tovector(xvf).+1)
+    AstroTOAST.update!(xvf, tovector(xvf).+1)
     @test value(xvf[1]) == [2.0, 3.0, 4.0]
     xvfc = update(xvf, tovector(xvf).+1)
     @test value(xvf[1]) == [2.0, 3.0, 4.0]
@@ -184,29 +184,29 @@ using Test
     @test tovector(xvf_copy[1]) == [2.0, 3, 4]
     @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
 
-    update!(xvf, xvf2)
+    AstroTOAST.update!(xvf, xvf2)
     @test xvf_copy != xvf != xvf2
     @test tovector(xvf[1]) == [1.6, 2.6, 3.6]
     @test tovector(xvf_copy[1]) == [2.0, 3, 4]
     @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
 
-    update!(xvf, xvf_copy)
+    AstroTOAST.update!(xvf, xvf_copy)
     @test xvf_copy != xvf != xvf2
     @test tovector(xvf[1]) == [2.0, 3, 4]
     @test tovector(xvf_copy[1]) == [2.0, 3, 4]
     @test tovector(xvf2[1]) == [1.6, 2.6, 3.6]
 
 
-    # Test update! with different length update vectors
+    # Test AstroTOAST.update! with different length update vectors
     newvec = [1,2,3,4,5,6,7,8,9,10,11,12.0] # update full vector
 
-    update!(xvrm2, newvec)
+    AstroTOAST.update!(xvrm2, newvec)
     @test deleteat!(copy(newvec), removeinds(xvrm2)) == [1,3,5,7,8,10,11,12.0]
     @test tovector(xvrm2) == deleteat!(copy(newvec), removeinds(xvrm2))
     @test tofullvector(xvrm2) == copy(newvec)
 
     newvec_rm = tovector(xvrm2).+0.5 # exclude selected elements 
-    update!(xvrm2, newvec_rm) # Pass in vector of length length(xvrm2) (as opposed to full_length)
+    AstroTOAST.update!(xvrm2, newvec_rm) # Pass in vector of length length(xvrm2) (as opposed to full_length)
     @test tofullvector(xvrm2) == [1.5,2,3.5,4,5.5,6,7.5,8.5,9,10.5,11.5,12.5]
 
 

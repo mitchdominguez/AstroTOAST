@@ -43,7 +43,7 @@ export lyapunov_linear_ics
 
 include("Targeting/free_variable.jl")
 export FreeVariable
-export full_length, name, fullvalue, tofullvector, value, update!, update, active, removeinds
+export full_length, name, fullvalue, tofullvector, value, update, active, removeinds
 export XVector
 export numels, tovector, tosvector, tofullsvector
 

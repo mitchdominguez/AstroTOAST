@@ -18,12 +18,15 @@ Standard EM CR3BP rotating frame, centered at the Earth-Moon (EM) barycenter
 """
 struct EM_BCR <: ReferenceFrame end
 
+dm(::EM_BCR) = em_cr3bp
+
 """
     EM_ECR
 
 EM CR3BP rotating frame, centered at the Earth
 """
 struct EM_ECR <: ReferenceFrame end
+dm(::EM_ECR) = em_cr3bp
 
 """
     EM_MCR
@@ -31,6 +34,7 @@ struct EM_ECR <: ReferenceFrame end
 EM CR3BP rotating frame, centered at the Moon
 """
 struct EM_MCR <: ReferenceFrame end
+dm(::EM_MCR) = em_cr3bp
 
 """
     EM_ECI
@@ -55,6 +59,7 @@ This frame will always be reported with `target` in `EM_BCR` and `chaser` in
 the target centered frame that rotates with the EM CR3BP
 """
 struct EM_TCR <: ReferenceFrame end
+dm(::EM_TCR) = em_cr3bp
 
 """
     EM_LVLH
@@ -65,6 +70,7 @@ This frame will always be reported with `target` in `EM_BCR` and `chaser` in
 the LVLH frame
 """
 struct EM_LVLH <: ReferenceFrame end
+dm(::EM_LVLH) = em_cr3bp
 
 """
     EM_ICR

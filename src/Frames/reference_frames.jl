@@ -89,6 +89,16 @@ the target centered ICR frame.
 struct EM_TCICR <: ReferenceFrame end
 
 
+# List of relative frames
+relative_frames = [EM_TCR(), EM_LVLH(), EM_TCICR()]
+
+"""
+    isrelativeframe(f::ReferenceFrame)
+
+Return true if `f` is a relative frame
+"""
+isrelativeframe(f::ReferenceFrame) = f in relative_frames
+
 
 ### Associated files
 include("frame_conversion.jl")

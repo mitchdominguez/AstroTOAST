@@ -136,9 +136,6 @@ end
 # Earth-Moon CR3BP model
 em_cr3bp = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
 
-# List of relative frames
-relative_frames = [EM_TCR(), EM_LVLH(), EM_TCICR()]
-
 # Graph to hold frame conversion information
 fc_graph = MetaGraph()
 

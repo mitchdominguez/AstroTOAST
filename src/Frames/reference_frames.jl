@@ -88,9 +88,18 @@ the target centered ICR frame.
 """
 struct EM_TCICR <: ReferenceFrame end
 
+"""
+    EM_VNC
+
+V(elocity), N(ormal), C(ross) frame, centered on a target in the EM CR3BP. The
+normal is computed as the cross product of position wrt the Moon with the
+rotating velocity
+"""
+struct EM_VNC <: ReferenceFrame end
+
 
 # List of relative frames
-relative_frames = [EM_TCR(), EM_LVLH(), EM_TCICR()]
+relative_frames = [EM_TCR(), EM_LVLH(), EM_TCICR(), EM_VNC()]
 
 """
     isrelativeframe(f::ReferenceFrame)

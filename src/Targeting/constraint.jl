@@ -135,6 +135,19 @@ function Base.getindex(fx::FXVector, r::UnitRange{Int})
 end
 
 """
+    setindex!(fv::FreeVariable{D,T}, ind::Int, newval::T) where {D,T}
+
+Set the value of fv at an index ind to the specified newval
+"""
+function Base.setindex!(fx::FXVector, newval::T, ind::Int) where {T <: Constraint}
+    if 1 <= ind && ind <= length(fx)
+        fx.Cs[ind] = newval
+    else
+        throw(BoundsError(fx,ind)) 
+    end
+end
+
+"""
     iterate(::FXVector)
 
 Method for iterating through XVectors

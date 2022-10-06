@@ -419,21 +419,42 @@ function (qpo::QuasiPeriodicOrbit{dim,N})(thT::Real, thrho::AbstractVector; ndti
     return outvec
 end
 
-function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
-    outvec = Matrix(undef, dimension(qpo), length(thT))
-    for i = 1:length(thT)
-        outvec[:,i] = qpo(thT[i], thrho; ndtime=ndtime, tol=tol)
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL, outputmatrix=true) where {dim,N}
+    if outputmatrix
+        outvec = Matrix(undef, dimension(qpo), length(thT))
+        for i = 1:length(thT)
+            outvec[:,i] = qpo(thT[i], thrho; ndtime=ndtime, tol=tol)
+        end
+    else
+        outvec = Vector{Vector{Float64}}(undef, length(thT))
+        for i = 1:length(thT)
+            outvec[i] = qpo(thT[i], thrho; ndtime=ndtime, tol=tol)
+        end
     end
+
     return outvec
 end
 
-function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::AbstractVector; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
-    outvec = Vector{Matrix{Float64}}(undef, length(thrho))
-    for j = 1:length(thrho)
-        outvec[j] = Matrix(undef, dimension(qpo), length(thT))
-        for i = 1:length(thT)
-            outvec[j][:,i] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
+function (qpo::QuasiPeriodicOrbit{dim,N})(thT::AbstractVector, thrho::AbstractVector; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL, outputmatrix=true) where {dim,N}
+    if outputmatrix
+        outvec = Vector{Matrix{Float64}}(undef, length(thrho))
+        for j = 1:length(thrho)
+            outvec[j] = Matrix(undef, dimension(qpo), length(thT))
+            for i = 1:length(thT)
+                outvec[j][:,i] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
+            end
         end
+    else
+        # outvec = Vector{Matrix{Float64}}(undef, length(thrho))
+        outvec = Vector{Vector{Vector{Float64}}}()
+        for j = 1:length(thrho)
+            tempvec = Vector{Vector{Float64}}(undef, length(thT))
+            for i = 1:length(thT)
+                tempvec[i] = qpo(thT[i], thrho[j]; ndtime=ndtime, tol=tol)
+            end
+            push!(outvec, tempvec)
+        end
+
     end
     return outvec
 end

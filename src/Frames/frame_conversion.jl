@@ -150,6 +150,7 @@ add_vertex!(fc_graph, :frame, EM_MCI())
 add_vertex!(fc_graph, :frame, EM_TCR())
 add_vertex!(fc_graph, :frame, EM_LVLH())
 add_vertex!(fc_graph, :frame, EM_TCICR())
+add_vertex!(fc_graph, :frame, EM_VNC())
 
 # Allow each vertex of fc_graph to be indexed by the frame corresponding to it
 set_indexing_prop!(fc_graph, :frame)
@@ -167,6 +168,7 @@ add_edge!(fc_graph, fc_graph[EM_TCR(), :frame], fc_graph[EM_BCR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_LVLH(), :frame])
 add_edge!(fc_graph, fc_graph[EM_LVLH(), :frame], fc_graph[EM_BCR(), :frame])
 
+add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_VNC(), :frame])
 
 # TODO function to plot the frame conversion graph
 
@@ -205,6 +207,43 @@ end
 function fc(target, chaser, f1::EM_TCR, f2::EM_BCR)
     return (target, chaser+target)
 end
+
+"""
+`EM_BCR` -> `EM_VNC`
+"""
+function fc(target, chaser, f1::EM_BCR, f2::EM_VNC)
+    @warn "Velocity was not converted!!!"
+
+    mu = mass_ratio(em_cr3bp)
+
+    r_m_b_M = [1-mu,0,0] # Position of the moon wrt barycenter in the M frame
+
+    # Target initial conditions (relative to the Moon)
+    r_M = target[1:3]-r_m_b_M # Initial r (target position wrt Moon)
+    Mrdot_M = target[4:6] # Initial rdot vector in the M frame
+
+    # Calculate angular momentum
+    h_M = cross(r_M,Mrdot_M) # Angular momentum [M frame]
+    h = norm(h_M) # Norm of angular momentum
+
+    # Scalar position and velocity
+    r = norm(r_M)
+
+    # Calculate LVLH unit vectors
+    vhat_M = Mrdot_M/norm(Mrdot_M)
+    nhat_M = cross(r_M, Mrdot_M)/norm(cross(r_M, Mrdot_M))
+    chat_M = cross(vhat_M, nhat_M)/norm(cross(vhat_M, nhat_M))
+
+    # Calculate DCM: V_C_M --> vec_V = V_C_M*vec_M
+    V_C_M = [vhat_M';nhat_M';chat_M']
+
+    rho_V = V_C_M*chaser[1:3]
+    rhodot_V = [NaN, NaN, NaN]
+
+    return (target, [rho_V..., rhodot_V...])
+    
+end
+
 
 ### EM_BCR <-> EM_LVLH ###
 include("lvlh_frameconversion.jl")

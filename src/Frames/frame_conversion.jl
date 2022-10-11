@@ -212,7 +212,7 @@ end
 `EM_BCR` -> `EM_VNC`
 """
 function fc(target, chaser, f1::EM_BCR, f2::EM_VNC)
-    @warn "Velocity was not converted!!!"
+    # @warn "Velocity was not converted!!!"
 
     mu = mass_ratio(em_cr3bp)
 

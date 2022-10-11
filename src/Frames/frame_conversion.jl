@@ -237,7 +237,7 @@ function fc(target, chaser, f1::EM_BCR, f2::EM_VNC)
     # Calculate DCM: V_C_M --> vec_V = V_C_M*vec_M
     V_C_M = [vhat_M';nhat_M';chat_M']
 
-    rho_V = V_C_M*(target[1:3]-chaser[1:3])
+    rho_V = V_C_M*(chaser[1:3]-target[1:3])
     rhodot_V = [NaN, NaN, NaN]
 
     return (target, [rho_V..., rhodot_V...])

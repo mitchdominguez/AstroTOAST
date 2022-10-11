@@ -137,7 +137,7 @@ end
 em_cr3bp = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
 
 # Graph to hold frame conversion information
-fc_graph = MetaGraph()
+fc_graph = MetaDiGraph()
 
 # Each vertex of fc_graph represents a frame
 add_vertex!(fc_graph, :frame, EM_BCR())
@@ -156,9 +156,16 @@ set_indexing_prop!(fc_graph, :frame)
 
 # Each edge of fc_graph represents an available frame conversion
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_MCR(), :frame])
+add_edge!(fc_graph, fc_graph[EM_MCR(), :frame], fc_graph[EM_BCR(), :frame])
+
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_ECR(), :frame])
+add_edge!(fc_graph, fc_graph[EM_ECR(), :frame], fc_graph[EM_BCR(), :frame])
+
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_TCR(), :frame])
+add_edge!(fc_graph, fc_graph[EM_TCR(), :frame], fc_graph[EM_BCR(), :frame])
+
 add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_LVLH(), :frame])
+add_edge!(fc_graph, fc_graph[EM_LVLH(), :frame], fc_graph[EM_BCR(), :frame])
 
 
 # TODO function to plot the frame conversion graph

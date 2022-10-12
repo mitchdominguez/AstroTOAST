@@ -231,7 +231,7 @@ function fc(target, chaser, f1::EM_BCR, f2::EM_VNC)
 
     # Calculate LVLH unit vectors
     vhat_M = Mrdot_M/norm(Mrdot_M)
-    nhat_M = cross(r_M, Mrdot_M)/norm(cross(r_M, Mrdot_M))
+    nhat_M = -cross(r_M, Mrdot_M)/norm(cross(r_M, Mrdot_M))
     chat_M = cross(vhat_M, nhat_M)/norm(cross(vhat_M, nhat_M))
 
     # Calculate DCM: V_C_M --> vec_V = V_C_M*vec_M

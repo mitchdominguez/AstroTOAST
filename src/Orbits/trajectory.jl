@@ -250,7 +250,8 @@ function (traj::Trajectory)(T::Real)
 end
 
 function (traj::Trajectory)(times) 
-    outvec = Vector{Vector{Real}}()
+    # outvec = Vector{Vector{Real}}()
+    outvec = Vector{Vector{Float64}}()
     foreach(x->push!(outvec, traj(x)), times)
     return outvec
 end

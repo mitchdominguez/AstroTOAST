@@ -76,17 +76,20 @@ dm(::EM_LVLH) = em_cr3bp
 name(::EM_LVLH) = "LVLH"
 
 """
-    EM_ICR
+    EM_VCR
 
-In-track, cross-track, radial frame defined wrt a target spacecraft in the EM CR3BP
+In-track (̂iᵥ), cross-track (̂jᵥ), radial (̂kᵥ) frame defined wrt a target spacecraft in the EM CR3BP
 
-The difference between `EM_ICR` and `EM_LVLH` is that inertial velocity is used in
-the `EM_ICR` frame to calculate the angular momentum direction.  
+The unit vectors defining the `EM_VCR` frame are defined as follows:
+
+1) ̂iᵥ= velocity direction
+2) ̂jᵥ= negative angular momentum direction (-̂h)
+3) ̂kᵥ = completes the triad (îᵥ x ĵᵥ)
 
 This frame will always be reported with `target` in `EM_BCR` and `chaser` in
-the target centered ICR frame.
+the VCR frame
 """
-struct EM_TCICR <: ReferenceFrame end
+struct EM_VCR <: ReferenceFrame end
 
 """
     EM_VNC
@@ -99,7 +102,7 @@ struct EM_VNC <: ReferenceFrame end
 
 
 # List of relative frames
-relative_frames = [EM_TCR(), EM_LVLH(), EM_TCICR(), EM_VNC()]
+relative_frames = [EM_TCR(), EM_LVLH(), EM_VCR(), EM_VNC()]
 
 """
     isrelativeframe(f::ReferenceFrame)

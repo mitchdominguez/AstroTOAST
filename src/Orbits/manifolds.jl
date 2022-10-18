@@ -26,6 +26,7 @@ orbit, starting at longitudinal angle theta_T on the PO, stepping off d_dim dime
 position units, and propagating for proptime nondimensional time.
 """
 function stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real; ϵ=1e-4)
+    @warn "CHECK THAT THE BACKWARDS PROPAGATION IS CORRECT"
     # Retrieve eigenvalues, eigenvectors
     lam, vee = stable_eigs(po, theta_T; ϵ) 
 
@@ -44,8 +45,10 @@ function stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime
         # Propagate
         if typeof(dm(po)) <: Cr3bpModel
             G = diagm([1, -1, 1, -1, 1, -1])
-            tempsol = [solve(dm(po), G*q0[1], (0, proptime)), solve(dm(po), G*q0[2], (0, proptime))]
-            sol = [solve(dm(po), G*tempsol[1][end], (0, proptime)), solve(dm(po), G*tempsol[2][end], (0, proptime))]
+            # tempsol = [solve(dm(po), G*q0[1], (0, proptime)), solve(dm(po), G*q0[2], (0, proptime))]
+            # sol = [solve(dm(po), G*tempsol[1][end], (0, proptime)), solve(dm(po), G*tempsol[2][end], (0, proptime))]
+
+            sol = [solve(dm(po), q0[1], (-proptime, 0)), solve(dm(po), q0[2], (-proptime, 0))]
         else
             throw(ErrorException("Negative propagation not implemented yet for this model"))
         end

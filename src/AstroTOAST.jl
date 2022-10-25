@@ -73,7 +73,7 @@ export period, traj, monodromy, lambda, paireigs!, sorteigs!
 export angle2time, time2angle
 export unstable_eigs, center_eigs, unit_eigs, stable_eigs, classify_eigs
 export stability_index
-export wrapto2pi, wraptoperiod
+export wrapto2pi, wraptoperiod, wraptopi, wrapto360, wrapto180
 
 include("Orbits/manifolds.jl")
 export subspace_stepoff, stable_manifold, unstable_manifold, linear_invariant_curve_2d

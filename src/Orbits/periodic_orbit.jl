@@ -245,6 +245,38 @@ function wrapto2pi(th)
 end
 
 """
+    wraptopi(th)
+
+Map angles (in radians) to the range [-π, π].
+"""
+function wraptopi(th)
+    return wrapto2pi(th)-pi
+end
+
+"""
+    wrapto360(th)
+
+Map angles (in degrees) to the range [0, 360]
+"""
+function wrapto360(th)
+    if th>=0 && th<=360.0
+        return th
+    end
+
+    th_wrapped = ((th % 360.0) + 360.0) % 360.0 # theta mod 2pi
+
+end
+
+"""
+    wrapto180(th)
+
+Map angles (in degrees) to the range [-180, 180]
+"""
+function wrapto180(th)
+    return wrapto360(th)-180.0
+end
+
+"""
     wraptoperiod(T, P)
 
 Map times (in ndtime) to the range [0, period]. In general, 0 will map to 0.

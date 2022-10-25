@@ -250,7 +250,7 @@ end
 Map angles (in radians) to the range [-π, π].
 """
 function wraptopi(th)
-    return wrapto2pi(th)-pi
+    return wrapto2pi(th+pi)-pi
 end
 
 """
@@ -273,7 +273,7 @@ end
 Map angles (in degrees) to the range [-180, 180]
 """
 function wrapto180(th)
-    return wrapto360(th)-180.0
+    return wrapto360(th+180.0)-180.0
 end
 
 """

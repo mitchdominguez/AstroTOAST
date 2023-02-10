@@ -368,8 +368,9 @@ Return the invariant curve of the quasiperiodic orbit at time T if ndtime = true
 returns the state at thT = 2πT/Period if ndtime = false. thT is the
 longitudinal angle on the torus
 """
-(qpo::QuasiPeriodicOrbit)(thT::Real; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT))
+(qpo::QuasiPeriodicOrbit)(thT::Real; ndtime=false) = ndtime ? invariantcurve(qpo)(thT) : invariantcurve(qpo)(angle2time(qpo, thT)) ### THIS IS THE OLD IMPLEMENTATION
 # (qpo::QuasiPeriodicOrbit)(thT; ndtime=false) = ndtime ? invariantcurve(qpo)(__local_time(qpo,thT)) : invariantcurve(qpo)(angle2time(qpo, __local_longitudinal_angle(qpo,thT)))
+
 
 function (qpo::QuasiPeriodicOrbit)(thT::AbstractVector; ndtime=false)
     outvec = Vector{Vector{Float64}}(undef, length(thT))
@@ -386,8 +387,23 @@ For the invariant curve `ic` at longitudinal angle `thT` or time `T`, return the
 state on `ic` at latitudinal angle `thrho`
 """
 function (qpo::QuasiPeriodicOrbit{dim,N})(thT::Real, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
-    fixedpt = xstar(qpo, thT, ndtime=ndtime)
-    uvec = x2u(qpo(thT; ndtime=ndtime), fixedpt)
+    ### NEW
+    if ndtime
+        # Working with ndim time
+        fixedpt = xstar(qpo, thT%strobetime(qpo), ndtime=ndtime)
+        uvec = x2u(qpo(thT%strobetime(qpo); ndtime=ndtime), fixedpt)
+        thrho = thrho + div(thT,strobetime(qpo))*rotationangle(qpo)
+    else
+        # Working with angles
+        fixedpt = xstar(qpo, thT%(2pi), ndtime=ndtime)
+        uvec = x2u(qpo(thT%(2pi); ndtime=ndtime), fixedpt)
+        thrho = thrho + div(thT,2pi)*rotationangle(qpo)
+    end
+    
+    ### OLD
+    # fixedpt = xstar(qpo, thT, ndtime=ndtime)
+    # uvec = x2u(qpo(thT; ndtime=ndtime), fixedpt)
+
 
     Ut = reshape(uvec, dim, N)
 

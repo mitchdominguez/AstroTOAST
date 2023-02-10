@@ -387,7 +387,7 @@ state on `ic` at latitudinal angle `thrho`
 """
 function (qpo::QuasiPeriodicOrbit{dim,N})(thT::Real, thrho::Real; ndtime=false, tol = DEFAULT_CONVERGENCE_TOL) where {dim,N}
     fixedpt = xstar(qpo, thT, ndtime=ndtime)
-    uvec = x2u(qpo(thT; ndtime), fixedpt)
+    uvec = x2u(qpo(thT; ndtime=ndtime), fixedpt)
 
     Ut = reshape(uvec, dim, N)
 

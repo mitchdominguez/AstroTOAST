@@ -30,6 +30,9 @@ function stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime
     # Retrieve eigenvalues, eigenvectors
     lam, vee = stable_eigs(po, theta_T; ϵ) 
 
+    # Convert time to ndtime
+    tau_0 = angle2time(po, theta_T)
+
     # Output vector
     mans = Vector()
     q0 = 0
@@ -44,11 +47,7 @@ function stable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime
 
         # Propagate
         if typeof(dm(po)) <: Cr3bpModel
-            G = diagm([1, -1, 1, -1, 1, -1])
-            # tempsol = [solve(dm(po), G*q0[1], (0, proptime)), solve(dm(po), G*q0[2], (0, proptime))]
-            # sol = [solve(dm(po), G*tempsol[1][end], (0, proptime)), solve(dm(po), G*tempsol[2][end], (0, proptime))]
-
-            sol = [solve(dm(po), q0[1], (-proptime, 0)), solve(dm(po), q0[2], (-proptime, 0))]
+            sol = [Trajectory(dm(po), q0[1], (tau_0, tau_0-proptime)), Trajectory(dm(po), q0[2], (tau_0, tau_0-proptime))]
         else
             throw(ErrorException("Negative propagation not implemented yet for this model"))
         end
@@ -72,7 +71,7 @@ function unstable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, propti
     lam, vee = unstable_eigs(po, theta_T; ϵ) 
 
     # Convert time to ndtime
-    tau_0 = theta_T*period(po)/(2pi)
+    tau_0 = angle2time(po, theta_T)
 
     # Output vector
     mans = Vector()

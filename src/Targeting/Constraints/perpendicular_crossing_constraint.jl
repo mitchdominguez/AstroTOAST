@@ -225,7 +225,7 @@ end
 
 Constructor for generating a trajectory from multiple patch points
 """
-function PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0)
+function PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family = "", tol=2DEFAULT_CONVERGENCE_TOL; thT_offset=0)
     # Unpack FreeVariables
     X1 = pcc_x1(pcc)
     T = pcc_T(pcc)

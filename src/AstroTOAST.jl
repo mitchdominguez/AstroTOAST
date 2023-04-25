@@ -117,4 +117,7 @@ export EM_BCR, EM_ECR, EM_MCR, EM_LVLH, EM_ICR, EM_TCR, EM_ECI, EM_MCI, EM_VCR, 
 export isrelativeframe
 export frameconvert
 
+include("Relative_Dynamics/lvlh.jl")
+export LVLHModel
+
 end

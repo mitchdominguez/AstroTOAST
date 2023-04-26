@@ -2,10 +2,7 @@
 lvlh.jl
 
 Dynamical model for propagating in the LVLH frame, defined with the target state relative to P2
-
-Adapted from code written by Rolfe Power
 =#
-
 # ------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------ #
 #                                           LVLH MODEL                                             #
@@ -197,23 +194,25 @@ The first parameter `q` is the 12 state represented by the target state in the C
 and the chaser relative state in the LVLH frame (elements 7-12)
 """
 # function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
-function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real)
+function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = true, outputAmatrix=false)
     mu = p[1]
     model = dynamics_model(m)
 
-    # Unpack state
+    # Unpack target state
     r_M = q[1:3]-[1-mu;0;0] # Target position wrt Moon -- r_t/m = r_t/o-r_m/o
     Mrdot_M = q[4:6] # Target velocity
+
+    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
+    Mtargdot_M = model(q[1:6], p, t) # q(1:6) is already wrt barycenter
+    Mrddot_M = Mtargdot_M[4:6] # Target acceleration
+
+    # Unpack chaser state
     rho_L = q[7:9] # Eventually change to incorporate multiple chasers
     Lrhodot_L = q[10:12] # Chaser velocity [L frame]
 
     # Norms of states
     r = norm(r_M) # radius of target
     rdot = (1/r)*dot(r_M,Mrdot_M) # Derivative of the norm of r -- FROM FRANZINI
-
-    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
-    Mtargdot_M = model(q[1:6], p, t) # q(1:6) is already wrt barycenter
-    Mrddot_M = Mtargdot_M[4:6] # Target acceleration
 
     # Calculate DCM: L_C_M --> vec_L = L_C_M*vec_M
     L_C_M = rot2lvlh(r_M,Mrdot_M)
@@ -251,11 +250,6 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real)
     # Calculate wMIddot_M
     wMIddot_M = [0;0;0] # CIRCULAR MODEL SPECIFIC
 
-    function ddq(q::T) where {T<:AbstractArray}
-        qnorm = norm(q);
-        soln = 1/qnorm^3*(I(3)-(3*q*q')/qnorm^2);
-    end
-
     # Target jerk in the M frame
     Mrdddot_M = (-2*cross(wMI_M,Mrddot_M) 
         - 3*cross(wMIdot_M,Mrdot_M)
@@ -276,45 +270,50 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real)
     wLIdot_L = wLMdot_L + wMIdot_L - cross(wLM_L,wMI_L) # FIXED 04/20: Added cross product term
 
     # Calculate Lrhoddot_L
-    nlorl="NL"
-    if nlorl=="NL"
+    if nlprop
         Lrhoddot_L = (-2*cross(wLI_L,Lrhodot_L)
             - cross(wLIdot_L,rho_L)
             - cross(wLI_L,cross(wLI_L,rho_L))
             + mu*(r_L/r^3 - (r_L + rho_L)/norm(r_L+rho_L)^3)
             + (1-mu)*((r_L + r_m_e_L)/norm(r_L + r_m_e_L)^3 -
                       (r_L + rho_L + r_m_e_L)/norm(r_L + rho_L + r_m_e_L)^3))
-    elseif nlorl=="L"
+    else
         Lrhoddot_L = (-2*cross(wLI_L,Lrhodot_L)
             - cross(wLIdot_L,rho_L)
             - cross(wLI_L,cross(wLI_L,rho_L))
             - mu*ddq(r_L)*rho_L
             - (1-mu)*ddq(r_L+r_m_e_L)*rho_L)
-    else
-        @error "Please specify a valid linearity to use for propagation (L or NL)"
     end
 
 
-    # W = crs(wLI_L)
-    # Wdot = crs(wLIdot_L)
-    # A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
-    # A = [zeros(3,3), eye(3,3);
-        # A_rrdot, -2*W];
+    W = crs(wLI_L)
+    Wdot = crs(wLIdot_L)
+    A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
+    A = [hcat(zeros(3,3), I(3));
+         hcat(A_rrdot, -2*W)]
 
-    # rr = A*[rho_L;Lrhodot_L];
-    # if nlorl=='L'
-        # errmsg = sprint('Error of %6.6e',norm(Lrhoddot_L-rr(4:6)));
-        # assert(norm(Lrhoddot_L-rr(4:6)) < 1e-16, errmsg);
-    # end
+    if nlprop==false && outputAmatrix
+        rr = A*[rho_L;Lrhodot_L];
+        @assert (norm(Lrhoddot_L-rr[4:6])<1e-16) "Error is $(norm(Lrhoddot_L-rr[4:6])<1e-16)"
+    end
 
 
     # Put together qdot
     qdot = [Mrdot_M;Mrddot_M;Lrhodot_L;Lrhoddot_L]
+
+    if outputAmatrix
+        # If we want to return the A matrix
+        return (qdot, A)
+    else 
+        # If we are only trying to propagate
+        return qdot
+    end
+
 end
 
-(m::LVLHModel)(q::AbstractArray, p::AbstractArray) = m(q, p, 0.0)
-(m::LVLHModel)(q::AbstractArray) = m(q, model_parameters(m))
-(m::LVLHModel)(q::AbstractArray, t::AbstractFloat) = m(q, model_parameters(m), t)
+(m::LVLHModel)(q::AbstractArray, p::AbstractArray; kwargs...) = m(q, p, 0.0; kwargs...)
+(m::LVLHModel)(q::AbstractArray; kwargs...) = m(q, model_parameters(m); kwargs...)
+(m::LVLHModel)(q::AbstractArray, t::AbstractFloat; kwargs...) = m(q, model_parameters(m), t; kwargs...)
 
 """
     model_eoms(m::Cr3bpModel)
@@ -326,18 +325,18 @@ model_eoms(m::LVLHModel) = m
 
 # TODO LVLH jacobian from the linearized model!!!
 # """
-    # model_eoms(m::Cr3bpModel)
+    # model_eoms_jacobian(m::Cr3bpModel)
 
 # Return function to evaluate the jacobian of the Cr3bp equations of motion
 # """
 # model_eoms_jacobian(::Cr3bpModel) = cr3bp_jacobian
 
 # """
-    # cr3bp_jacobian(q, p, t)
+    # lvlh_jacobian(q, p, t)
 
-# Calcuate the sensitivity of the state velocity with respect to the state in the Cr3bp
+# Calculate the sensitivity of the state velocity with respect to the state in the Cr3bp
 # """
-# function cr3bp_jacobian(q, p, t)
+# function lvlh_jacobian(q, p, t)
     # m_local = Cr3bpModel(p[1])
     # pj = pseudopotential_jacobian(m_local, q)
     # @SMatrix [
@@ -349,6 +348,26 @@ model_eoms(m::LVLHModel) = m
         # pj[3,1] pj[3,2] pj[3,3]  0.0 0.0 0.0
     # ]
 # end
+
+# ------------------------------------------------------------------------------------------------ #
+# ------------------------------------------------------------------------------------------------ #
+#                                       UTILITY FUNCTIONS                                          #
+# ------------------------------------------------------------------------------------------------ #
+# ------------------------------------------------------------------------------------------------ #
+function crs(w::AbstractVector)
+    if length(w)!=3
+        @error "Length of w must be 3!"
+    end
+    wcrs=[ 0        -w[3]   w[2]
+           w[3]     0       -w[1]
+           -w[2]    w[1]    0   ]
+end
+
+function ddq(q::T) where {T<:AbstractArray}
+    qnorm = norm(q);
+    soln = 1/qnorm^3*(I(3)-(3*q*q')/qnorm^2);
+end
+
 
 
 """

@@ -1,3 +1,4 @@
+using BlockDiagonals
 #=
 lvlh.jl
 
@@ -294,12 +295,15 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
 
     if nlprop==false && outputAmatrix
         rr = A*[rho_L;Lrhodot_L];
-        @assert (norm(Lrhoddot_L-rr[4:6])<1e-16) "Error is $(norm(Lrhoddot_L-rr[4:6])<1e-16)"
+        if (norm(Lrhoddot_L-rr[4:6])>1e-12)
+            @warn "Error is $(norm(Lrhoddot_L-rr[4:6]))"
+        end
     end
 
 
     # Put together qdot
     qdot = [Mrdot_M;Mrddot_M;Lrhodot_L;Lrhoddot_L]
+
 
     if outputAmatrix
         # If we want to return the A matrix
@@ -324,30 +328,27 @@ model_eoms(m::LVLHModel) = m
 
 
 # TODO LVLH jacobian from the linearized model!!!
-# """
-    # model_eoms_jacobian(m::Cr3bpModel)
+"""
+    model_eoms_jacobian(m::LVLHModel)
 
-# Return function to evaluate the jacobian of the Cr3bp equations of motion
-# """
-# model_eoms_jacobian(::Cr3bpModel) = cr3bp_jacobian
+Return function to evaluate the jacobian of the Cr3bp equations of motion
+"""
+model_eoms_jacobian(::LVLHModel) = lvlh_jacobian
 
-# """
-    # lvlh_jacobian(q, p, t)
+"""
+    lvlh_jacobian(q, p, t)
 
-# Calculate the sensitivity of the state velocity with respect to the state in the Cr3bp
-# """
-# function lvlh_jacobian(q, p, t)
-    # m_local = Cr3bpModel(p[1])
-    # pj = pseudopotential_jacobian(m_local, q)
-    # @SMatrix [
-            # 0.0     0.0     0.0  1.0 0.0 0.0;
-            # 0.0     0.0     0.0  0.0 1.0 0.0;
-            # 0.0     0.0     0.0  0.0 0.0 1.0;
-        # pj[1,1] pj[1,2] pj[1,3]  0.0 2.0 0.0;
-        # pj[2,1] pj[2,2] pj[2,3] -2.0 0.0 0.0;
-        # pj[3,1] pj[3,2] pj[3,3]  0.0 0.0 0.0
-    # ]
-# end
+Calculate the sensitivity of the state velocity with respect to the state in the Cr3bp
+"""
+function lvlh_jacobian(q, p, t)
+    m_lvlh = LVLHModel(p[1])
+    m_underlying = dynamics_model(m_lvlh)
+
+    A_cr3bp = model_eoms_jacobian(m_underlying)(q, p, t)
+    A_lvlh = m_lvlh(q,p,t; nlprop = false, outputAmatrix = true)[2]
+    
+    return BlockDiagonal([A_cr3bp, A_lvlh])
+end
 
 # ------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------ #

@@ -1,4 +1,6 @@
 using BlockDiagonals
+using OrdinaryDiffEq
+using StaticArrays
 #=
 lvlh.jl
 
@@ -195,21 +197,51 @@ The first parameter `q` is the 12 state represented by the target state in the C
 and the chaser relative state in the LVLH frame (elements 7-12)
 """
 # function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
-function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = true, outputAmatrix=false)
+function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = true, outputAmatrix=false, targetstate::T=nothing) where {T<:Union{Nothing, Trajectory, AbstractArray}}
     mu = p[1]
-    model = dynamics_model(m)
+    # model = dynamics_model(m)
+
+    Lmod = LVLHModel(mu)
+    model = dynamics_model(Lmod)
 
     # Unpack target state
-    r_M = q[1:3]-[1-mu;0;0] # Target position wrt Moon -- r_t/m = r_t/o-r_m/o
-    Mrdot_M = q[4:6] # Target velocity
+    if isnothing(targetstate) && length(q) == dimension(Lmod)
+        # @time begin
+        # xt_BCR = SVector{6}(q[1:6]) # Faster than other one for some reason
+        # xt_BCR = SVector{6}([q[1:6]...]) # Same as other one for some reason
+        xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
 
-    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
-    Mtargdot_M = model(q[1:6], p, t) # q(1:6) is already wrt barycenter
-    Mrddot_M = Mtargdot_M[4:6] # Target acceleration
+        rc_inds = 7:9
+        vc_inds = 10:12
+    # end # @time
+
+    elseif isnothing(targetstate)==false && length(q) == dimension(model)
+        # @time begin
+        # xt_BCR = SVector{6}([targetstate(t)...])
+        xt_BCR = SVector{6}(targetstate)
+
+        rc_inds = 1:3
+        vc_inds = 4:6
+    # end # @time
+    else
+        @error "q vector should be either length 6 or 12! Length of q passed in was $(length(q))"
+    end
+
+    # show(stdout, "text/plain", xt_BCR)
+
+
+    r_M = SVector{3}(xt_BCR[1:3]-[1-mu;0;0])
+    Mrdot_M = SVector{3}(xt_BCR[4:6])
 
     # Unpack chaser state
-    rho_L = q[7:9] # Eventually change to incorporate multiple chasers
-    Lrhodot_L = q[10:12] # Chaser velocity [L frame]
+    rho_L = SVector{3}(q[rc_inds]) # Eventually change to incorporate multiple chasers
+    Lrhodot_L = SVector{3}(q[vc_inds]) # Chaser velocity [L frame]
+
+    # @time r_M + rho_L
+
+    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
+    Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
+    Mrddot_M = SVector{3}(Mtargdot_M[4:6]) # Target acceleration
 
     # Norms of states
     r = norm(r_M) # radius of target
@@ -270,6 +302,7 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
     # Calculate wLIdot_L
     wLIdot_L = wLMdot_L + wMIdot_L - cross(wLM_L,wMI_L) # FIXED 04/20: Added cross product term
 
+
     # Calculate Lrhoddot_L
     if nlprop
         Lrhoddot_L = (-2*cross(wLI_L,Lrhodot_L)
@@ -302,7 +335,11 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
 
 
     # Put together qdot
-    qdot = [Mrdot_M;Mrddot_M;Lrhodot_L;Lrhoddot_L]
+    if length(q) == dimension(Lmod)
+        qdot = [Mrdot_M;Mrddot_M;Lrhodot_L;Lrhoddot_L]
+    else
+        qdot = [Lrhodot_L;Lrhoddot_L]
+    end
 
 
     if outputAmatrix
@@ -348,6 +385,45 @@ function lvlh_jacobian(q, p, t)
     A_lvlh = m_lvlh(q,p,t; nlprop = false, outputAmatrix = true)[2]
     
     return BlockDiagonal([A_cr3bp, A_lvlh])
+end
+
+# ------------------------------------------------------------------------------------------------ #
+# ------------------------------------------------------------------------------------------------ #
+#                                          PROPAGATION                                             #
+# ------------------------------------------------------------------------------------------------ #
+# ------------------------------------------------------------------------------------------------ #
+"""
+    solve(dm::DynamicalModel, q0, tspan; [abstol=], [reltol=], [p=], [callback=])
+
+Solve the initial value problem for the dynamical model
+
+Note the kwarg `separate_propagation`. When true, this propagates the target and the
+chaser separately, accessing the target state through a Trajectory object (using interpolation).
+When false, this propagates the entire state together in one pass. There is seemingly a 
+performance increase when propagating the states together as opposed to separately.
+"""
+function OrdinaryDiffEq.solve(dm::LVLHModel, q0, tspan;
+                  separate_propagation=false,
+                  abstol=DEFAULT_ABS_TOL*10,
+                  reltol=DEFAULT_REL_TOL,
+                  p=model_parameters(dm),
+                  callback=nothing) where {D, IAD, M}
+
+    if separate_propagation
+        targetfunc = Trajectory(dynamics_model(dm), q0[1:6], tspan)
+        prob = ODEProblem{false}((qq,pp,tt)->model_eoms(dm)(qq,pp,tt; targetstate=targetfunc(tt)), SVector{6}(q0[7:12]), tspan, p)
+        # prob = ODEProblem{false}((qq,pp,tt)->model_eoms(dm)(qq,pp,tt; targetstate=targetfunc), SVector{6}(q0[7:12]), tspan, p)
+    else
+        prob = ODEProblem{false}(model_eoms(dm), SVector{12}(q0), tspan, p)
+    end
+    solver = DEFAULT_SOLVER
+    xc = solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
+
+    if separate_propagation
+        return (targetfunc, xc)
+    else
+        return xc
+    end
 end
 
 # ------------------------------------------------------------------------------------------------ #

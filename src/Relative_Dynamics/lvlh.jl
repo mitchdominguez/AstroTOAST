@@ -384,7 +384,7 @@ function lvlh_jacobian(q, p, t)
     A_cr3bp = model_eoms_jacobian(m_underlying)(q, p, t)
     A_lvlh = m_lvlh(q,p,t; nlprop = false, outputAmatrix = true)[2]
     
-    return BlockDiagonal([A_cr3bp, A_lvlh])
+    return SMatrix{12,12}(BlockDiagonal([A_cr3bp, A_lvlh]))
 end
 
 # ------------------------------------------------------------------------------------------------ #

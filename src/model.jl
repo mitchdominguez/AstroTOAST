@@ -114,7 +114,7 @@ function OrdinaryDiffEq.solve(dm::DynamicalModel, q0, tspan;
                   abstol=DEFAULT_ABS_TOL,
                   reltol=DEFAULT_REL_TOL,
                   p=model_parameters(dm),
-                  callback=nothing) where {D, IAD, M}
+                  callback=nothing)# where {D, IAD, M}
     prob = ODEProblem{false}(model_eoms(dm), q0, tspan, p)
     solver = DEFAULT_SOLVER
     solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)

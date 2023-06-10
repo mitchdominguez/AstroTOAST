@@ -407,7 +407,7 @@ function OrdinaryDiffEq.solve(dm::LVLHModel, q0, tspan;
                   abstol=DEFAULT_ABS_TOL*10,
                   reltol=DEFAULT_REL_TOL,
                   p=model_parameters(dm),
-                  callback=nothing) where {D, IAD, M}
+                  callback=nothing)# where {D, IAD, M}
 
     if separate_propagation
         targetfunc = Trajectory(dynamics_model(dm), q0[1:6], tspan)

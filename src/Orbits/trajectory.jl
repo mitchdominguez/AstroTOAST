@@ -246,7 +246,7 @@ function (traj::Trajectory)(T::Real)
         end
     end
 
-    throw(ErrorException("T was not within any element of traj.X"))
+    throw(ErrorException("T is not within any element of traj.X"))
 end
 
 function (traj::Trajectory)(times) 

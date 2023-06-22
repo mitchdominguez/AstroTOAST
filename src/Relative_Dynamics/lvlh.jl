@@ -209,7 +209,9 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
         # @time begin
         # xt_BCR = SVector{6}(q[1:6]) # Faster than other one for some reason
         # xt_BCR = SVector{6}([q[1:6]...]) # Same as other one for some reason
-        xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
+        # xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
+        xt_BCR = SVector{6}(view(q,1:6)) # Faster than other one for some reason
+
 
         rc_inds = 7:9
         vc_inds = 10:12
@@ -227,21 +229,16 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
         @error "q vector should be either length 6 or 12! Length of q passed in was $(length(q))"
     end
 
-    # show(stdout, "text/plain", xt_BCR)
-
-
-    r_M = SVector{3}(xt_BCR[1:3]-[1-mu;0;0])
-    Mrdot_M = SVector{3}(xt_BCR[4:6])
+    r_M = SVector{3}(view(xt_BCR,1:3)-[1-mu;0;0])
+    Mrdot_M = SVector{3}(view(xt_BCR, 4:6))
 
     # Unpack chaser state
-    rho_L = SVector{3}(q[rc_inds]) # Eventually change to incorporate multiple chasers
-    Lrhodot_L = SVector{3}(q[vc_inds]) # Chaser velocity [L frame]
-
-    # @time r_M + rho_L
+    rho_L = SVector{3}(view(q, rc_inds)) # Eventually change to incorporate multiple chasers
+    Lrhodot_L = SVector{3}(view(q, vc_inds)) # Chaser velocity [L frame]
 
     # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
     Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
-    Mrddot_M = SVector{3}(Mtargdot_M[4:6]) # Target acceleration
+    Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
 
     # Norms of states
     r = norm(r_M) # radius of target
@@ -342,14 +339,15 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
     end
 
 
-    if outputAmatrix
-        # If we want to return the A matrix
-        return (qdot, A)
-    else 
-        # If we are only trying to propagate
-        return qdot
-    end
+    # if outputAmatrix
+        # # If we want to return the A matrix
+        # return (qdot, A)
+    # else 
+        # # If we are only trying to propagate
+        # return qdot
+    # end
 
+    return qdot
 end
 
 (m::LVLHModel)(q::AbstractArray, p::AbstractArray; kwargs...) = m(q, p, 0.0; kwargs...)

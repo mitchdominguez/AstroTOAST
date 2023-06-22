@@ -236,6 +236,11 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
     rho_L = SVector{3}(view(q, rc_inds)) # Eventually change to incorporate multiple chasers
     Lrhodot_L = SVector{3}(view(q, vc_inds)) # Chaser velocity [L frame]
 
+
+    ###############
+    # Everything below here put in a function with the following arguments:
+    #   r_M, Mrdot_M, rho_L, Lrhodot_L, p, t, nlprop 
+
     # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
     Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
     Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
@@ -316,19 +321,22 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
             - (1-mu)*ddq(r_L+r_m_e_L)*rho_L)
     end
 
+    # END new function, output Lrhoddot_L
+    ###############
 
-    W = crs(wLI_L)
-    Wdot = crs(wLIdot_L)
-    A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
-    A = [hcat(zeros(3,3), I(3));
-         hcat(A_rrdot, -2*W)]
+    ### A Matrix computation
+    # W = crs(wLI_L)
+    # Wdot = crs(wLIdot_L)
+    # A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
+    # A = [hcat(zeros(3,3), I(3));
+         # hcat(A_rrdot, -2*W)]
 
-    if nlprop==false && outputAmatrix
-        rr = A*[rho_L;Lrhodot_L];
-        if (norm(Lrhoddot_L-rr[4:6])>1e-12)
-            @warn "Error is $(norm(Lrhoddot_L-rr[4:6]))"
-        end
-    end
+    # if nlprop==false && outputAmatrix
+        # rr = A*[rho_L;Lrhodot_L];
+        # if (norm(Lrhoddot_L-rr[4:6])>1e-12)
+            # @warn "Error is $(norm(Lrhoddot_L-rr[4:6]))"
+        # end
+    # end
 
 
     # Put together qdot

@@ -184,66 +184,10 @@ end
 #                                             DYNAMICS                                             #
 # ------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------ #
-"""
-    LVLHModel(q::AbstractArray, p::AbstractArray, t)
 
-Evaluate the equations of motion for the circular restricted three body problem.
-
-For the three parameter call, `p` must be an `AbstractArray` where `p[1] = mu`.
-This function is provided to allow evaluation of sensitivities with respect to the mass ratio as well
-as adhering to the API required by `DifferentialEquations.jl`.`
-
-The first parameter `q` is the 12 state represented by the target state in the CR3BP frame (elements 1-6)
-and the chaser relative state in the LVLH frame (elements 7-12)
-"""
-# function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
-function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = true, outputAmatrix=false, targetstate::T=nothing) where {T<:Union{Nothing, Trajectory, AbstractArray}}
+function __Lrhoddot_L__(r_M::SVector{3,Float64}, Mrdot_M::SVector{3,Float64}, Mrddot_M::SVector{3,Float64}, 
+        rho_L::SVector{3,Float64}, Lrhodot_L::SVector{3,Float64}, p::AbstractVector, t::Real, nlprop::Bool)
     mu = p[1]
-    # model = dynamics_model(m)
-
-    Lmod = LVLHModel(mu)
-    model = dynamics_model(Lmod)
-
-    # Unpack target state
-    if isnothing(targetstate) && length(q) == dimension(Lmod)
-        # @time begin
-        # xt_BCR = SVector{6}(q[1:6]) # Faster than other one for some reason
-        # xt_BCR = SVector{6}([q[1:6]...]) # Same as other one for some reason
-        # xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
-        xt_BCR = SVector{6}(view(q,1:6)) # Faster than other one for some reason
-
-
-        rc_inds = 7:9
-        vc_inds = 10:12
-    # end # @time
-
-    elseif isnothing(targetstate)==false && length(q) == dimension(model)
-        # @time begin
-        # xt_BCR = SVector{6}([targetstate(t)...])
-        xt_BCR = SVector{6}(targetstate)
-
-        rc_inds = 1:3
-        vc_inds = 4:6
-    # end # @time
-    else
-        @error "q vector should be either length 6 or 12! Length of q passed in was $(length(q))"
-    end
-
-    r_M = SVector{3}(view(xt_BCR,1:3)-[1-mu;0;0])
-    Mrdot_M = SVector{3}(view(xt_BCR, 4:6))
-
-    # Unpack chaser state
-    rho_L = SVector{3}(view(q, rc_inds)) # Eventually change to incorporate multiple chasers
-    Lrhodot_L = SVector{3}(view(q, vc_inds)) # Chaser velocity [L frame]
-
-
-    ###############
-    # Everything below here put in a function with the following arguments:
-    #   r_M, Mrdot_M, rho_L, Lrhodot_L, p, t, nlprop 
-
-    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
-    Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
-    Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
 
     # Norms of states
     r = norm(r_M) # radius of target
@@ -321,8 +265,73 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
             - (1-mu)*ddq(r_L+r_m_e_L)*rho_L)
     end
 
+    return Lrhoddot_L::SVector{3,Float64}
+end
+
+"""
+    LVLHModel(q::AbstractArray, p::AbstractArray, t)
+
+Evaluate the equations of motion for the circular restricted three body problem.
+
+For the three parameter call, `p` must be an `AbstractArray` where `p[1] = mu`.
+This function is provided to allow evaluation of sensitivities with respect to the mass ratio as well
+as adhering to the API required by `DifferentialEquations.jl`.`
+
+The first parameter `q` is the 12 state represented by the target state in the CR3BP frame (elements 1-6)
+and the chaser relative state in the LVLH frame (elements 7-12)
+"""
+# function (m::Cr3bpModel)(q::AbstractArray, p::AbstractArray, t::AbstractFloat)
+function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = true, outputAmatrix=false, targetstate::T=nothing) where {T<:Union{Nothing, Trajectory, AbstractArray}}
+    mu = p[1]
+    # model = dynamics_model(m)
+
+    Lmod = LVLHModel(mu)
+    model = dynamics_model(Lmod)
+
+    # Unpack target state
+    if isnothing(targetstate) && length(q) == dimension(Lmod)
+        # @time begin
+        # xt_BCR = SVector{6}(q[1:6]) # Faster than other one for some reason
+        # xt_BCR = SVector{6}([q[1:6]...]) # Same as other one for some reason
+        # xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
+        xt_BCR = SVector{6}(view(q,1:6)) # Faster than other one for some reason
+
+
+        rc_inds = 7:9
+        vc_inds = 10:12
+    # end # @time
+
+    elseif isnothing(targetstate)==false && length(q) == dimension(model)
+        # @time begin
+        # xt_BCR = SVector{6}([targetstate(t)...])
+        xt_BCR = SVector{6}(targetstate)
+
+        rc_inds = 1:3
+        vc_inds = 4:6
+    # end # @time
+    else
+        @error "q vector should be either length 6 or 12! Length of q passed in was $(length(q))"
+    end
+
+    r_M = SVector{3}(view(xt_BCR,1:3)-[1-mu;0;0])
+    Mrdot_M = SVector{3}(view(xt_BCR, 4:6))
+
+    # Unpack chaser state
+    rho_L = SVector{3}(view(q, rc_inds)) # Eventually change to incorporate multiple chasers
+    Lrhodot_L = SVector{3}(view(q, vc_inds)) # Chaser velocity [L frame]
+
+    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
+    Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
+    Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
+
+    ###############
+    # Everything below here put in a function with the following arguments:
+    #   r_M, Mrdot_M, rho_L, Lrhodot_L, p, t, nlprop 
+
+
     # END new function, output Lrhoddot_L
     ###############
+    Lrhoddot_L = __Lrhoddot_L__(r_M, Mrdot_M, Mrddot_M, rho_L, Lrhodot_L, p, t, nlprop)
 
     ### A Matrix computation
     # W = crs(wLI_L)

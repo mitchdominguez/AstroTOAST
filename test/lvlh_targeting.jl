@@ -19,16 +19,16 @@ X2 = FreeVariable("X2", [xt..., zeros(6)...]; includeinds=10:12)
 T = FreeVariable("tof", 8*hr2sec/dimensional_time(Lmod); includeinds=[])
 xv = XVector(X1, X2, T)
 cc = ContinuityConstraint(X1, X2, T, Lmod;includeinds=7:12)
-fx = FXVector(cc)
-targ = Targeter(xv, fx, maxiter, tol)
+# fx = FXVector(cc)
+# targ = Targeter(xv, fx, maxiter, tol)
 
-Xhist, err = target(targ)
+# Xhist, err = target(targ)
 
 q0_conv = tofullvector(X1)
 
 sol = solve(Lmod, q0_conv, cctspan(cc); abstol=AstroTOAST.DEFAULT_ABS_TOL)
 
-# println(sol[end][7:12])
+println(sol[end][7:12])
 
 @testset "lvlh_targeting.jl" begin
 

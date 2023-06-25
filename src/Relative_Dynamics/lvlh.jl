@@ -324,13 +324,7 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
     Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
     Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
 
-    ###############
-    # Everything below here put in a function with the following arguments:
-    #   r_M, Mrdot_M, rho_L, Lrhodot_L, p, t, nlprop 
-
-
-    # END new function, output Lrhoddot_L
-    ###############
+    # Calculate acceleration of chaser wrt target in the LVLH frame
     Lrhoddot_L = __Lrhoddot_L__(r_M, Mrdot_M, Mrddot_M, rho_L, Lrhodot_L, p, t, nlprop)
 
     ### A Matrix computation

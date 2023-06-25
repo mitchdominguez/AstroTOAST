@@ -37,7 +37,7 @@ q0_conv = tofullvector(X1)
 
 sol = solve(Lmod, q0_conv, cctspan(cc); abstol=AstroTOAST.DEFAULT_ABS_TOL)
 
-# println(sol[end][7:12])
+println(sol[end][7:12])
 
 @testset "lvlh_targeting.jl" begin
 

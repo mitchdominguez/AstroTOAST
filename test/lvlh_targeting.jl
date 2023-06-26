@@ -16,6 +16,7 @@ Lmod = LVLHModel(model)
 xt = nrho92(pi)
 xc = nrho92(pi+0.01)
 q0 = vcat(frameconvert(xt, xc, EM_BCR(), EM_LVLH())...)
+q0_conv = copy(q0)
 
 sol_init = solve(Lmod, q0_conv, period(nrho92); abstol=AstroTOAST.DEFAULT_ABS_TOL)
 
@@ -30,9 +31,9 @@ T = FreeVariable("tof", 8*hr2sec/dimensional_time(Lmod); includeinds=[])
 xv = XVector(X1, X2, T)
 cc = ContinuityConstraint(X1, X2, T, Lmod;includeinds=7:12)
 fx = FXVector(cc)
-# targ = Targeter(xv, fx, maxiter, tol)
+targ = Targeter(xv, fx, maxiter, tol)
 
-# Xhist, err = target(targ)
+Xhist, err = target(targ)
 q0_conv = tofullvector(X1)
 
 sol = solve(Lmod, q0_conv, cctspan(cc); abstol=AstroTOAST.DEFAULT_ABS_TOL)

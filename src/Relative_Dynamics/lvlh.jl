@@ -203,31 +203,31 @@ function __Lrhoddot_L__(r_M::SVector{3,Float64}, Mrdot_M::SVector{3,Float64}, Mr
     hdot = -dot(L_C_M*Mhdot_M,[0,1,0])
 
     # Position of the moon wrt earth -- CIRCULAR MODEL SPECIFIC
-    r_m_e_M = [1;0;0] # r_M/E in the M frame
-    Mrdot_m_e_M = [0;0;0] # Mv_M/E expressed in the M frame
+    r_m_e_M = @SVector [1;0;0] # r_M/E in the M frame
+    Mrdot_m_e_M = @SVector [0;0;0] # Mv_M/E expressed in the M frame
     r_m_e_L = L_C_M * r_m_e_M # r_M/E in the L frame
 
     # Target pos in the L frame
     r_L = L_C_M*r_M
 
     # Calculate wMI_L
-    wMI_M = [0;0;1] # ang vel of M wrt I expressed in the M frame # CIRCULAR MODEL SPECIFIC
+    wMI_M = @SVector [0;0;1] # ang vel of M wrt I expressed in the M frame # CIRCULAR MODEL SPECIFIC
     wMI_L = L_C_M * wMI_M # ang vel of M wrt I expressed in the L frame
 
     # Calculate wLM_L (from Franzini eq 31)
     wLMy = -h/r^2 # j component
     wLMz = -(r/h^2)*dot(h_M,Mrddot_M) # k component
-    wLM_L = [0;wLMy;wLMz] # ang vel of L wrt M expressed in the L frame
+    wLM_L = @SVector [0;wLMy;wLMz] # ang vel of L wrt M expressed in the L frame
 
     # Calculate wLI_L
     wLI_L = wLM_L + wMI_L
 
     # Calculate wMIdot_L
-    wMIdot_M = zeros(3) # CIRCULAR MODEL SPECIFIC
+    wMIdot_M = @SVector [0;0;0] # CIRCULAR MODEL SPECIFIC
     wMIdot_L = L_C_M * wMIdot_M 
 
     # Calculate wMIddot_M
-    wMIddot_M = [0;0;0] # CIRCULAR MODEL SPECIFIC
+    wMIddot_M = @SVector [0;0;0] # CIRCULAR MODEL SPECIFIC
 
     # Target jerk in the M frame
     Mrdddot_M = (-2*cross(wMI_M,Mrddot_M) 
@@ -243,7 +243,7 @@ function __Lrhoddot_L__(r_M::SVector{3,Float64}, Mrdot_M::SVector{3,Float64}, Mr
     # Calculate wLMdot_L (from Franzini eq 32)
     wLMydot = -(1/r)*(hdot/r + 2*rdot*wLMy)
     wLMzdot = (rdot/r - 2*hdot/h)*wLMz - (r/h^2)*dot(h_M,Mrdddot_M)
-    wLMdot_L = [0;wLMydot;wLMzdot]
+    wLMdot_L = @SVector [0;wLMydot;wLMzdot]
 
     # Calculate wLIdot_L
     wLIdot_L = wLMdot_L + wMIdot_L - cross(wLM_L,wMI_L) # FIXED 04/20: Added cross product term
@@ -251,21 +251,21 @@ function __Lrhoddot_L__(r_M::SVector{3,Float64}, Mrdot_M::SVector{3,Float64}, Mr
 
     # Calculate Lrhoddot_L
     if nlprop
-        Lrhoddot_L = (-2*cross(wLI_L,Lrhodot_L)
+        Lrhoddot_L = SVector{3,Float64}(-2*cross(wLI_L,Lrhodot_L)
             - cross(wLIdot_L,rho_L)
             - cross(wLI_L,cross(wLI_L,rho_L))
             + mu*(r_L/r^3 - (r_L + rho_L)/norm(r_L+rho_L)^3)
             + (1-mu)*((r_L + r_m_e_L)/norm(r_L + r_m_e_L)^3 -
                       (r_L + rho_L + r_m_e_L)/norm(r_L + rho_L + r_m_e_L)^3))
     else
-        Lrhoddot_L = (-2*cross(wLI_L,Lrhodot_L)
+        Lrhoddot_L = SVector{3,Float64}(-2*cross(wLI_L,Lrhodot_L)
             - cross(wLIdot_L,rho_L)
             - cross(wLI_L,cross(wLI_L,rho_L))
             - mu*ddq(r_L)*rho_L
             - (1-mu)*ddq(r_L+r_m_e_L)*rho_L)
     end
 
-    return Lrhoddot_L::SVector{3,Float64}
+    return Lrhoddot_L
 end
 
 """
@@ -327,36 +327,12 @@ function (m::LVLHModel)(q::AbstractArray, p::AbstractArray, t::Real; nlprop = tr
     # Calculate acceleration of chaser wrt target in the LVLH frame
     Lrhoddot_L = __Lrhoddot_L__(r_M, Mrdot_M, Mrddot_M, rho_L, Lrhodot_L, p, t, nlprop)
 
-    ### A Matrix computation
-    # W = crs(wLI_L)
-    # Wdot = crs(wLIdot_L)
-    # A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
-    # A = [hcat(zeros(3,3), I(3));
-         # hcat(A_rrdot, -2*W)]
-
-    # if nlprop==false && outputAmatrix
-        # rr = A*[rho_L;Lrhodot_L];
-        # if (norm(Lrhoddot_L-rr[4:6])>1e-12)
-            # @warn "Error is $(norm(Lrhoddot_L-rr[4:6]))"
-        # end
-    # end
-
-
     # Put together qdot
     if length(q) == dimension(Lmod)
         qdot = [Mrdot_M;Mrddot_M;Lrhodot_L;Lrhoddot_L]
     else
         qdot = [Lrhodot_L;Lrhoddot_L]
     end
-
-
-    # if outputAmatrix
-        # # If we want to return the A matrix
-        # return (qdot, A)
-    # else 
-        # # If we are only trying to propagate
-        # return qdot
-    # end
 
     return qdot
 end
@@ -382,6 +358,125 @@ Return function to evaluate the jacobian of the Cr3bp equations of motion
 model_eoms_jacobian(::LVLHModel) = lvlh_jacobian
 
 """
+    function lvlh_jacobian_relative(q,p,t)
+
+Return the Jacobian matrix of just the relative states wrt each other. 
+"""
+# function lvlh_jacobian_relative(::LVLHModel, q::AbstractArray, p::AbstractArray, t::Real, targetstate::T=nothing) where {T<:Union{Nothing, Trajectory, AbstractArray}}
+function lvlh_jacobian_relative(::LVLHModel, q::AbstractArray, p::AbstractArray, t::Real, targetstate::T=nothing) where {T<:Union{Nothing, Trajectory, AbstractArray}}
+    mu = p[1]
+    # model = dynamics_model(m)
+
+    Lmod = LVLHModel(mu)
+    model = dynamics_model(Lmod)
+
+    # Unpack target state
+    if isnothing(targetstate) && length(q) == dimension(Lmod)
+        # @time begin
+        # xt_BCR = SVector{6}(q[1:6]) # Faster than other one for some reason
+        # xt_BCR = SVector{6}([q[1:6]...]) # Same as other one for some reason
+        # xt_BCR = SVector{6}(copy(q[1:6])) # Same as other one for some reason
+        xt_BCR = SVector{6}(view(q,1:6)) # Faster than other one for some reason
+
+
+        rc_inds = 7:9
+        vc_inds = 10:12
+    # end # @time
+
+    elseif isnothing(targetstate)==false && length(q) == dimension(model)
+        # @time begin
+        # xt_BCR = SVector{6}([targetstate(t)...])
+        xt_BCR = SVector{6}(targetstate)
+
+        rc_inds = 1:3
+        vc_inds = 4:6
+    # end # @time
+    else
+        @error "q vector should be either length 6 or 12! Length of q passed in was $(length(q))"
+    end
+
+    r_M = SVector{3}(view(xt_BCR,1:3)-[1-mu;0;0])
+    Mrdot_M = SVector{3}(view(xt_BCR, 4:6))
+
+    # Unpack chaser state
+    rho_L = SVector{3}(view(q, rc_inds)) # Eventually change to incorporate multiple chasers
+    Lrhodot_L = SVector{3}(view(q, vc_inds)) # Chaser velocity [L frame]
+
+    # Calculate acceleration of target -->cr3bp uses coordinates centered at barycenter
+    Mtargdot_M = model(xt_BCR, p, t) # q(1:6) is already wrt barycenter
+    Mrddot_M = SVector{3}(view(Mtargdot_M, 4:6)) # Target acceleration
+
+    # Norms of states
+    r = norm(r_M) # radius of target
+    rdot = (1/r)*dot(r_M,Mrdot_M) # Derivative of the norm of r -- FROM FRANZINI
+
+    # Calculate DCM: L_C_M --> vec_L = L_C_M*vec_M
+    L_C_M = rot2lvlh(r_M,Mrdot_M)
+
+    # Calculate angular momentum, derivative of angular momentum
+    h_M = cross(r_M,Mrdot_M) # Angular momentum [M frame]
+    h = norm(h_M) # Norm of angular momentum
+    Mhdot_M = cross(r_M,Mrddot_M) # Derivative of angular momentum [M frame]
+    hdot = -dot(L_C_M*Mhdot_M, @SVector [0,1,0])
+
+    # Position of the moon wrt earth -- CIRCULAR MODEL SPECIFIC
+    r_m_e_M = @SVector [1;0;0] # r_M/E in the M frame
+    Mrdot_m_e_M = @SVector [0;0;0] # Mv_M/E expressed in the M frame
+    r_m_e_L = L_C_M * r_m_e_M # r_M/E in the L frame
+
+    # Target pos in the L frame
+    r_L = L_C_M*r_M
+
+    # Calculate wMI_L
+    wMI_M = @SVector [0;0;1] # ang vel of M wrt I expressed in the M frame # CIRCULAR MODEL SPECIFIC
+    wMI_L = L_C_M * wMI_M # ang vel of M wrt I expressed in the L frame
+
+    # Calculate wLM_L (from Franzini eq 31)
+    wLMy = -h/r^2 # j component
+    wLMz = -(r/h^2)*dot(h_M,Mrddot_M) # k component
+    wLM_L = @SVector [0;wLMy;wLMz] # ang vel of L wrt M expressed in the L frame
+
+    # Calculate wLI_L
+    wLI_L = wLM_L + wMI_L
+
+    # Calculate wMIdot_L
+    wMIdot_M = @SVector [0;0;0] # CIRCULAR MODEL SPECIFIC
+    wMIdot_L = L_C_M * wMIdot_M 
+
+    # Calculate wMIddot_M
+    wMIddot_M = @SVector [0;0;0] # CIRCULAR MODEL SPECIFIC
+
+    # Target jerk in the M frame
+    Mrdddot_M = (-2*cross(wMI_M,Mrddot_M) 
+        - 3*cross(wMIdot_M,Mrdot_M)
+        - cross(wMIddot_M,r_M)
+        - cross(wMIdot_M,cross(wMI_M,r_M))
+        - cross(wMI_M,cross(wMIdot_M,r_M))
+        - cross(wMI_M,cross(wMI_M,Mrdot_M))
+        - mu*ddq(r_M)*Mrdot_M
+        - (1-mu)*(ddq(r_M + r_m_e_M)*(Mrdot_M + Mrdot_m_e_M)
+        - ddq(r_m_e_M)*Mrdot_m_e_M))
+
+    # Calculate wLMdot_L (from Franzini eq 32)
+    wLMydot = -(1/r)*(hdot/r + 2*rdot*wLMy)
+    wLMzdot = (rdot/r - 2*hdot/h)*wLMz - (r/h^2)*dot(h_M,Mrdddot_M)
+    wLMdot_L = @SVector [0;wLMydot;wLMzdot]
+
+    # Calculate wLIdot_L
+    wLIdot_L = wLMdot_L + wMIdot_L - cross(wLM_L,wMI_L) # FIXED 04/20: Added cross product term
+
+    # A Matrix computation
+    W = crs(wLI_L)
+    Wdot = crs(wLIdot_L)
+    A_rrdot = -Wdot - W*W - mu*ddq(r_L) - (1-mu)*ddq(r_L+r_m_e_L)
+    A = [hcat(zeros(3,3), I(3));
+         hcat(A_rrdot, -2*W)]
+
+    return A
+
+end
+
+"""
     lvlh_jacobian(q, p, t)
 
 Calculate the sensitivity of the state velocity with respect to the state in the Cr3bp
@@ -391,7 +486,7 @@ function lvlh_jacobian(q, p, t)
     m_underlying = dynamics_model(m_lvlh)
 
     A_cr3bp = model_eoms_jacobian(m_underlying)(q, p, t)
-    A_lvlh = m_lvlh(q,p,t; nlprop = false, outputAmatrix = true)[2] ### TODO incorporate updates to getting jacobian
+    A_lvlh = lvlh_jacobian_relative(m_lvlh,q,p,t) 
     
     return SMatrix{12,12}(BlockDiagonal([A_cr3bp, A_lvlh]))
 end
@@ -491,3 +586,4 @@ function Base.show(io::IO, ::MIME"text/plain", model::LVLHModel)
     print(io, "- Dimensional length: lstar = $(dimensional_length(dimensional_quantity_set(model))) km\n")
     print(io, "- Dimensional time: tstar = $(dimensional_time(dimensional_quantity_set(model))*sec2day) days")
 end
+

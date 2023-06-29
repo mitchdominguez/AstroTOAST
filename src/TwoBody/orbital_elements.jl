@@ -42,8 +42,37 @@ struct ClassicalOrbitalElements
     end
 end
 
+"""
+    sma(coe::ClassicalOrbitalElements)
+
+Return the semimajor axis
+"""
 sma(coe::ClassicalOrbitalElements) = coe.coe[1]
+
+"""
+    ecc(coe::ClassicalOrbitalElements)
+
+Return the eccentricity
+"""
 ecc(coe::ClassicalOrbitalElements) = coe.coe[2]
+
+"""
+    raan(coe::ClassicalOrbitalElements)
+
+Return the RAAN. Default return value in radians. Specify `degrees=true` for degrees
+"""
 raan(coe::ClassicalOrbitalElements; degrees=false) = degrees ? rad2deg(coe.coe[3]) : coe.coe[3]
+
+"""
+    inc(coe::ClassicalOrbitalElements)
+
+Return the inclination. Default return value in radians. Specify `degrees=true` for degrees
+"""
 inc(coe::ClassicalOrbitalElements ; degrees=false) = degrees ? rad2deg(coe.coe[4]) : coe.coe[4]
+
+"""
+    aop(coe::ClassicalOrbitalElements)
+
+Return the argument of periapsis. Default return value in radians. Specify `degrees=true` for degrees
+"""
 aop(coe::ClassicalOrbitalElements ; degrees=false) = degrees ? rad2deg(coe.coe[5]) : coe.coe[5]

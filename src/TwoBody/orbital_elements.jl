@@ -1,5 +1,9 @@
 using AstroTOAST
 
+
+#### EXPORT
+export TrueAnomaly, MeanAnomaly, EccentricAnomaly
+
 abstract type AbstractOrbitalElements end
 
 """
@@ -42,6 +46,10 @@ struct ClassicalOrbitalElements
     end
 end
 
+###################################
+# RETURN CONSTANT ORBITAL ELEMENTS
+###################################
+
 """
     sma(coe::ClassicalOrbitalElements)
 
@@ -76,3 +84,76 @@ inc(coe::ClassicalOrbitalElements ; degrees=false) = degrees ? rad2deg(coe.coe[4
 Return the argument of periapsis. Default return value in radians. Specify `degrees=true` for degrees
 """
 aop(coe::ClassicalOrbitalElements ; degrees=false) = degrees ? rad2deg(coe.coe[5]) : coe.coe[5]
+
+
+########################################
+# RETURN TIME-VARYING ORBITAL ELEMENTS
+########################################
+
+# Type that captures the different kinds of anomalies (true, mean, eccentric)
+abstract type Anomaly end;
+
+struct TrueAnomaly
+    ta::Float64
+
+    #### Basic Constructor
+    function TrueAnomaly(ta::Real; degrees=true)
+        if degrees
+            # Input in degrees
+            new(deg2rad(ta)%(2pi))
+        else
+            # Input in radians
+            new(ta%(2pi))
+        end
+    end
+end
+
+struct MeanAnomaly
+    M::Float64
+    
+    #### Basic Constructor
+    function MeanAnomaly(M::Real; degrees=true)
+        if degrees
+            # Input in degrees
+            new(deg2rad(M)%(2pi))
+        else
+            # Input in radians
+            new(M%(2pi))
+        end
+    end
+
+end
+
+struct EccentricAnomaly
+    E::Float64
+    
+    function EccentricAnomaly(E::Real; degrees=true)
+        if degrees
+            # Input in degrees
+            new(deg2rad(E)%(2pi))
+        else
+            # Input in radians
+            new(E%(2pi))
+        end
+    end
+end
+
+value(TA::TrueAnomaly) = TA.ta
+value(M::MeanAnomaly) = M.M
+value(E::EccentricAnomaly) = E.E
+
+
+#### Mean anomaly from eccentric anomaly, orbital elements, i.e. Kepler's eqn
+"""
+    function MeanAnomaly(E::EccentricAnomaly, coe::ClassicalOrbitalElements)
+
+Return the mean anomaly, given eccentric anomaly and orbital elements, i.e. 
+return the mean anomaly from Kepler's equation [M = E-e*sin(E)]
+"""
+function MeanAnomaly(E::EccentricAnomaly, coe::ClassicalOrbitalElements)
+    MeanAnomaly(value(E)-ecc(coe)*sin(value(E)), degrees=false)
+end
+
+###################################
+# CONVERT BETWEEN COE AND STATES
+###################################

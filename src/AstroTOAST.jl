@@ -120,4 +120,7 @@ export frameconvert
 include("Relative_Dynamics/lvlh.jl")
 export LVLHModel
 
+include("TwoBody/orbital_elements.jl")
+export ClassicalOrbitalElements, sma, ecc, raan, inc, aop
+
 end

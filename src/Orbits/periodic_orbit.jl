@@ -100,13 +100,6 @@ end
 # General Utilities
 ############################
 """
-    traj(po::PeriodicOrbit)
-
-Return the Trajectory of the PO
-"""
-traj(po::PeriodicOrbit) = po.traj
-
-"""
     dimension(po::PeriodicOrbit{D}) where D
 
 Return dimension of the dynamical model of traj
@@ -135,6 +128,43 @@ dm(po::PeriodicOrbit) = dm(traj(po))
 Return the time of flight of the trajectory
 """
 period(po::PeriodicOrbit) = tof(traj(po))
+
+"""
+    traj(po::PeriodicOrbit)
+
+Return the Trajectory of the PO
+"""
+traj(po::PeriodicOrbit) = copy(po.traj)
+
+"""
+    traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
+
+Return the Trajectory of the PO, corresponding to the propagation time
+`proptime`. If `ndtime`, then treat `proptime` as a nondimensional time,
+and if `ndtime` is false, then treat `proptime` as a longitudinal angle
+"""
+function traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
+    # Convert ndtime to a nondimensional time if ndtime = false
+    if ndtime==false
+        proptime = angle2time(po, proptime)
+    end
+
+    
+    # Number of full revs to propagate for
+    fullrevs = fld(proptime, period(po))
+    
+    # Create output Trajectory
+    if fullrevs == 0
+        return Trajectory(dm(po), x0(po), (0,proptime))
+    else
+        out = traj(po)
+        for i = 2:Int(fullrevs)
+            append!(out, traj(po))
+        end
+        append!(out, Trajectory(dm(po), x0(po), (0, proptime%period(po))))
+        return out
+    end
+end
 
 """
     offset(po::PeriodicOrbit)

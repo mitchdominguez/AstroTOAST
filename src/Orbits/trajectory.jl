@@ -1,4 +1,5 @@
 # TODO export initial conditions for each segment with TOFs
+using OrdinaryDiffEq
 
 
 
@@ -125,6 +126,7 @@ dm(traj::Trajectory) = traj.dm
 Return the time span of the trajectory
 """
 tspan(traj::Trajectory) = traj.tspan
+tspan(sol::OrdinaryDiffEq.ODESolution) = [sol.t[begin], sol.t[end]]
 
 """
     tof(traj::Trajectory)
@@ -132,6 +134,7 @@ tspan(traj::Trajectory) = traj.tspan
 Return the time of flight of the trajectory
 """
 tof(traj::Trajectory) = traj.tspan[2] - traj.tspan[1]
+tof(sol::OrdinaryDiffEq.ODESolution) = tspan(sol)[end] - tspan(sol)[begin]
 
 """
     solvec(traj::Trajectory)
@@ -176,18 +179,25 @@ Base.iterate(traj::Trajectory, state=1) = state>length(traj) ? nothing : (traj[s
 Extend Base.append! for trajectories.
 """
 function Base.append!(traj1::Trajectory, trajn...)
-    # TODO make append! work for trajectories with multiple segments
     # Loop through input trajectories
     for i = 1:length(trajn)
         # Check that trajn consists of Trajectory objects with the same dynamical model
         if typeof(trajn[i]) <: Trajectory && dm(traj1) == dm(trajn[i])
             # Recompute trajectory if initial time of trajn[i] is not 
             # the same as the final time of traj1
-            tspan(trajn[i])
             if tspan(traj1)[end] != tspan(trajn[i])[1]
+                # Preserve ODESolution segments in trajn[i]
+
+                tstart = tspan(traj1)[end]
+                for j = 1:length(trajn[i])
+                    traj2 = Trajectory(dm(trajn[i]), trajn[i].X[j][begin], [0.0, tof(trajn[i].X[j])].+tstart)
+                    append!(traj1.X, traj2.X)
+                    tstart = tstart + tof(trajn[i].X[j])
+                end
+
                 # println("reprop")
-                traj2 = Trajectory(dm(trajn[i]), x0(trajn[i]), [0.0, tof(trajn[i])].+tspan(traj1)[end])
-                append!(traj1.X, traj2.X)
+                # traj2 = Trajectory(dm(trajn[i]), x0(trajn[i]), [0.0, tof(trajn[i])].+tspan(traj1)[end])
+                # append!(traj1.X, traj2.X)
             else
                 append!(traj1.X, trajn[i].X)
             end

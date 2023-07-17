@@ -134,16 +134,22 @@ period(po::PeriodicOrbit) = tof(traj(po))
 
 Return the Trajectory of the PO
 """
-traj(po::PeriodicOrbit) = copy(po.traj)
+function traj(po::PeriodicOrbit)
+    @warn "`traj` is being deprecated. Please use get_traj to obtain the Trajectory of a PeriodicOrbit"
+    return copy(po.traj)
+end
+
+get_traj(po::PeriodicOrbit) = copy(po.traj)
 
 """
-    traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
+    get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
 
 Return the Trajectory of the PO, corresponding to the propagation time
 `proptime`. If `ndtime`, then treat `proptime` as a nondimensional time,
 and if `ndtime` is false, then treat `proptime` as a longitudinal angle
 """
-function traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
+function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
+    @warn "`traj` is being deprecated. Please use get_traj to obtain the Trajectory of a PeriodicOrbit"
     # Convert ndtime to a nondimensional time if ndtime = false
     if ndtime==false
         proptime = angle2time(po, proptime)

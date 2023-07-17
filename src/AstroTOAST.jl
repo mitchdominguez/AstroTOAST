@@ -69,7 +69,7 @@ include("Orbits/periodic_orbit.jl")
 export PeriodicOrbit
 export offset
 export family
-export period, traj, monodromy, lambda, paireigs!, sorteigs!
+export period, get_traj, monodromy, lambda, paireigs!, sorteigs!
 export angle2time, time2angle
 export unstable_eigs, center_eigs, unit_eigs, stable_eigs, classify_eigs
 export stability_index

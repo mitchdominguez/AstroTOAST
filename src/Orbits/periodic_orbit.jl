@@ -113,21 +113,21 @@ Return the initial condition of the trajectory
 
 NOTE that this is only equivalent to po(0) if `thT_offset`=0
 """
-x0(po::PeriodicOrbit) = x0(traj(po))
+x0(po::PeriodicOrbit) = x0(get_traj(po))
 
 """
     dm(po::PeriodicOrbit)
 
 Return the dynamical model of the trajectory
 """
-dm(po::PeriodicOrbit) = dm(traj(po))
+dm(po::PeriodicOrbit) = dm(get_traj(po))
 
 """
     period(po::PeriodicOrbit)
 
 Return the time of flight of the trajectory
 """
-period(po::PeriodicOrbit) = tof(traj(po))
+period(po::PeriodicOrbit) = tof(get_traj(po))
 
 """
     traj(po::PeriodicOrbit)
@@ -163,9 +163,9 @@ function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
     if fullrevs == 0
         return Trajectory(dm(po), x0(po), (0,proptime))
     else
-        out = traj(po)
+        out = get_traj(po)
         for i = 2:Int(fullrevs)
-            append!(out, traj(po))
+            append!(out, get_traj(po))
         end
         append!(out, Trajectory(dm(po), x0(po), (0, proptime%period(po))))
         return out
@@ -194,7 +194,7 @@ returns the state at θ_0 = 2πT/Period if ndtime = false. θ_0 is analagous
 to the longitudinal angle on a torus or the mean anomaly in a conic orbit
 """
 # (po::PeriodicOrbit)(T; ndtime=false) = ndtime ? traj(po)(T) : traj(po)(angle2time(po, T))
-(po::PeriodicOrbit)(T::Real; ndtime=false) = ndtime ? traj(po)(__local_time(po,T)) : traj(po)(angle2time(po, __local_longitudinal_angle(po,T)))
+(po::PeriodicOrbit)(T::Real; ndtime=false) = ndtime ? get_traj(po)(__local_time(po,T)) : get_traj(po)(angle2time(po, __local_longitudinal_angle(po,T)))
 
 function (po::PeriodicOrbit)(T::AbstractVector; ndtime=false)
     outvec = Vector{Vector{Float64}}(undef, length(T))
@@ -259,7 +259,7 @@ angle2time(po::PeriodicOrbit, th::Real) = th*period(po)/(2pi)
 Return the state transition matrix at longitudinal angle θ. 
 Calling this function with θ=2π results in the monodromy matrix
 """
-stm(po::PeriodicOrbit, θ::Real; ndtime=false) = ndtime ? stm(traj(po), θ) : stm(traj(po), angle2time(po, θ))
+stm(po::PeriodicOrbit, θ::Real; ndtime=false) = ndtime ? stm(get_traj(po), θ) : stm(get_traj(po), angle2time(po, θ))
 
 """
     wrapto2pi(th)

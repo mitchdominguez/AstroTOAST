@@ -20,9 +20,9 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     @test_throws ErrorException PeriodicOrbit(traj1)
 
     # traj
-    @test tof(traj(nrho92)) == tof(nrho92_traj)
-    @test x0(traj(nrho92)) == x0(nrho92_traj)
-    @test traj(nrho92) != nrho92_traj
+    @test tof(get_traj(nrho92)) == tof(nrho92_traj)
+    @test x0(get_traj(nrho92)) == x0(nrho92_traj)
+    @test get_traj(nrho92) != nrho92_traj
 
     # dimension
     @test dimension(nrho92) == 6

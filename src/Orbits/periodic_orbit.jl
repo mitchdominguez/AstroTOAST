@@ -149,9 +149,9 @@ Return the Trajectory of the PO, corresponding to the propagation time
 and if `ndtime` is false, then treat `proptime` as a longitudinal angle
 """
 function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
-    @warn "`traj` is being deprecated. Please use get_traj to obtain the Trajectory of a PeriodicOrbit"
     # Convert ndtime to a nondimensional time if ndtime = false
     if ndtime==false
+        println("Converting proptime from an angle to a nondimensional time")
         proptime = angle2time(po, proptime)
     end
 
@@ -171,6 +171,57 @@ function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
         return out
     end
 end
+
+"""
+    get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) where {T1<:Real, T2<:Real}
+
+Return the Trajectory of the PO, corresponding to the propagation time
+`proptime`. If `ndtime`, then treat `proptime` as a nondimensional time,
+and if `ndtime` is false, then treat `proptime` as a longitudinal angle
+"""
+function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) where {T1<:Real, T2<:Real}
+
+    # Convert ndtime to a nondimensional time if ndtime = false
+    if ndtime==false
+        println("Converting proptime and starttime from angles to nondimensional time")
+        proptime = angle2time(po, proptime)
+        starttime = angle2time(po, starttime)
+    end
+
+    # Convert starttime to a time within the tspan of the periodic orbit
+    st = __local_time(po, starttime)
+    timeleftinpo = period(po)-st
+    adjustedproptime = proptime-timeleftinpo
+
+    # Return a Trajectory, starting at starttime, but respecting the segments
+    # that exist within the original periodic orbit trajectory
+    potraj = get_traj(po)
+    st_ind = 0
+    i = 1
+    seg_not_found = true
+
+    # Find which segment within potraj that starttime is within
+    while i <= length(potraj) && seg_not_found
+        if __within(st, solvec(potraj)[i].t[begin], solvec(potraj)[i].t[end])
+            st_ind = i
+            seg_not_found = false
+        end
+        i+=1
+    end
+
+    # Construct Trajectory
+    outtraj = Trajectory(dm(po), po(starttime; ndtime=true), [st, solvec(potraj)[st_ind].t[end]].-st)
+    if st_ind < length(potraj)
+        for i = st_ind+1:length(potraj)
+            append!(outtraj, Trajectory(dm(po), solvec(potraj)[i].u[begin], tspan(solvec(potraj)[i])))
+        end
+    end
+
+    # If adjustedproptime > 0, then get the rest of the requested trajectory
+    append!(outtraj, get_traj(po, adjustedproptime; ndtime=true))
+    return outtraj
+end
+
 
 """
     offset(po::PeriodicOrbit)

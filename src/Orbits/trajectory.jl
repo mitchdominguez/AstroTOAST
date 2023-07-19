@@ -256,6 +256,13 @@ function (traj::Trajectory)(T::Real)
         end
     end
 
+    # Allow for slight numerical errors in individual solvec tspans
+    # and output final time of trajectory even if it is technically
+    # out of range by the above loop
+    if T == tspan(traj)[2]
+        return solvec(traj)[end].u[end]
+    end
+
     throw(ErrorException("T is not within any element of traj.X"))
 end
 

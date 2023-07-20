@@ -163,12 +163,18 @@ function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
     if fullrevs == 0
         return Trajectory(dm(po), x0(po), (0,proptime))
     else
+        # TODO clean up this implementation
         out = get_traj(po)
         for i = 2:Int(fullrevs)
             append!(out, get_traj(po))
         end
-        append!(out, Trajectory(dm(po), x0(po), (0, proptime%period(po))))
-        return out
+        
+        if maximum(tspan(out))%period(po) == 0
+            return out
+        else
+            append!(out, Trajectory(dm(po), x0(po), (0, proptime%period(po))))
+            return out
+        end
     end
 end
 
@@ -209,11 +215,20 @@ function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) w
         i+=1
     end
 
+    if st == get_tf(solvec(potraj)[st_ind])
+        st_ind+=1
+    end
+
     # Construct Trajectory
-    outtraj = Trajectory(dm(po), po(starttime; ndtime=true), [st, solvec(potraj)[st_ind].t[end]].-st)
+    outtraj = Trajectory(dm(po), po(starttime; ndtime=true), [st, get_tf(solvec(potraj)[st_ind])].-st)
+    # println(tspan(outtraj))
+    # println(get_t0(solvec(potraj)[st_ind]))
+    # println(get_tf(solvec(potraj)[st_ind]))
+    # println([st, get_tf(solvec(potraj)[st_ind])])
+
     if st_ind < length(potraj)
         for i = st_ind+1:length(potraj)
-            append!(outtraj, Trajectory(dm(po), solvec(potraj)[i].u[begin], tspan(solvec(potraj)[i])))
+            append!(outtraj, Trajectory(dm(po), solvec(potraj)[i].u[begin], sort(tspan(solvec(potraj)[i]))))
         end
     end
 

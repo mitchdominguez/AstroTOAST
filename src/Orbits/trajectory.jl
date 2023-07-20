@@ -126,7 +126,7 @@ dm(traj::Trajectory) = traj.dm
 Return the time span of the trajectory
 """
 tspan(traj::Trajectory) = traj.tspan
-tspan(sol::OrdinaryDiffEq.ODESolution) = [sol.t[begin], sol.t[end]]
+tspan(sol::OrdinaryDiffEq.ODESolution) = sort([sol.t[begin], sol.t[end]])
 
 """
     tof(traj::Trajectory)
@@ -310,6 +310,61 @@ function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
 
 end
 
+
+"""
+    get_x0(sol::OrdinaryDiffEq.ODESolution)
+
+Return the state corresponding to the smallest time
+in sol.t
+"""
+function get_x0(sol::OrdinaryDiffEq.ODESolution)
+    if sol.t[begin] < sol.t[end]
+        return sol.u[begin]
+    else
+        return sol.u[end]
+    end
+end
+
+"""
+    get_xf(sol::OrdinaryDiffEq.ODESolution)
+
+Return the state corresponding to the largest time
+in sol.t
+"""
+function get_xf(sol::OrdinaryDiffEq.ODESolution)
+    if sol.t[begin] < sol.t[end]
+        return sol.u[end]
+    else
+        return sol.u[begin]
+    end
+end
+
+
+"""
+    get_t0(sol::OrdinaryDiffEq.ODESolution)
+
+Return the smallest time in sol
+"""
+function get_t0(sol::OrdinaryDiffEq.ODESolution)
+    if sol.t[begin] < sol.t[end]
+        return sol.t[begin]
+    else
+        return sol.t[end]
+    end
+end
+
+"""
+    get_tf(sol::OrdinaryDiffEq.ODESolution)
+
+Return the largest time in sol
+"""
+function get_tf(sol::OrdinaryDiffEq.ODESolution)
+    if sol.t[begin] < sol.t[end]
+        return sol.t[end]
+    else
+        return sol.t[begin]
+    end
+end
 
 """
     stm(traj::Trajectory{D}) where {D}

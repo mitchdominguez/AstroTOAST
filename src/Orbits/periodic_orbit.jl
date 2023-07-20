@@ -221,10 +221,6 @@ function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) w
 
     # Construct Trajectory
     outtraj = Trajectory(dm(po), po(starttime; ndtime=true), [st, get_tf(solvec(potraj)[st_ind])].-st)
-    # println(tspan(outtraj))
-    # println(get_t0(solvec(potraj)[st_ind]))
-    # println(get_tf(solvec(potraj)[st_ind]))
-    # println([st, get_tf(solvec(potraj)[st_ind])])
 
     if st_ind < length(potraj)
         for i = st_ind+1:length(potraj)

@@ -169,9 +169,17 @@ function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
             append!(out, get_traj(po))
         end
         
-        if maximum(tspan(out))%period(po) == 0
+        if maximum(tspan(out))>=proptime
+            # println("1")
+            # show(stdout, "text/plain", out)
+            # println("---")
+            # println(tof(out)%period(po))
             return out
         else
+            # println("2")
+            # show(stdout, "text/plain", out)
+            # println("---")
+            # println(tof(out)%period(po))
             append!(out, Trajectory(dm(po), x0(po), (0, proptime%period(po))))
             return out
         end
@@ -221,6 +229,11 @@ function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) w
 
     # Construct Trajectory
     outtraj = Trajectory(dm(po), po(starttime; ndtime=true), [st, get_tf(solvec(potraj)[st_ind])].-st)
+    # println(tof(outtraj))
+    # println(timeleftinpo)
+    # println(starttime)
+    # println(adjustedproptime)
+    # println(proptime)
 
     if st_ind < length(potraj)
         for i = st_ind+1:length(potraj)
@@ -229,6 +242,11 @@ function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) w
     end
 
     # If adjustedproptime > 0, then get the rest of the requested trajectory
+    # temp = get_traj(po, adjustedproptime; ndtime=true)
+    # println(outtraj(maximum(tspan(outtraj))))
+    # println(temp(0))
+    # println(temp(maximum(tspan(temp))))
+    # println(adjustedproptime%period(po))
     append!(outtraj, get_traj(po, adjustedproptime; ndtime=true))
     return outtraj
 end

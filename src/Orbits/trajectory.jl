@@ -190,7 +190,8 @@ function Base.append!(traj1::Trajectory, trajn...)
 
                 tstart = tspan(traj1)[end]
                 for j = 1:length(trajn[i])
-                    traj2 = Trajectory(dm(trajn[i]), trajn[i].X[j][begin], [0.0, tof(trajn[i].X[j])].+tstart)
+                    # traj2 = Trajectory(dm(trajn[i]), trajn[i].X[j][begin], [0.0, tof(trajn[i].X[j])].+tstart)
+                    traj2 = Trajectory(dm(trajn[i]), get_x0(trajn[i][j]), [0.0, tof(trajn[i].X[j])].+tstart)
                     append!(traj1.X, traj2.X)
                     tstart = tstart + tof(trajn[i].X[j])
                 end
@@ -293,21 +294,24 @@ end
 
 Check that all segments in traj flow into the next one continuously, with a tolerance
 """
-function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL)
+function iscontinuous(traj::Trajectory, tol=DEFAULT_CONVERGENCE_TOL; inds=:)
     if length(traj) == 1
         return true
     end
     for i = 1:length(traj)-1
         # abserr = map(x->abs(x),traj[i+1][begin]-traj[i][end])
-        abserr = map(x->abs(x),traj[i+1](minimum(traj[i+1].t))-traj[i](maximum(traj[i].t)))
+        abserr = map(x->abs(x),traj[i+1](minimum(traj[i+1].t))[inds]-traj[i](maximum(traj[i].t))[inds])
         if all(abserr.<tol)
-            return true
+            # return true
+            continue
         else
+            println("Discontinuous between segments $(i) and $(i+1)")
             return false
         end
 
     end
 
+    return true
 end
 
 

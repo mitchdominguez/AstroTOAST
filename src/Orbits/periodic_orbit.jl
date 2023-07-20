@@ -154,7 +154,6 @@ function get_traj(po::PeriodicOrbit, proptime::T; ndtime=true) where {T<:Real}
         println("Converting proptime from an angle to a nondimensional time")
         proptime = angle2time(po, proptime)
     end
-
     
     # Number of full revs to propagate for
     fullrevs = fld(proptime, period(po))
@@ -237,7 +236,8 @@ function get_traj(po::PeriodicOrbit, proptime::T1, starttime::T2; ndtime=true) w
 
     if st_ind < length(potraj)
         for i = st_ind+1:length(potraj)
-            append!(outtraj, Trajectory(dm(po), solvec(potraj)[i].u[begin], sort(tspan(solvec(potraj)[i]))))
+            # append!(outtraj, Trajectory(dm(po), solvec(potraj)[i].u[begin], sort(tspan(solvec(potraj)[i]))))
+            append!(outtraj, Trajectory(dm(po), get_x0(potraj[i]), sort(tspan(solvec(potraj)[i]))))
         end
     end
 

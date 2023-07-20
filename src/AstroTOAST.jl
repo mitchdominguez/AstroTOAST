@@ -60,7 +60,7 @@ export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
 
 include("Orbits/trajectory.jl")
 export Trajectory
-export x0, tspan, solvec, isperiodic, iscontinuous, stm
+export x0, tspan, solvec, isperiodic, iscontinuous, stm, get_x0, get_xf, get_t0, get_tf
 
 include("Orbits/trajectory_set.jl")
 export TrajectorySet

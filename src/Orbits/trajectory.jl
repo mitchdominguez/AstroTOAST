@@ -188,7 +188,8 @@ function Base.append!(traj1::Trajectory, trajn...)
             if tspan(traj1)[end] != tspan(trajn[i])[1]
                 # Preserve ODESolution segments in trajn[i]
 
-                tstart = tspan(traj1)[end]
+                # tstart = tspan(traj1)[end]
+                tstart = maximum(tspan(traj1))
                 for j = 1:length(trajn[i])
                     # traj2 = Trajectory(dm(trajn[i]), trajn[i].X[j][begin], [0.0, tof(trajn[i].X[j])].+tstart)
                     traj2 = Trajectory(dm(trajn[i]), get_x0(trajn[i][j]), [0.0, tof(trajn[i].X[j])].+tstart)

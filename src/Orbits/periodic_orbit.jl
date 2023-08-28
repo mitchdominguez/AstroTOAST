@@ -619,6 +619,51 @@ end
 # TODO periapsis, apoapsis
 # TODO PO continuation
 # TODO export initial conditions for each segment with TOFs
+#
+
+"""
+    to_dict(po::PeriodicOrbit, filename::String)
+
+Convert PeriodicOrbit `po` into a Dict
+"""
+function to_dict(po::PeriodicOrbit)
+    model = dm(po) # Dynamical model of the periodic orbit
+
+    outdict = Dict() # Dictionary that will be used to output results
+
+    outdict["name"] = name(po)
+    outdict["family"] = family(po)
+
+
+    # Add model information to the dictionary
+    if typeof(model) <: Cr3bpModel
+        if isnothing(model.primaries)
+            outdict["P1"] = ""
+            outdict["P2"] = ""
+            outdict["mu"] = mass_ratio(model)
+
+        else
+            outdict["P1"] = primary_bodies(model)[1].name
+            outdict["P2"] = primary_bodies(model)[2].name
+            outdict["mu"] = mass_ratio(model)
+        end
+    end
+
+    # Get initial conditions and times of flight for each section of the
+    # trajectory
+    traj = get_traj(po)
+    X0 = Vector{Vector{Float64}}()
+    TOF = Vector{Float64}()
+    for i = 1:length(traj)
+        push!(X0,get_x0(traj[i]))
+        push!(TOF,tof(traj[i]))
+    end
+
+    outdict["X0"] = X0
+    outdict["TOF"] = TOF
+
+    return outdict
+end
 
 """
     Base.show

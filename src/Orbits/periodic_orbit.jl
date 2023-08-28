@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 using LinearAlgebra
+using MAT
 
 """
     struct PeriodicOrbit{D}
@@ -664,6 +665,36 @@ function to_dict(po::PeriodicOrbit)
 
     return outdict
 end
+
+function to_dict(povec::Vector{PeriodicOrbit})
+    outdict = Dict("data"=>[])
+    for po in povec
+        push!(outdict["data"], to_dict(po))
+    end
+    
+    return outdict
+end
+
+"""
+    to_mat(po::PeriodicOrbit, filename::String)
+
+Save PeriodicOrbit `po` to a .mat file 
+"""
+function to_mat(po::PeriodicOrbit, filename::String)
+    outdict = to_dict(po)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,outdict)
+    println("Saved to $(filename)")
+end
+
+function to_mat(povec::Vector{PeriodicOrbit}, filename::String)
+    outdict = to_dict(povec)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,outdict)
+    println("Saved to $(filename)")
+end
+
+#TODO write a test case for saving and loading PeriodicOrbits
 
 """
     Base.show

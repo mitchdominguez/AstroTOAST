@@ -632,6 +632,7 @@ function to_dict(po::PeriodicOrbit)
 
     outdict = Dict() # Dictionary that will be used to output results
 
+    outdict["datatype"] = "PeriodicOrbit"
     outdict["name"] = name(po)
     outdict["family"] = family(po)
 

@@ -663,6 +663,8 @@ function to_dict(po::PeriodicOrbit)
 
     outdict["X0"] = X0
     outdict["TOF"] = TOF
+    outdict["initial_conditions"] = x0(po)
+    outdict["period"] = period(po)
 
     return outdict
 end

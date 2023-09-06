@@ -698,6 +698,41 @@ function to_mat(povec::Vector{PeriodicOrbit}, filename::String)
 end
 
 #TODO write a test case for saving and loading PeriodicOrbits
+function targetcontinuity(model, _X0, _TOF, _name, _family)
+
+    ## Create XVector
+    states = Vector{FreeVariable}()
+    times = Vector{FreeVariable}()
+    for i = 1:length(_X0)
+        push!(states, FreeVariable("x$(i)", _X0[i]))
+        push!(times, FreeVariable("T$(i)", _TOF[i]))
+    end
+
+    xv = XVector(states..., times...)
+
+    ## Create continuity constraints
+    cc = Vector{ContinuityConstraint}()
+    for i = 1:length(states)-1
+        push!(cc, ContinuityConstraint(states[i], states[i+1], times[i], model))
+    end
+    push!(cc, ContinuityConstraint(states[end], states[1], times[end], model, includeinds=[1,2,3,4,6]))
+
+    # Define FXVector
+    fx = FXVector(cc...) # FX vector for full X, rm in FX
+
+    # Define Targeter
+    maxiter = 20
+    tol = 1e-12
+    targ = Targeter(xv, fx, maxiter, tol);
+
+    # Target fx rc version
+    Xhist, err = target(targ, debug=false);
+
+    # po = PeriodicOrbit(model, states, times; name = _name, family = _family)
+    po = PeriodicOrbit(model, states, times)#; name = _name, family = _family)
+
+    return po, targ
+end
 
 """
     Base.show

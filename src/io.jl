@@ -53,7 +53,13 @@ function from_dict(dd::Dict, ::_PeriodicOrbit)
         throw(ErrorException("One of name, family, or X0, or TOF does not exist! A dynamical model cannot be specified"))
     end
 
-    return PeriodicOrbit(model, _X0, _TOF, _name, _family)
+    # Try to create the periodic orbit as is from the dictionary
+    # If that fails, then retarget using continuity
+    try 
+        return PeriodicOrbit(model, _X0, _TOF, _name, _family)
+    catch
+        return targetcontinuity(model, _X0, _TOF, _name, _family)[1]
+    end
 end
 
 """

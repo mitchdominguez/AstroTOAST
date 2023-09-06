@@ -58,7 +58,9 @@ function from_dict(dd::Dict, ::_PeriodicOrbit)
     try 
         return PeriodicOrbit(model, _X0, _TOF, _name, _family)
     catch
-        return targetcontinuity(model, _X0, _TOF, _name, _family)[1]
+        po = targetcontinuity(model, _X0, _TOF, _name, _family)[1]
+        println("Converged")
+        return po
     end
 end
 

@@ -686,7 +686,7 @@ Save PeriodicOrbit `po` to a .mat file
 function to_mat(po::PeriodicOrbit, filename::String)
     outdict = to_dict(po)
     endswith(filename, ".mat") ? nothing : filename = filename*".mat"
-    matwrite(filename,Dict("data"=>outdict))
+    matwrite(filename,Dict("data"=>[outdict]))
     println("Saved to $(filename)")
 end
 

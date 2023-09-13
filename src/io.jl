@@ -76,7 +76,6 @@ function from_mat(matfile::String)
 
     # show(stdout, "text/plain", matdata)
     ### TODO I need to specify a general data format for everything saved to a mat file from AstroTOAST 
-    #
     
     datadictexists = ~isnothing(get(matdata, "data", nothing))
 

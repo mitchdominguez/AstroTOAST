@@ -406,7 +406,7 @@ function get_tf(solvec::Vector{OrdinaryDiffEq.ODESolution})
 
     return outvec
 end
-get_t0(traj::Trajectory) = get_tf(solvec(traj))
+get_tf(traj::Trajectory) = get_tf(solvec(traj))
 
 
 """

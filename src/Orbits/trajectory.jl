@@ -330,6 +330,16 @@ function get_x0(sol::OrdinaryDiffEq.ODESolution)
     end
 end
 
+function get_x0(solvec::Vector{OrdinaryDiffEq.ODESolution})
+    outvec = []
+    for i = 1:length(solvec)
+        push!(outvec, get_x0(solvec[i]))
+    end
+
+    return outvec
+end
+get_x0(traj::Trajectory) = get_x0(solvec(traj))
+
 """
     get_xf(sol::OrdinaryDiffEq.ODESolution)
 
@@ -343,6 +353,15 @@ function get_xf(sol::OrdinaryDiffEq.ODESolution)
         return sol.u[begin]
     end
 end
+function get_xf(solvec::Vector{OrdinaryDiffEq.ODESolution})
+    outvec = []
+    for i = 1:length(solvec)
+        push!(outvec, get_xf(solvec[i]))
+    end
+
+    return outvec
+end
+get_xf(traj::Trajectory) = get_xf(solvec(traj))
 
 
 """
@@ -357,6 +376,15 @@ function get_t0(sol::OrdinaryDiffEq.ODESolution)
         return sol.t[end]
     end
 end
+function get_t0(solvec::Vector{OrdinaryDiffEq.ODESolution})
+    outvec = []
+    for i = 1:length(solvec)
+        push!(outvec, get_t0(solvec[i]))
+    end
+
+    return outvec
+end
+get_t0(traj::Trajectory) = get_t0(solvec(traj))
 
 """
     get_tf(sol::OrdinaryDiffEq.ODESolution)
@@ -370,6 +398,16 @@ function get_tf(sol::OrdinaryDiffEq.ODESolution)
         return sol.t[begin]
     end
 end
+function get_tf(solvec::Vector{OrdinaryDiffEq.ODESolution})
+    outvec = []
+    for i = 1:length(solvec)
+        push!(outvec, get_tf(solvec[i]))
+    end
+
+    return outvec
+end
+get_t0(traj::Trajectory) = get_tf(solvec(traj))
+
 
 """
     stm(traj::Trajectory{D}) where {D}

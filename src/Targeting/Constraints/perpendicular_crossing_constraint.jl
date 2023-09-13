@@ -252,5 +252,17 @@ function PeriodicOrbit(pcc::PerpendicularCrossingConstraint, name = "", family =
     M = G*mat1*phi_half_P'*mat2*G*phi_half_P # Monodromy matrix
 
 
-    return PeriodicOrbit(traj, name, family, tol; thT_offset=thT_offset, M_mat = M)
+    try
+        return PeriodicOrbit(traj, name, family, tol; thT_offset=thT_offset, M_mat = M)
+    catch err
+        if isa(err, AssertionError)
+            # Traj is not periodic or continuous
+            _X0 = get_x0(traj)
+            _TOF = get_tf(solvec(traj))-get_t0(solvec(traj))
+            _name = name
+            _family = family
+            return targetcontinuity(model, _X0, _TOF, _name, _family)[1]
+        end
+
+    end
 end

@@ -35,17 +35,17 @@ struct PeriodicOrbit{D}
     function PeriodicOrbit(traj::Trajectory{D}, name = "", family = "", tol=DEFAULT_CONVERGENCE_TOL; thT_offset=0, M_mat = nothing) where {D}
         # Ensure that traj is periodic
         if !isperiodic(traj, tol)
-            throw(ErrorException("traj is not periodic!"))
+            throw(AssertionError("traj is not periodic!"))
         end
 
         # Ensure that all segments of traj are continuous
         if !iscontinuous(traj, tol)
-            throw(ErrorException("traj is not continuous!"))
+            throw(AssertionError("traj is not continuous!"))
         end
 
         # Ensure that thT_offset lies within [0, 2π]
         if !__within(thT_offset, 0, 2π)
-            throw(ErrorException("thT must be within [0, 2pi]"))
+            throw(BoundsError("thT must be within [0, 2pi]"))
         end
 
         if isnothing(M_mat)

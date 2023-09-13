@@ -17,7 +17,7 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     
     # Constructor
     nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
-    @test_throws ErrorException PeriodicOrbit(traj1)
+    @test_throws AssertionError PeriodicOrbit(traj1)
 
     # traj
     @test tof(get_traj(nrho92)) == tof(nrho92_traj)

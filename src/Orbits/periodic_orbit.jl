@@ -704,7 +704,12 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
     states = Vector{FreeVariable}()
     times = Vector{FreeVariable}()
     for i = 1:length(_X0)
-        push!(states, FreeVariable("x$(i)", _X0[i]))
+        if i == 1
+            # Anchor states to the initial guess
+            push!(states, FreeVariable("x$(i)", _X0[i], includeinds=[1,3,4,5,6]))
+        else
+            push!(states, FreeVariable("x$(i)", _X0[i]))
+        end
         push!(times, FreeVariable("T$(i)", _TOF[i]))
     end
 

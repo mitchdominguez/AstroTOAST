@@ -62,7 +62,7 @@ end
 """
     unstable_manifold(po::PeriodicOrbit, theta_T::Real, d_dim::Real, proptime::Real)
 
-For each stable mode of the periodic orbit, propagate the stable manifold of the periodic
+For each unstable mode of the periodic orbit, propagate the stable manifold of the periodic
 orbit, starting at longitudinal angle theta_T on the PO, stepping off d_dim dimensional 
 position units, and propagating for proptime nondimensional time.
 """

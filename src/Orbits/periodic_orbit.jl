@@ -581,11 +581,33 @@ end
 """
     unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
 
-Return the unit eigenvalues and eigenvectors of the periodic orbit 
-at the specified longitudinal angle theta_T
+Return the unit eigenvalues and eigenvectors of the periodic orbit at the
+specified longitudinal angle `theta_T`
+
+For the unity pair, the algebraic multiplicity is 2, but the geometric
+multiplicity is 1. There is only one eigenvector that gets picked up by the
+eigenvalue solver. That eigenvalue, denoted `vₜ`, goes along with the dynamical
+flow, as every point on a periodic orbit is itself a periodic solution.
+
+To obtain the other eigenvector `vⱼ` which corresponds to finding the nearest
+periodic solution with a different energy, the generalized eigenvector problem
+must be solved `(Φ(T,0) - I)vⱼ=̇x`, where the RHS is equivalent to the time
+derivative of the phase.
 """
 function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
-    return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[3]]))
+    if theta_T != 0
+        @warn "unit_eigs can only return the eigenvector in the family direction if theta_T = 0!!!"
+    end
+    M = monodromy(po)
+    U,S,V = svd(M-I)
+    @assert abs(S[end]) <= 1e-10 "smallest singular value cannot be approximated as zero!!!"
+    S[end] = 0
+    MI = U*diagm(S)*V'
+    vⱼ = pinv(MI)*dm(po)(x0(po))
+
+    return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [dm(po)(x0(po)), vⱼ]))
+    # return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [eigvecs(po)[classify_eigs(po,ϵ)[3]][1], vⱼ]))
+    # return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[3]]))
 end
 
 """

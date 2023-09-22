@@ -261,7 +261,7 @@ function (traj::Trajectory)(T::Real)
     # Allow for slight numerical errors in individual solvec tspans
     # and output final time of trajectory even if it is technically
     # out of range by the above loop
-    if T == tspan(traj)[2]
+    if abs(T - tspan(traj)[2]) < DEFAULT_CONVERGENCE_TOL
         return solvec(traj)[end].u[end]
     end
 

@@ -782,7 +782,7 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
         end
 
         # Re-propagate 
-        sol = solve(model, _X0[1], (0,sum(_TOF)))
+        sol = solve(model, SVector(_X0[1]...), (0,sum(_TOF)))
 
         # Get times for new patch points based on how the integrator wants to step
         inds = Int(floor(length(sol.t)/(N_new)))*[1:(N_new)...]

@@ -752,13 +752,71 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
     tol = 1e-12
     targ = Targeter(xv, fx, maxiter, tol);
 
-    # Target fx rc version
-    Xhist, err = target(targ, debug=false);
-
     # po = PeriodicOrbit(model, states, times; name = _name, family = _family)
-    po = PeriodicOrbit(model, states, times)#; name = _name, family = _family)
+    # po = PeriodicOrbit(model, states, times)#; name = _name, family = _family)
+    # return po, targ
+    try 
+        # Target fx rc version
+        Xhist, err = target(targ, debug=false);
 
-    return po, targ
+        po = PeriodicOrbit(model, states, times)#; name = _name, family = _family)
+        return po, targ
+    catch ee
+        # if isa(ee, AssertionError)
+            # println("Trying again with $(length(times)+1) patch points...")
+        # end 
+        println("Trying again with $(length(times)+1) patch points...")
+
+        N_new = length(times)+1 # Number of new patch points
+
+        if N_new >= 10
+
+            println("Times of flight:")
+            show(stdout, "text/plain",_TOF)
+            println()
+            println("States:")
+            show(stdout, "text/plain",_X0)
+            println()
+
+            ErrorException("Tried too many times to converge!") |> throw
+        end
+
+        # Re-propagate 
+        sol = solve(model, _X0[1], sum(_TOF))
+
+        # Get times for new patch points based on how the integrator wants to step
+        inds = Int(floor(length(sol.t)/(N_new)))*[1:(N_new)...]
+        inds[end] = length(sol.t)
+        newtimes = [0,sol.t[inds][1:end]...]
+        newtofs = diff(newtimes)
+
+        # println("OLD TIMES: $(_TOF)")
+        # println("NEW TIMES: $(newtimes)")
+        # println("DIFF: $(sum(newtofs)-sum(_TOF))")
+
+
+        # ## TODO don't do it like this -- get states propagated from patch points, not just x0
+        # newstates = sol.u[inds[1:end-1]]
+        newtimes = [0, (sum(newtofs[1:x]) for x = 1:length(newtofs))...]
+
+        newstates = []
+
+        # println(newtimes-sol.t[inds][1:end])
+        # Sweep through each new time to get the new state associated with it
+        for i = 1:length(newtimes)-1
+            # For each new time, find the index of the time from the original
+            # vector _TOF that it is closest to
+            minind = argmin(abs.(_TOF.-newtimes[i]))
+            
+            # Propagate solutions from the nearest time (in either forward or 
+            # reverse time) to obtain the states at the new time
+            push!(newstates, solve(model, _X0[minind], (_TOF[minind], newtimes[i])).u[end])
+        end
+
+        # Recursively call targetcontinuity until something converges
+        return targetcontinuity(model, newstates, newtofs, _name, _family)
+    end
+
 end
 
 """

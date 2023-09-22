@@ -810,7 +810,7 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
             
             # Propagate solutions from the nearest time (in either forward or 
             # reverse time) to obtain the states at the new time
-            push!(newstates, solve(model, _X0[minind], (_TOF[minind], newtimes[i])).u[end])
+            push!(newstates, solve(model, SVector(_X0[minind]...), (_TOF[minind], newtimes[i])).u[end])
         end
 
         # Recursively call targetcontinuity until something converges

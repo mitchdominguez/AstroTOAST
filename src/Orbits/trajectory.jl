@@ -253,7 +253,7 @@ function (traj::Trajectory)(T::Real)
     
     # Return the state at time T
     for i = 1:length(traj)
-        if __within(T, solvec(traj)[i].t[begin], solvec(traj)[i].t[end])
+        if __within(T, solvec(traj)[i].t[begin], solvec(traj)[i].t[end]+DEFAULT_CONVERGENCE_TOL)
             return solvec(traj)[i](T)
         end
     end
@@ -264,6 +264,9 @@ function (traj::Trajectory)(T::Real)
     if abs(T - tspan(traj)[2]) < DEFAULT_CONVERGENCE_TOL
         return solvec(traj)[end].u[end]
     end
+
+    # TODO fix case where a requested time lies between two segments -- 
+    # TODO check that fix on line 256 works
 
     throw(ErrorException("T is not within any element of traj.X"))
 end

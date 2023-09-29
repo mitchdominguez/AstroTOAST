@@ -579,7 +579,7 @@ function center_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
 end
 
 """
-    unit_eigs(po::PeriodicOrbit, ϵ=1e-4::Float64)
+    unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4, isochronous=false, d_dim=0)
 
 Return the unit eigenvalues and eigenvectors of the periodic orbit at the
 specified longitudinal angle `theta_T`
@@ -593,21 +593,51 @@ To obtain the other eigenvector `vⱼ` which corresponds to finding the nearest
 periodic solution with a different energy, the generalized eigenvector problem
 must be solved `(Φ(T,0) - I)vⱼ=̇x`, where the RHS is equivalent to the time
 derivative of the phase.
-"""
-function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4)
-    if theta_T != 0
-        @warn "unit_eigs can only return the eigenvector in the family direction if theta_T = 0!!!"
-    end
-    M = monodromy(po)
-    U,S,V = svd(M-I)
-    @assert abs(S[end]) <= 1e-10 "smallest singular value cannot be approximated as zero!!!"
-    S[end] = 0
-    MI = U*diagm(S)*V'
-    vⱼ = pinv(MI)*dm(po)(x0(po))
 
-    return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [dm(po)(x0(po)), vⱼ]))
-    # return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [eigvecs(po)[classify_eigs(po,ϵ)[3]][1], vⱼ]))
-    # return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, eigvecs(po)[classify_eigs(po,ϵ)[3]]))
+Setting keyword argument `isochronous=true` provides the isochronous correspondence
+of the generalized eigenvector. This provides the linear prediction of a location
+on a nearby PO after `theta_T` longitudinal angle of the reference orbit has passed. 
+Conversely, setting `isochronous=false` provides the normal correspondence of the
+generalized eigenvector at that point, essentially solving for the generalized 
+eigenvector if the monodromy matrix was initially calculated at that point. Note
+that this process introduces a non-negligible amount of numerical error into
+the results, so be careful not to set `theta_T` too large. 
+
+Keyword argument `d_dim` is the dimensional length (in km) of the position
+component of the unity eigenvector in the direction of the flow. Setting
+`d_dim` means that no length scaling occurs. Nonzero values of `d_dim` 
+scale the ordinary eigenvector at `theta_T=0` to have position length `d_dim`. 
+"""
+function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4, isochronous=false, d_dim=0)
+    # if theta_T != 0
+        # @warn "unit_eigs can only return the eigenvector in the family direction if theta_T = 0!!!"
+    # end
+    M = monodromy(po)
+
+    if isochronous
+        # obtain isochronous correspondence of generalized eigenvector
+        U,S,V = svd(M-I)
+        @assert abs(S[end]) <= 1e-10 "smallest singular value cannot be approximated as zero!!!"
+        S[end] = 0
+        MI = U*diagm(S)*V'
+        vᵥ = subspace_stepoff(dm(po)(x0(po)), d_dim, dm(po))
+        vⱼ = pinv(MI)*vᵥ
+
+        return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [vᵥ, vⱼ]))
+    else
+        # Obtain normal correspondence of generalized eigenvector
+        phi10 = stm(po, theta_T) # STM from t0 to provided theta_T
+
+        U,S,V = svd(phi10*M*inv(phi10) - I)
+        @assert abs(S[end]) <= 1e-10 "smallest singular value ($(abs(S[end]))) cannot be approximated as zero!!!"
+        S[end] = 0
+        MI = U*diagm(S)*V'
+        vᵥ = phi10*subspace_stepoff(dm(po)(x0(po)), d_dim, dm(po))
+        vⱼ = pinv(MI)*vᵥ
+
+        return (eigvals(po)[classify_eigs(po,ϵ)[3]], [vᵥ, vⱼ])
+
+    end
 end
 
 """

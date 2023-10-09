@@ -855,7 +855,7 @@ function getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::
     sol = solve(model, SVector(X0[1]...), (0,sum(TOF)))
 
     # Get times for new patch points based on how the integrator wants to step
-    inds = Int(floor(length(sol.t)/(N_new)))*[1:(N_new)...]
+    inds = Int(floor(length(sol.t)/(N)))*[1:(N)...]
     inds[end] = length(sol.t)
     newtimes = [0,sol.t[inds][1:end]...]
     newtofs = diff(newtimes)

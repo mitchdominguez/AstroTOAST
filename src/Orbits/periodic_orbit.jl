@@ -620,7 +620,7 @@ function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4, isochro
         @assert abs(S[end]) <= 1e-10 "smallest singular value cannot be approximated as zero!!!"
         S[end] = 0
         MI = U*diagm(S)*V'
-        vᵥ = subspace_stepoff(dm(po)(x0(po)), d_dim, dm(po))
+        vᵥ = subspace_stepoff(normalize(dm(po)(x0(po))), d_dim, dm(po))
         vⱼ = pinv(MI)*vᵥ
 
         return (eigvals(po)[classify_eigs(po,ϵ)[3]], map(x->stm(po, theta_T)*x, [vᵥ, vⱼ]))
@@ -632,7 +632,7 @@ function unit_eigs(po::PeriodicOrbit, theta_T::Real=0; ϵ::Float64=1e-4, isochro
         @assert abs(S[end]) <= 1e-10 "smallest singular value ($(abs(S[end]))) cannot be approximated as zero!!!"
         S[end] = 0
         MI = U*diagm(S)*V'
-        vᵥ = phi10*subspace_stepoff(dm(po)(x0(po)), d_dim, dm(po))
+        vᵥ = phi10*subspace_stepoff(normalize(dm(po)(x0(po))), d_dim, dm(po))
         vⱼ = pinv(MI)*vᵥ
 
         return (eigvals(po)[classify_eigs(po,ϵ)[3]], [vᵥ, vⱼ])

@@ -96,7 +96,7 @@ nrho92 = PeriodicOrbit(nrho92_traj, "9:2 NRHO", "L2 Halos")
     unit_eig = unit_eigs(nrho92)
     @test unit_eig[1][1] == eigvals(nrho92)[3]
     @test unit_eig[1][2] == eigvals(nrho92)[4]
-    @test unit_eig[2][1] == dm(nrho92)(x0(nrho92)) # unit_eigs returns what the eigenvectors SHOULD be
+    @test unit_eig[2][1] == normalize(dm(nrho92)(x0(nrho92))) # unit_eigs returns what the eigenvectors SHOULD be
     @test unit_eig[2][1] != eigvecs(nrho92)[3] # eigvecs simply returns the output of eigen
     @test unit_eig[2][2] != eigvecs(nrho92)[4]
 

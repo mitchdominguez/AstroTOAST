@@ -860,20 +860,21 @@ function getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::
     newtimes = [0,sol.t[inds][1:end]...]
     newtofs = diff(newtimes)
 
-    newtimes = [0, (sum(newtofs[1:x]) for x = 1:length(newtofs))...]
+    oldtimes = [0, (sum(TOF[1:x]) for x = 1:length(TOF))...]
 
     newstates = []
 
     # println(newtimes-sol.t[inds][1:end])
     # Sweep through each new time to get the new state associated with it
     for i = 1:length(newtimes)-1
+    # for i = 2:length(newtimes)-1
         # For each new time, find the index of the time from the original
         # vector TOF that it is closest to
         minind = argmin(abs.(TOF.-newtimes[i]))
 
         # Propagate solutions from the nearest time (in either forward or 
         # reverse time) to obtain the states at the new time
-        push!(newstates, solve(model, SVector(X0[minind]...), (TOF[minind], newtimes[i])).u[end])
+        push!(newstates, solve(model, SVector(X0[minind]...), (oldtimes[minind], newtimes[i])).u[end])
     end
 
     return newstates, newtofs

@@ -19,9 +19,14 @@ using Test
     # Define the model
     model = Cr3bpModel(Bodies["Earth"],Bodies["Moon"])
 
+    # Different solve function
+    dsf(x,y,z) = solve(x,y,z; solver=BS3(), abstol=1e-6, reltol=1e-12)
+    dtsf(x,y,z) = tangent_solve(x,y,z; solver=BS3(), abstol=1e-6, reltol=1e-12)
+
     # constructor
     cc = ContinuityConstraint(X1, X2, T, model)
     ccf = ContinuityConstraint(X1, X2, Tf, model)
+    ccdsf = ContinuityConstraint(X1, X2, T, model; solvefunction=dsf, tangentsolvefunction=dtsf)
     @test_throws MethodError ContinuityConstraint(X1, X2, 2.0, model)
 
     # x1, x2, tof, model
@@ -42,6 +47,7 @@ using Test
     constval = @SVector [0.005382188230026896, 0.0024307725939954616, 0.0, 
                          -0.0008239789557616395, 0.03766157082338922, 0.0]
     @test evalconstraint(cc)≈constval atol=1e-12
+    @test norm(evalconstraint(ccdsf)-evalconstraint(cc)) > 1e-5
 
 
     # partials
@@ -68,6 +74,8 @@ using Test
 
     @test AstroTOAST.__dCC_dx2{6}()(cc) == -I(6)
     @test AstroTOAST.__NP{6}()(cc) == zeros(6,6)
+
+    @test norm(AstroTOAST.__dCC_dx1{6}()(ccdsf) - AstroTOAST.__dCC_dx1{6}()(cc)) > 0.14
 
     constvec = [0.4791760210447607, -0.16233842917687474, 0.0, 
                 1.2621101313341967, -3.679141924348646, -0.0] 

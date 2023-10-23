@@ -3,7 +3,8 @@
 #                                     CONTINUITY CONSTRAINT
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
-
+# TODO should I make a new field called solvefunction which I can use to call different ODE solvers, including MATLAB?
+# whatever this is, it would still need the same three argument interface as what currently exists
 """
     ContinuityConstraint
 
@@ -16,9 +17,11 @@ struct ContinuityConstraint{D} <: Constraint{D}
     tof::FreeVariable{N,T} where {N,T}
     dm::DynamicalModel
     removeinds::Vector{Int}
+    solvefunction::Function
+    tangentsolvefunction::Function
 
     # function ContinuityConstraint(x1, x2, T, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
-    function ContinuityConstraint(x1, x2, T, dm; includeinds = Vector(1:dimension(dm)))
+    function ContinuityConstraint(x1, x2, T, dm; includeinds = Vector(1:dimension(dm)), solvefunction=solve, tangentsolvefunction=tangent_solve)
 
 
         if full_length(x1) == full_length(x2) == dimension(dm)
@@ -44,12 +47,26 @@ struct ContinuityConstraint{D} <: Constraint{D}
             
             ccdimension = vallength-length(rmvec) # D in FreeVariable{D,T}
 
-            new{ccdimension}(x1,x2,T,dm,rmvec)
+            new{ccdimension}(x1,x2,T,dm,rmvec,solvefunction,tangentsolvefunction)
         else
             throw(DimensionMismatch("X1 and X2 must have the same full length"))
         end
     end
 end
+
+"""
+    solvefunction(cc::ContinuityConstraint)
+
+Return the function that is used to propagate the states within the constraint
+"""
+solvefunction(cc::ContinuityConstraint) = cc.solvefunction
+
+"""
+    tangentsolvefunction(cc::ContinuityConstraint)
+
+Return the function that is used to propagate the states within the constraint
+"""
+tangentsolvefunction(cc::ContinuityConstraint) = cc.tangentsolvefunction
 
 """
     full_length(cc::ContinuityConstraint)
@@ -102,7 +119,7 @@ dm(cc::ContinuityConstraint) = cc.dm
 Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint)
-    sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+    sol = solvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return sol.u[end]-tofullvector(x2(cc))
 end
 
@@ -112,7 +129,7 @@ end
 Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityConstraint, X1::FreeVariable, X2::FreeVariable)
-    sol = solve(dm(cc), tofullsvector(X1), cctspan(cc))
+    sol = solvefunction(cc)(dm(cc), tofullsvector(X1), cctspan(cc))
     return sol.u[end]-tofullvector(X2)
 end
 
@@ -151,7 +168,7 @@ which is the STM phi(0,T)
 """
 struct __dCC_dx_ss{D} <: Partial{D} end
 function (::__dCC_dx_ss{C})(cc::ContinuityConstraint{R}) where {R,C}
-    sol = tangent_solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+    sol = tangentsolvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
 
     # println("TSPAN")
     # println(cctspan(cc))
@@ -169,7 +186,7 @@ which is the STM phi(0,T)
 """
 struct __dCC_dx1{D} <: Partial{D} end
 function (::__dCC_dx1{C})(cc::ContinuityConstraint{R}) where {R,C}
-    sol = tangent_solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+    sol = tangentsolvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
 
     # println("TSPAN")
     # println(cctspan(cc))
@@ -198,7 +215,7 @@ which is the derivative of the x1 state at time T
 """
 struct __dCC_dt{D} <: Partial{D} end
 function (::__dCC_dt{C})(cc::ContinuityConstraint{R}) where {R,C}
-    sol = solve(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
+    sol = solvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return dm(cc)((sol.u[end]))
 end
 

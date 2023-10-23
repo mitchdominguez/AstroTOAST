@@ -114,9 +114,9 @@ function OrdinaryDiffEq.solve(dm::DynamicalModel, q0, tspan;
                   abstol=DEFAULT_ABS_TOL,
                   reltol=DEFAULT_REL_TOL,
                   p=model_parameters(dm),
+                  solver=DEFAULT_SOLVER,
                   callback=nothing)# where {D, IAD, M}
     prob = ODEProblem{false}(model_eoms(dm), q0, tspan, p)
-    solver = DEFAULT_SOLVER
     solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
 end
 
@@ -188,12 +188,12 @@ function tangent_solve(dm::DynamicalModel{D, IAD}, q0, tspan, Q0::M=nothing;
                        p=model_parameters(dm),
                        dense=true,
                        save_everystep=true,
+                       solver = DEFAULT_SOLVER,
                        callback=nothing) where {D, IAD, M}
     stm0 = M == Nothing ? SMatrix{D, D, eltype(q0)}(I) : Q0
     tangentf = create_tangent(dm)
     # Specify that the ode problem is not in place in type parameter
     tanprob = ODEProblem{false}(tangentf, hcat(q0, stm0), tspan, p)
-    solver = DEFAULT_SOLVER
     solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
           dense=dense, internalnorm=_tannorm, callback=callback)
 end

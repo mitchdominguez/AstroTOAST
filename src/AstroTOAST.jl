@@ -91,7 +91,7 @@ export reftraj,invariantcurve, DGmat, x2u, u2x
 include("Targeting/Constraints/continuity_constraint.jl")
 export ContinuityConstraint
 export x1, x2, tof, dm
-export evalconstraint, partials, cctspan
+export evalconstraint, partials, cctspan, solvefunction, tangentsolvefunction
 
 include("Targeting/Constraints/tofconstraint.jl")
 export TOFConstraint
@@ -127,5 +127,8 @@ export ClassicalOrbitalElements, sma, ecc, raan, inc, aop
 
 include("io.jl")
 export from_dict, from_mat
+
+include("matlab_compat.jl")
+export MatlabODESolver, matlabsolve
 
 end

@@ -2,6 +2,7 @@ using AstroTOAST
 using LinearAlgebra
 using StaticArrays
 using Test
+using OrdinaryDiffEq
 
 
 @testset "continuity_constraint.jl" begin

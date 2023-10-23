@@ -8,7 +8,7 @@ struct MatlabODESolver
     abstol::Union{Float64, Vector{Float64}}
     reltol::Union{Float64, Vector{Float64}}
 
-    function MatlabODESolver(odesolver::String, rhsfunction::String; abstol=[], reltol=[])
+    function MatlabODESolver(odesolver::String, rhsfunction::String; abstol=Vector{Float64}(), reltol=Vector{Float64}())
         if rhsfunction[1] == '@'
             rhsstr = rhsfunction
         else

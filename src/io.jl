@@ -19,9 +19,10 @@ function from_dict(dd::Dict)
     end
 
     ### TODO check that the rest of the entries can be used to instantiate the struct
-    if datatype=="PeriodicOrbit"
-        return from_dict(dd, eval(Symbol("_"*datatype))())
-    end
+    # if datatype=="PeriodicOrbit"
+        # return from_dict(dd, eval(Symbol("_"*datatype))())
+    # end
+    return from_dict(dd, eval(Symbol("_"*datatype))())
 
     # return from_dict(dd::Dict, datatype)
 end

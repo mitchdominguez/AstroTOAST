@@ -172,6 +172,13 @@ function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, f1
     return out_t, out_c
 end
 
+function frameconvert(states::Vector{Vector{T}}, epochs::AbstractVector, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
+    outstate = similar(states)
+    for i = 1:length(states)
+        outstate[i] = frameconvert(states[i], epochs[i], f1, f2)
+    end
+    return outstate
+end
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                             REGISTER FRAME CONVERSIONS

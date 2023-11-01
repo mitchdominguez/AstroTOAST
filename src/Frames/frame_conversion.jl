@@ -104,6 +104,52 @@ function frameconvert(target, chaser, f1::ReferenceFrame, f2::ReferenceFrame)
     end
 end
 
+"""
+    frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
+
+Function to convert the `state` from coordinates expressed in frame `f1` to 
+coordinates expressed in frame `f2`
+"""
+function frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
+    # Check that neither f1 nor f2 are relative frames
+    if isrelativeframe(f1) || isrelativeframe(f2)
+        ErrorException("Cannot use only one state to convert into a relative frame") |> throw
+    end
+
+    # Call the standard frameconvert method if both f1 and f2 are noninertial
+    if !isinertialframe(f1) && !isinertialframe(f2)
+        return frameconvert(state, f1, f2)
+    end
+
+    numframes = nv(fc_graph)
+    dist_g = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    if dist_g >= numframes
+        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
+    end
+    path = a_star(fc_graph, fc_graph[f1, :frame], fc_graph[f2, :frame])
+    dist = length(path)
+
+    if dist == 0
+        # f1 and f2 are the same frame, so the state should just be returned as normal
+        return state
+    elseif dist == 1
+        # There exists a function to directly convert between f1 and f2
+        return fc(state, epoch, f1, f2)
+    else
+        # Traverse the graph of frame conversions one at a time until arriving
+        # at the final state
+        newstate = state
+        for p in path
+            # newstate = fc(newstate, epoch, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
+            newstate = frameconvert(newstate, epoch, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
+        end
+        return newstate
+    end
+    
+end
+
+
+
 function frameconvert(states::Vector{Vector{T}}, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
     outstate = similar(states)
     for i = 1:length(states)

@@ -143,8 +143,8 @@ fc_graph = MetaDiGraph()
 add_vertex!(fc_graph, :frame, EM_BCR())
 add_vertex!(fc_graph, :frame, EM_ECR())
 add_vertex!(fc_graph, :frame, EM_MCR())
-add_vertex!(fc_graph, :frame, EM_ECI())
-add_vertex!(fc_graph, :frame, EM_MCI())
+add_vertex!(fc_graph, :frame, EM_ECAI())
+add_vertex!(fc_graph, :frame, EM_MCAI())
 
 # Graph to hold frame conversion information for relative frames
 add_vertex!(fc_graph, :frame, EM_TCR())
@@ -172,6 +172,11 @@ add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_VCR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_VCR(), :frame], fc_graph[EM_BCR(), :frame])
 # add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EM_VNC(), :frame])
 
+## Arbitrary inertial to the respective frames
+add_edge!(fc_graph, fc_graph[EM_MCR(), :frame], fc_graph[EM_MCAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_MCR(), :frame])
+add_edge!(fc_graph, fc_graph[EM_ECR(), :frame], fc_graph[EM_ECAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_ECR(), :frame])
 # TODO function to plot the frame conversion graph
 
 # -------------------------------------------------------------------------------------- #
@@ -223,3 +228,6 @@ include("lvlh_frameconversion.jl")
 
 ### EM_BCR <-> EM_TCICR ###
 include("vcr_frameconversion.jl")
+
+### EM_XCR <-> EM_XCAI
+include("arbitrary_inertial_conversion.jl")

@@ -38,18 +38,20 @@ struct EM_MCR <: ReferenceFrame end
 dm(::EM_MCR) = em_cr3bp
 
 """
-    EM_ECI
+    EM_ECAI
 
 Arbitrary Earth centered initial frame
 """
-struct EM_ECI <: ReferenceFrame end
+struct EM_ECAI <: ReferenceFrame end
+dm(::EM_ECAI) = em_cr3bp
 
 """
-    EM_MCI
+    EM_MCAI
 
 Arbitrary moon centered initial frame
 """
-struct EM_MCI <: ReferenceFrame end
+struct EM_MCAI <: ReferenceFrame end
+dm(::EM_MCAI) = em_cr3bp
 
 """
     EM_TCR
@@ -110,6 +112,20 @@ relative_frames = [EM_TCR(), EM_LVLH(), EM_VCR(), EM_VNC()]
 Return true if `f` is a relative frame
 """
 isrelativeframe(f::ReferenceFrame) = f in relative_frames
+
+
+
+# List of inertial frames
+inertial_frames = [EM_ECAI(), EM_MCAI()]
+
+"""
+    isinertialframe(f::ReferenceFrame)
+
+Return true if `f` is an inertial frame
+"""
+isinertialframe(f::ReferenceFrame) = f in inertial_frames
+
+
 
 
 ### Associated files

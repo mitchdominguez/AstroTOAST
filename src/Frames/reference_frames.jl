@@ -44,6 +44,7 @@ Arbitrary Earth centered initial frame
 """
 struct EM_ECAI <: ReferenceFrame end
 dm(::EM_ECAI) = em_cr3bp
+name(::EM_ECAI) = "Arbitrary ECI"
 
 """
     EM_MCAI
@@ -52,6 +53,16 @@ Arbitrary moon centered initial frame
 """
 struct EM_MCAI <: ReferenceFrame end
 dm(::EM_MCAI) = em_cr3bp
+name(::EM_MCAI) = "Arbitrary MCI"
+
+"""
+    EM_TCAI
+
+Arbitrary moon centered initial frame
+"""
+struct EM_TCAI <: ReferenceFrame end
+dm(::EM_TCAI) = em_cr3bp
+name(::EM_TCAI) = "Arbitrary TCI"
 
 """
     EM_TCR
@@ -92,6 +103,7 @@ This frame will always be reported with `target` in `EM_BCR` and `chaser` in
 the VCR frame
 """
 struct EM_VCR <: ReferenceFrame end
+name(::EM_VCR) = "VCR"
 
 """
     EM_VNC
@@ -104,8 +116,7 @@ struct EM_VNC <: ReferenceFrame end
 
 
 # List of relative frames
-relative_frames = [EM_TCR(), EM_LVLH(), EM_VCR(), EM_VNC()]
-
+relative_frames = [EM_TCR(), EM_LVLH(), EM_VCR(), EM_VNC(), EM_TCAI()]
 """
     isrelativeframe(f::ReferenceFrame)
 
@@ -116,7 +127,7 @@ isrelativeframe(f::ReferenceFrame) = f in relative_frames
 
 
 # List of inertial frames
-inertial_frames = [EM_ECAI(), EM_MCAI()]
+inertial_frames = [EM_ECAI(), EM_MCAI(), EM_TCAI()]
 
 """
     isinertialframe(f::ReferenceFrame)

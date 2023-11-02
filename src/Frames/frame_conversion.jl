@@ -108,7 +108,7 @@ end
     frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
 
 Function to convert the `state` from coordinates expressed in frame `f1` to 
-coordinates expressed in frame `f2`
+coordinates expressed in frame `f2` at the provided `epoch`
 """
 function frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
     # Check that neither f1 nor f2 are relative frames
@@ -146,6 +146,76 @@ function frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) w
         return newstate
     end
     
+end
+
+
+"""
+    frameconvert(target, chaser, epoch, f1::ReferenceFrame, f2::ReferenceFrame)
+
+Function to convert the `target` and `chaser` state from coordinates expressed in frame `f1` to 
+coordinates expressed in frame `f2` at the provided `epoch`
+"""
+function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
+
+    # Call the autonomous frameconvert method if both f1 and f2 are noninertial
+    if !isinertialframe(f1) && !isinertialframe(f2)
+        return frameconvert(target, chaser, f1, f2)
+    end
+
+    numframes = nv(fc_graph)
+    dist_g = gdistances(fc_graph, fc_graph[f1, :frame])[fc_graph[f2, :frame]]
+    if dist_g >= numframes
+        ErrorException("No such frame transformation exists in AstroTOAST") |> throw
+    end
+    path = a_star(fc_graph, fc_graph[f1, :frame], fc_graph[f2, :frame])
+    dist = length(path)
+
+    # Check if either f1 or f2 is a relative frame
+    f1_isrelative = isrelativeframe(f1)
+    f2_isrelative = isrelativeframe(f2)
+
+    if dist == 0 && f1 == f2
+        # f1 and f2 are the same frame, so the state should just be returned as normal
+        return (target, chaser)
+    elseif dist == 1
+        # There exists a function to directly convert between f1 and f2
+        # return fc(state, f1, f2)
+
+        if !(f1_isrelative) && !(f2_isrelative)
+            # Case where both f1 and f2 are not relative
+            return (frameconvert(target, epoch, f1, f2), frameconvert(chaser, epoch, f1, f2))
+        else
+            # Case where one of f1 or f2 are a relative frame
+            return fc(target, chaser, epoch, f1, f2)
+        end
+
+    else
+        # Traverse the graph of frame conversions one at a time until arriving
+        # at the final state
+        #
+        if !(f1_isrelative) && !(f2_isrelative)
+            # Case where both f1 and f2 are not relative
+            return (frameconvert(target, epoch, f1, f2), frameconvert(chaser, epoch, f1, f2))
+        else
+
+            # Case where at least one of f1 or f2 are a relative frame
+            newtarget = target
+            newchaser = chaser
+            for p in path
+                src_f = fc_graph[src(p), :frame]
+                dst_f = fc_graph[dst(p), :frame]
+                if !(isrelativeframe(src_f)) && !(isrelativeframe(dst_f))
+                    # Case where both src_f and dst_f are not relative
+                    newtarget, newchaser = (frameconvert(newtarget, epoch, src_f, dst_f), frameconvert(newchaser, epoch, src_f, dst_f))
+                else
+                    # Case where at least one of src_f and dst_f are a relative frame
+                    newtarget, newchaser = fc(newtarget, newchaser, epoch, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
+                end
+            end
+            return newtarget, newchaser
+        end
+
+    end
 end
 
 
@@ -204,6 +274,7 @@ add_vertex!(fc_graph, :frame, EM_TCR())
 add_vertex!(fc_graph, :frame, EM_LVLH())
 add_vertex!(fc_graph, :frame, EM_VNC())
 add_vertex!(fc_graph, :frame, EM_VCR())
+add_vertex!(fc_graph, :frame, EM_TCAI())
 
 # Allow each vertex of fc_graph to be indexed by the frame corresponding to it
 set_indexing_prop!(fc_graph, :frame)
@@ -230,6 +301,12 @@ add_edge!(fc_graph, fc_graph[EM_MCR(), :frame], fc_graph[EM_MCAI(), :frame])
 add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_MCR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_ECR(), :frame], fc_graph[EM_ECAI(), :frame])
 add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_ECR(), :frame])
+
+## Arbitrary inertial absolute to arbitrary inertial target centered
+add_edge!(fc_graph, fc_graph[EM_TCAI(), :frame], fc_graph[EM_MCAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_TCAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_TCAI(), :frame], fc_graph[EM_ECAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_TCAI(), :frame])
 # TODO function to plot the frame conversion graph
 
 # -------------------------------------------------------------------------------------- #

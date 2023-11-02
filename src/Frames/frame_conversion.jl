@@ -249,6 +249,21 @@ function frameconvert(states::Vector{Vector{T}}, epochs::AbstractVector, f1::Ref
     end
     return outstate
 end
+
+function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, epochs::AbstractVector, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
+    if !(length(targets) == length(chasers) == length(epochs))
+        DimensionMismatch("targets and chasers must be the same length") |> throw
+    end
+
+    out_t = similar(targets)
+    out_c = similar(chasers)
+
+    for i = 1:length(targets)
+        out_t[i], out_c[i] = frameconvert(targets[i], chasers[i], epochs[i], f1, f2)
+    end
+    return out_t, out_c
+end
+
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                             REGISTER FRAME CONVERSIONS

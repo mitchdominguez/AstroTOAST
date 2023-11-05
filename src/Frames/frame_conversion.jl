@@ -250,7 +250,7 @@ function frameconvert(states::Vector{Vector{T}}, epochs::AbstractVector, f1::Ref
     return outstate
 end
 
-function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, epochs::AbstractVector, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any}
+function frameconvert(targets::Vector{Vector{T}}, chasers::Vector{Vector{T}}, epochs::AV, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Any, AV<:AbstractVector}
     if !(length(targets) == length(chasers) == length(epochs))
         DimensionMismatch("targets and chasers must be the same length") |> throw
     end

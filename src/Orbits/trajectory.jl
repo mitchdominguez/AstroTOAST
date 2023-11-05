@@ -264,6 +264,9 @@ function (traj::Trajectory)(T::Real)
     if abs(T - tspan(traj)[2]) < DEFAULT_CONVERGENCE_TOL
         return solvec(traj)[end].u[end]
     end
+    if abs(T - tspan(traj)[1]) < DEFAULT_CONVERGENCE_TOL
+        return solvec(traj)[begin].u[begin]
+    end
 
     # TODO fix case where a requested time lies between two segments -- 
     # TODO check that fix on line 256 works

@@ -289,7 +289,8 @@ add_vertex!(fc_graph, :frame, EM_TCR())
 add_vertex!(fc_graph, :frame, EM_LVLH())
 add_vertex!(fc_graph, :frame, EM_VNC())
 add_vertex!(fc_graph, :frame, EM_VCR())
-add_vertex!(fc_graph, :frame, EM_TCAI())
+add_vertex!(fc_graph, :frame, EM_RMCAI())
+add_vertex!(fc_graph, :frame, EM_RECAI())
 
 # Allow each vertex of fc_graph to be indexed by the frame corresponding to it
 set_indexing_prop!(fc_graph, :frame)
@@ -317,11 +318,13 @@ add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_MCR(), :frame])
 add_edge!(fc_graph, fc_graph[EM_ECR(), :frame], fc_graph[EM_ECAI(), :frame])
 add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_ECR(), :frame])
 
-## Arbitrary inertial absolute to arbitrary inertial target centered
-add_edge!(fc_graph, fc_graph[EM_TCAI(), :frame], fc_graph[EM_MCAI(), :frame])
-add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_TCAI(), :frame])
-add_edge!(fc_graph, fc_graph[EM_TCAI(), :frame], fc_graph[EM_ECAI(), :frame])
-add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_TCAI(), :frame])
+## Arbitrary inertial absolute to arbitrary inertial relative -- MOON
+add_edge!(fc_graph, fc_graph[EM_RMCAI(), :frame], fc_graph[EM_MCAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_RMCAI(), :frame])
+
+## Arbitrary inertial absolute to arbitrary inertial relative -- MOON
+add_edge!(fc_graph, fc_graph[EM_RECAI(), :frame], fc_graph[EM_ECAI(), :frame])
+add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_RECAI(), :frame])
 # TODO function to plot the frame conversion graph
 
 # -------------------------------------------------------------------------------------- #

@@ -36,11 +36,21 @@ function fc(xti, θ, f1::AI, f2::R) where {R<:Union{EM_MCR, EM_ECR}, AI<:Union{E
 end
 
 """
-`EM_MCAI`, `EM_ECAI` <-> `EM_TCAI`
+`EM_MCAI` <-> `EM_RMCAI`
 """
-function fc(target, chaser, epoch, f1::Union{EM_MCAI, EM_ECAI}, f2::EM_TCAI)
+function fc(target, chaser, epoch, f1::EM_MCAI, f2::EM_RMCAI)
     return (target, chaser-target)
 end
-function fc(target, chaser, epoch, f1::EM_TCAI, f2::Union{EM_MCAI, EM_ECAI})
+function fc(target, chaser, epoch, f1::EM_RMCAI, f2::EM_MCAI)
+    return (target, chaser+target)
+end
+
+"""
+`EM_ECAI` <-> `EM_RECAI`
+"""
+function fc(target, chaser, epoch, f1::EM_ECAI, f2::EM_RECAI)
+    return (target, chaser-target)
+end
+function fc(target, chaser, epoch, f1::EM_RECAI, f2::EM_ECAI)
     return (target, chaser+target)
 end

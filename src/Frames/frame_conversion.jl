@@ -186,7 +186,7 @@ function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::Referenc
             return (frameconvert(target, epoch, f1, f2), frameconvert(chaser, epoch, f1, f2))
         else
             # Case where one of f1 or f2 are a relative frame
-            return frameconvert(target, chaser, epoch, f1, f2) ### CHANGED FROM fc 02/03/2024
+            return fc(target, chaser, epoch, f1, f2) 
         end
 
     else

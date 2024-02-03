@@ -186,7 +186,7 @@ function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::Referenc
             return (frameconvert(target, epoch, f1, f2), frameconvert(chaser, epoch, f1, f2))
         else
             # Case where one of f1 or f2 are a relative frame
-            return fc(target, chaser, epoch, f1, f2)
+            return frameconvert(target, chaser, epoch, f1, f2) ### CHANGED FROM fc 02/03/2024
         end
 
     else
@@ -209,7 +209,7 @@ function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::Referenc
                     newtarget, newchaser = (frameconvert(newtarget, epoch, src_f, dst_f), frameconvert(newchaser, epoch, src_f, dst_f))
                 else
                     # Case where at least one of src_f and dst_f are a relative frame
-                    newtarget, newchaser = fc(newtarget, newchaser, epoch, fc_graph[src(p), :frame], fc_graph[dst(p), :frame])
+                    newtarget, newchaser = frameconvert(newtarget, newchaser, epoch, fc_graph[src(p), :frame], fc_graph[dst(p), :frame]) ### CHANGED FROM fc 02/03/2024
                 end
             end
             return newtarget, newchaser

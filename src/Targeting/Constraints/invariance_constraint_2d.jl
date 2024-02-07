@@ -306,13 +306,19 @@ function (::__dIC_dT{C})(ic::InvarianceConstraint2D{R}) where {R,C}
     N = numels(ic)
     dim = dimension(dm(ic))
     u0 = u0vec(ic)
-    udottr = similar(u0)
+    udot = similar(u0)
 
     for i = 1:N
         q0 = u0[dim*i-(dim-1):dim*i] + xstar(ic) # Full state including fixed point
         sol = solve(dm(ic), SVector(q0...), tof(ic)) # Propagate state forwards
-        udottr[dim*i-(dim-1):dim*i] = dm(ic)(sol[end])
+        udot[dim*i-(dim-1):dim*i] = dm(ic)(sol[end])
     end
+    # return udot
+
+    udot_mat = reshape(udot, dim, N)'
+    udottr_mat = invariant_rotation(ic, -rhoval(ic))*udot_mat
+
+    udottr = vec(reshape(udottr_mat', dim*N, 1))
 
     return udottr
 end

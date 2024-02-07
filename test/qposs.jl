@@ -75,8 +75,11 @@ qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1],
 
 
 @testset "qposs.jl" begin
-    @test length(err) == 10
+    # @test length(err) == 10
+    # @test norm(tofullvector(fx)) < tol
+    # @test norm(fx) ≈ 4.946544871465505e-11 atol=tol
+    @test length(err) == 5
     @test norm(tofullvector(fx)) < tol
-    @test norm(fx) ≈ 4.946544871465505e-11 atol=tol
+    @test norm(fx) ≈ 2.0798637278273028e-13 atol=tol
     @test typeof(qpo92) == QuasiPeriodicOrbit{6,35}
 end

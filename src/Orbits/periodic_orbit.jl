@@ -675,7 +675,7 @@ end
 #
 
 """
-    to_dict(po::PeriodicOrbit, filename::String)
+    to_dict(po::PeriodicOrbit)
 
 Convert PeriodicOrbit `po` into a Dict
 """

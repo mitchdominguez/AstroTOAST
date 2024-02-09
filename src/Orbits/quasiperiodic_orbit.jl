@@ -486,3 +486,82 @@ function Base.show(io::IO, ::MIME"text/plain", qpo::QuasiPeriodicOrbit{D,N}) whe
     print(io, "- Twist Angle: $(rotationangle(qpo)) rad, $(rad2deg(rotationangle(qpo))) deg\n")
     print(io, "- Longitudinal Offset: $(offset(qpo)/π)π rad\n")
 end
+
+"""
+    to_dict(qpo::QuasiPeriodicOrbit)
+
+Convert PeriodicOrbit `po` into a Dict
+"""
+function to_dict(qpo::QuasiPeriodicOrbit; tol=1e-10)
+    model = dm(qpo) # Dynamical model of the periodic orbit
+
+    outdict = Dict() # Dictionary that will be used to output results
+
+    outdict["datatype"] = "QuasiPeriodicOrbit"
+    outdict["name"] = name(qpo)
+    outdict["family"] = family(qpo)
+
+
+    # Add model information to the dictionary
+    if typeof(model) <: Cr3bpModel
+        if isnothing(model.primaries)
+            outdict["P1"] = ""
+            outdict["P2"] = ""
+            outdict["mu"] = mass_ratio(model)
+
+        else
+            outdict["P1"] = primary_bodies(model)[1].name
+            outdict["P2"] = primary_bodies(model)[2].name
+            outdict["mu"] = mass_ratio(model)
+        end
+    end
+
+    # Get initial conditions and times of flight for each section of the
+    # trajectory
+    # traj = get_traj(po)
+    # X0 = Vector{Vector{Float64}}()
+    # TOF = Vector{Float64}()
+    # for i = 1:length(traj)
+        # push!(X0,get_x0(traj[i]))
+        # push!(TOF,tof(traj[i]))
+    # end
+
+    outdict["X0"] = x0(qpo)
+    outdict["TOF"] = strobetime(qpo)
+    outdict["rho"] = rotationangle(qpo)
+    outdict["initial_conditions"] = x0(qpo)
+    outdict["strobetime"] = strobetime(qpo)
+    outdict["xstar"] = Vector(xstar(qpo))
+    outdict["tol"] = tol ## Needed for converging QPO again
+    
+
+    return outdict
+end
+
+function to_dict(qpovec::Vector{QuasiPeriodicOrbit}; tol=1e-10)
+    outdict = Dict("data"=>[])
+    for qpo in qpovec
+        push!(outdict["data"], to_dict(qpo; tol=tol))
+    end
+    
+    return outdict
+end
+
+"""
+    to_mat(qpo::QuasiPeriodicOrbit, filename::String)
+
+Save QuasiPeriodicOrbit `qpo` to a .mat file 
+"""
+function to_mat(qpo::QuasiPeriodicOrbit, filename::String)
+    outdict = to_dict(qpo)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,Dict("data"=>[outdict]))
+    println("Saved to $(filename)")
+end
+
+function to_mat(qpovec::Vector{QuasiPeriodicOrbit}, filename::String)
+    outdict = to_dict(qpovec)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,outdict)
+    println("Saved to $(filename)")
+end

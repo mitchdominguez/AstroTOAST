@@ -71,7 +71,7 @@ EMB = DefaultNaifBody("Earth-Moon Barycenter", # Name
                         nothing,
                         1.4959789401764473e+08,  # Semimajor Axis
                         1.6729203447508743e-02) # Eccentricity
-merge!(Bodies, Dict("EMB"=>EMB))
+merge!(Bodies, Dict("Earth-Moon Barycenter"=>EMB))
 
 """
     Base.show

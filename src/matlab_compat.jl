@@ -15,6 +15,8 @@ struct MatlabODESolver
             rhsstr = "@"*rhsstr
         end
 
+        # TODO need to deal with situation where abstol isn't passed in
+
         return new(odesolver, rhsstr, abstol, reltol)
     end
 end

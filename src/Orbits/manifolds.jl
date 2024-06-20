@@ -8,9 +8,9 @@ Step a distance of `d_dim` dimensional position units in the subspace of the giv
 If `d_dim` is set equal to zero, then `v` is returned unchanged.
 """
 function subspace_stepoff(v::AbstractVector, d_dim::Real, model::Cr3bpModel, theta::Real=0)
-    if d_dim == 0
-        return v
-    end
+    # if d_dim == 0
+        # return v
+    # end
     # Normalize the eigenvector by the position
     v_norm = v./norm(v[1:3])
     

@@ -125,7 +125,11 @@ function from_mat(matfile::String)
     outobj = []
 
     for i = 1:length(matdata["data"])
-        push!(outobj, from_dict(matdata["data"][i]))
+        temp = from_dict(matdata["data"][i])
+        if !isnothing(temp)
+            # Only push if something was returned
+            push!(outobj, temp)
+        end
     end
 
     return outobj

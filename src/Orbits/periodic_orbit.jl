@@ -749,6 +749,45 @@ function to_mat(povec::Vector{PeriodicOrbit}, filename::String)
     println("Saved to $(filename)")
 end
 
+"""
+    getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::AbstractVector)
+    -> newstates, newtimes
+
+Given a DynamicalModel `model` and Vectors containing patch points `X0` and
+times of flight `TOF`, recalculate a new set of `N` patch points and times of flight
+"""
+function getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::AbstractVector)
+    
+    # Re-propagate 
+    sol = solve(model, SVector(X0[1]...), (0,sum(TOF)))
+
+    # Get times for new patch points based on how the integrator wants to step
+    inds = Int(floor(length(sol.t)/(N)))*[1:(N)...]
+    inds[end] = length(sol.t)
+    newtimes = [0,sol.t[inds][1:end]...]
+    newtofs = diff(newtimes)
+
+    oldtimes = [0, (sum(TOF[1:x]) for x = 1:length(TOF))...]
+
+    newstates = []
+
+    # println(newtimes-sol.t[inds][1:end])
+    # Sweep through each new time to get the new state associated with it
+    for i = 1:length(newtimes)-1
+    # for i = 2:length(newtimes)-1
+        # For each new time, find the index of the time from the original
+        # vector TOF that it is closest to
+        minind = argmin(abs.(TOF.-newtimes[i]))
+
+        # Propagate solutions from the nearest time (in either forward or 
+        # reverse time) to obtain the states at the new time
+        push!(newstates, solve(model, SVector(X0[minind]...), (oldtimes[minind], newtimes[i])).u[end])
+    end
+
+    return newstates, newtofs
+end
+
+
 #TODO write a test case for saving and loading PeriodicOrbits
 function targetcontinuity(model, _X0, _TOF, _name, _family)
 
@@ -799,7 +838,7 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
 
         N_new = length(times)+1 # Number of new patch points
 
-        if N_new >= 10
+        if N_new >= 4
 
             println("Times of flight:")
             show(stdout, "text/plain",_TOF)
@@ -808,76 +847,46 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
             show(stdout, "text/plain",_X0)
             println()
 
-            ErrorException("Tried too many times to converge!") |> throw
+            # ErrorException("Tried too many times to converge!") |> throw
+            @warn "Tried too many times to converge!"
+
+            return [nothing]
         end
 
-        # Re-propagate 
-        sol = solve(model, SVector(_X0[1]...), (0,sum(_TOF)))
+        # print(typeof(_X0))
+        # print(typeof(_TOF))
 
-        # Get times for new patch points based on how the integrator wants to step
-        inds = Int(floor(length(sol.t)/(N_new)))*[1:(N_new)...]
-        inds[end] = length(sol.t)
-        newtimes = [0,sol.t[inds][1:end]...]
-        newtofs = diff(newtimes)
+        newstates, newtofs = getpatchpoints(model, N_new, _X0, _TOF)
 
-        newtimes = [0, (sum(newtofs[1:x]) for x = 1:length(newtofs))...]
+        # # Re-propagate 
+        # sol = solve(model, SVector(_X0[1]...), (0,sum(_TOF)))
 
-        newstates = []
+        # # Get times for new patch points based on how the integrator wants to step
+        # inds = Int(floor(length(sol.t)/(N_new)))*[1:(N_new)...]
+        # inds[end] = length(sol.t)
+        # newtimes = [0,sol.t[inds][1:end]...]
+        # newtofs = diff(newtimes)
 
-        # println(newtimes-sol.t[inds][1:end])
-        # Sweep through each new time to get the new state associated with it
-        for i = 1:length(newtimes)-1
-            # For each new time, find the index of the time from the original
-            # vector _TOF that it is closest to
-            minind = argmin(abs.(_TOF.-newtimes[i]))
+        # newtimes = [0, (sum(newtofs[1:x]) for x = 1:length(newtofs))...]
+
+        # newstates = []
+
+        # # println(newtimes-sol.t[inds][1:end])
+        # # Sweep through each new time to get the new state associated with it
+        # for i = 1:length(newtimes)-1
+            # # For each new time, find the index of the time from the original
+            # # vector _TOF that it is closest to
+            # minind = argmin(abs.(_TOF.-newtimes[i]))
             
-            # Propagate solutions from the nearest time (in either forward or 
-            # reverse time) to obtain the states at the new time
-            push!(newstates, solve(model, SVector(_X0[minind]...), (_TOF[minind], newtimes[i])).u[end])
-        end
+            # # Propagate solutions from the nearest time (in either forward or 
+            # # reverse time) to obtain the states at the new time
+            # push!(newstates, solve(model, SVector(_X0[minind]...), (_TOF[minind], newtimes[i])).u[end])
+        # end
 
         # Recursively call targetcontinuity until something converges
         return targetcontinuity(model, newstates, newtofs, _name, _family)
     end
 
-end
-
-"""
-    getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::AbstractVector)
-    -> newstates, newtimes
-
-Given a DynamicalModel `model` and Vectors containing patch points `X0` and
-times of flight `TOF`, recalculate a new set of `N` patch points and times of flight
-"""
-function getpatchpoints(model::DynamicalModel, N::Int, X0::AbstractVector, TOF::AbstractVector)
-    
-    # Re-propagate 
-    sol = solve(model, SVector(X0[1]...), (0,sum(TOF)))
-
-    # Get times for new patch points based on how the integrator wants to step
-    inds = Int(floor(length(sol.t)/(N)))*[1:(N)...]
-    inds[end] = length(sol.t)
-    newtimes = [0,sol.t[inds][1:end]...]
-    newtofs = diff(newtimes)
-
-    oldtimes = [0, (sum(TOF[1:x]) for x = 1:length(TOF))...]
-
-    newstates = []
-
-    # println(newtimes-sol.t[inds][1:end])
-    # Sweep through each new time to get the new state associated with it
-    for i = 1:length(newtimes)-1
-    # for i = 2:length(newtimes)-1
-        # For each new time, find the index of the time from the original
-        # vector TOF that it is closest to
-        minind = argmin(abs.(TOF.-newtimes[i]))
-
-        # Propagate solutions from the nearest time (in either forward or 
-        # reverse time) to obtain the states at the new time
-        push!(newstates, solve(model, SVector(X0[minind]...), (oldtimes[minind], newtimes[i])).u[end])
-    end
-
-    return newstates, newtofs
 end
 
 """

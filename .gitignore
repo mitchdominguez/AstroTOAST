@@ -1,2 +1,4 @@
 /Manifest.toml
 *.mat
+*.bsp
+*.tls

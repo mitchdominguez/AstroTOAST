@@ -56,7 +56,7 @@ Earth = DefaultNaifBody("Earth", # Name
 merge!(Bodies, Dict("Earth"=>Earth))
 
 Moon = DefaultNaifBody("Moon", # Name
-                        302,  # NAIF_ID
+                        301,  # NAIF_ID
                         Earth, # Parent Body
                         4.9028000661637961e+03, # Gravitational Parameter
                         1.7374000000000003e+03, # Mean Radius

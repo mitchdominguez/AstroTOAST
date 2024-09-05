@@ -5,6 +5,7 @@ using ForwardDiff
 using OrdinaryDiffEq
 using DiffEqBase
 using LinearAlgebra
+using SPICE
 
 include("constants.jl")
 
@@ -32,6 +33,13 @@ export equilibrium_solutions
 
 include("Body/naifbody.jl")
 export Bodies
+
+include("ephemeris.jl")
+export defaultLSK, defaultSPK
+export load_default_kernels, currently_loaded_kernels, clear_all_kernels, load_only_default_kernels
+
+include("Body/body.jl")
+export ephemeris_state, ephemeris_position, ephemeris_velocity
 
 include("CR3BP/cr3bp.jl")
 export Cr3bpModel

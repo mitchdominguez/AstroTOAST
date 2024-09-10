@@ -15,4 +15,5 @@ using Test
     include("qposs.jl")
     include("perpendicular_crossing.jl")
     include("lvlh_targeting.jl")
+    include("ephemeris_rotation.jl")
 end

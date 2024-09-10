@@ -31,6 +31,9 @@ export solve
 export tangent_solve
 export equilibrium_solutions
 
+include("time.jl")
+export UTCEpoch, TDBEpoch
+
 include("Body/naifbody.jl")
 export Bodies
 
@@ -123,7 +126,7 @@ export pcc_x1, pcc_T, pcc_tmax, xz_plane_crossing
 
 include("Frames/reference_frames.jl")
 export ReferenceFrame
-export EM_BCR, EM_ECR, EM_MCR, EM_LVLH, EM_ICR, EM_TCR, EM_ECAI, EM_MCAI, EM_VCR, EM_VNC, EM_RECAI, EM_RMCAI
+export EM_BCR, EM_ECR, EM_MCR, EM_LVLH, EM_ICR, EM_TCR, EM_ECAI, EM_MCAI, EM_VCR, EM_VNC, EM_RECAI, EM_RMCAI, EJ2K, MJ2K
 export isrelativeframe, isinertialframe
 export frameconvert
 

@@ -101,3 +101,22 @@ function fc(I_x_es, epoch::AbstractEpoch, f1::EJ2K, f2::EM_BCR)
     return inv(iCr_full)*I_x_es + R_x_be
 end
 
+
+"""
+`MJ2K` <-> `EJ2K`
+"""
+function fc(x_MS, epoch::AbstractEpoch, f1::MJ2K, f2::EJ2K)
+    X_ME = ephemeris_state(;target=Earth, epoch=str2et(epoch), frame="J2000", observer=Moon)
+    x_ME = nondimensionalize_state(em_cr3bp, X_ME)
+
+    return x_MS - x_ME
+end
+
+function fc(x_ES, epoch::AbstractEpoch, f1::EJ2K, f2::MJ2K)
+    X_ME = ephemeris_state(;target=Earth, epoch=str2et(epoch), frame="J2000", observer=Moon)
+    x_ME = nondimensionalize_state(em_cr3bp, X_ME)
+
+    return x_ES + x_ME
+end
+
+

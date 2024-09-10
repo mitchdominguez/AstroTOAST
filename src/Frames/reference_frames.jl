@@ -123,6 +123,24 @@ rotating velocity
 """
 struct EM_VNC <: ReferenceFrame end
 
+"""
+    EJ2K
+
+Earth centered J2000 frame
+"""
+struct EJ2K <: ReferenceFrame end
+dm(::EJ2K) = ErrorException("Ephemeris model undefined!")
+name(::EJ2K) = "Earth J2000"
+
+"""
+    MJ2K
+
+Moon centered J2000 frame
+"""
+struct MJ2K <: ReferenceFrame end
+dm(::MJ2K) = ErrorException("Ephemeris model undefined!")
+name(::MJ2K) = "Moon J2000"
+
 
 # List of relative frames
 relative_frames = [EM_TCR(), EM_LVLH(), EM_VCR(), EM_VNC(), EM_RMCAI(), EM_RECAI()]
@@ -136,7 +154,7 @@ isrelativeframe(f::ReferenceFrame) = f in relative_frames
 
 
 # List of inertial frames
-inertial_frames = [EM_ECAI(), EM_MCAI(), EM_RMCAI(), EM_RECAI()]
+inertial_frames = [EM_ECAI(), EM_MCAI(), EM_RMCAI(), EM_RECAI(), EJ2K(), MJ2K()]
 
 """
     isinertialframe(f::ReferenceFrame)
@@ -144,8 +162,6 @@ inertial_frames = [EM_ECAI(), EM_MCAI(), EM_RMCAI(), EM_RECAI()]
 Return true if `f` is an inertial frame
 """
 isinertialframe(f::ReferenceFrame) = f in inertial_frames
-
-
 
 
 ### Associated files

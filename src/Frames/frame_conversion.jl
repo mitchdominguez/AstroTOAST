@@ -110,7 +110,7 @@ end
 Function to convert the `state` from coordinates expressed in frame `f1` to 
 coordinates expressed in frame `f2` at the provided `epoch`
 """
-function frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
+function frameconvert(state, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Union{Real,AbstractEpoch}}
     # Check that neither f1 nor f2 are relative frames
     if isrelativeframe(f1) || isrelativeframe(f2)
         ErrorException("Cannot use only one state to convert into a relative frame") |> throw
@@ -155,7 +155,7 @@ end
 Function to convert the `target` and `chaser` state from coordinates expressed in frame `f1` to 
 coordinates expressed in frame `f2` at the provided `epoch`
 """
-function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Real}
+function frameconvert(target, chaser, epoch::T, f1::ReferenceFrame, f2::ReferenceFrame) where {T<:Union{Real,AbstractEpoch}}
 
     # Call the autonomous frameconvert method if both f1 and f2 are noninertial
     if !isinertialframe(f1) && !isinertialframe(f2)
@@ -283,6 +283,8 @@ add_vertex!(fc_graph, :frame, EM_ECR())
 add_vertex!(fc_graph, :frame, EM_MCR())
 add_vertex!(fc_graph, :frame, EM_ECAI())
 add_vertex!(fc_graph, :frame, EM_MCAI())
+add_vertex!(fc_graph, :frame, EJ2K())
+add_vertex!(fc_graph, :frame, MJ2K())
 
 # Graph to hold frame conversion information for relative frames
 add_vertex!(fc_graph, :frame, EM_TCR())
@@ -326,6 +328,19 @@ add_edge!(fc_graph, fc_graph[EM_MCAI(), :frame], fc_graph[EM_RMCAI(), :frame])
 add_edge!(fc_graph, fc_graph[EM_RECAI(), :frame], fc_graph[EM_ECAI(), :frame])
 add_edge!(fc_graph, fc_graph[EM_ECAI(), :frame], fc_graph[EM_RECAI(), :frame])
 # TODO function to plot the frame conversion graph
+
+###### Conversion between ephemeris frames
+## CR3BP <-> EJ2K
+add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[EJ2K(), :frame])
+add_edge!(fc_graph, fc_graph[EJ2K(), :frame], fc_graph[EM_BCR(), :frame])
+
+## CR3BP <-> MJ2K
+add_edge!(fc_graph, fc_graph[EM_BCR(), :frame], fc_graph[MJ2K(), :frame])
+add_edge!(fc_graph, fc_graph[MJ2K(), :frame], fc_graph[EM_BCR(), :frame])
+
+## EJ2K <-> MJ2K
+add_edge!(fc_graph, fc_graph[EJ2K(), :frame], fc_graph[MJ2K(), :frame])
+add_edge!(fc_graph, fc_graph[MJ2K(), :frame], fc_graph[EJ2K(), :frame])
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
@@ -379,3 +394,6 @@ include("vcr_frameconversion.jl")
 
 ### EM_XCR <-> EM_XCAI
 include("arbitrary_inertial_conversion.jl")
+
+### *J2K <-> CR3BP
+include("j2k_cr3bp.jl")

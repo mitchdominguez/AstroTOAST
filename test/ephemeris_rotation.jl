@@ -3,8 +3,10 @@ using LinearAlgebra
 using StaticArrays
 using Test
 using MAT
+using SPICE
 
 include("display.jl")
+load_only_default_kernels()
 
 @testset "test_ephemeris_rotation.jl" begin
 

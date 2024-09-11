@@ -56,6 +56,23 @@ end
 
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
+#                            NONAUTONOMOUS DYANMICAL MODEL                               #
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
+"""
+    NonAutonomousDynamicalModel{D, IAD} <: DynamicalModel{D, IAD}
+
+Abstract base type for non-autonomous (time dependent) dynamical models
+
+See also:
+[`DynamicalModel`](@ref)
+"""
+abstract type NonAutonomousDynamicalModel{D, IAD} <: DynamicalModel{D, IAD} end
+
+isautonomous(::NonAutonomousDynamicalModel) = false
+
+# -------------------------------------------------------------------------------------- #
+# -------------------------------------------------------------------------------------- #
 #                              AUTONOMOUS DYANMICAL MODEL                                #
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
@@ -117,7 +134,12 @@ function OrdinaryDiffEq.solve(dm::DynamicalModel, q0, tspan;
                   solver=DEFAULT_SOLVER,
                   callback=nothing)# where {D, IAD, M}
     prob = ODEProblem{false}(model_eoms(dm), q0, tspan, p)
-    solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
+
+    if isa(dm, HFEModel)
+        solve(prob, solver, abstol=1e-12, reltol=1e-12, callback=callback)
+    else 
+        solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
+    end
 end
 
 # -------------------------------------------------------------------------------------- #

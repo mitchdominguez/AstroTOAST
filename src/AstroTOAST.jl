@@ -52,6 +52,10 @@ export pseudopotential, pseudopotential_gradient, pseudopotential_jacobian
 export jacobi_constant
 export lyapunov_linear_ics
 
+include("HFEM/hfem.jl")
+export HFEModel
+export get_central_body, get_additional_bodies, get_epoch
+
 include("Targeting/free_variable.jl")
 export FreeVariable
 export full_length, name, fullvalue, tofullvector, value, update, active, removeinds

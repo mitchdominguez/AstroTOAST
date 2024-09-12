@@ -31,20 +31,26 @@ load_only_default_kernels()
     println("Rotating -> MJ2K: ", norm(I_R_ME - I_R_ME_spice))
     @test norm(I_R_ME - I_R_ME_spice) <= 1e-12
 
+    @test I_r_ME == frameconvert(R_r_BE, str2et(epoch_tdb), EM_BCR(), MJ2K())
+
     ###### Test Moon-centered J2000 to Rotating
     R_r_BE_rot = frameconvert(I_r_ME_spice, epoch_tdb, MJ2K(), EM_BCR())
     println("MJ2K -> Rotating: ", norm(R_r_BE_rot - R_r_BE))
     @test norm(R_r_BE_rot - R_r_BE) <= 1e12
+    @test R_r_BE_rot == frameconvert(I_r_ME_spice, str2et(epoch_tdb), MJ2K(), EM_BCR())
+
 
     ###### Test Rotating to Earth-centered J2000
     I_r_EM = frameconvert(R_r_BM, epoch_tdb, EM_BCR(), EJ2K())
     I_R_EM = dimensionalize_state(AstroTOAST.em_cr3bp, I_r_EM)
     println("Rotating -> EJ2K: ", norm(I_R_EM - I_R_EM_spice))
     @test norm(I_R_EM - I_R_EM_spice) <= 1e-12
+    @test I_r_EM == frameconvert(R_r_BM, str2et(epoch_tdb), EM_BCR(), EJ2K())
 
     ###### Test Earth-centered J2000 to Rotating
     R_r_BM_rot = frameconvert(I_r_EM_spice, epoch_tdb, EJ2K(), EM_BCR())
     println("EJ2K -> Rotating: ", norm(R_r_BM_rot - R_r_BM))
     @test norm(R_r_BM_rot - R_r_BM) <= 1e12
+    @test R_r_BM_rot == frameconvert(I_r_EM_spice, str2et(epoch_tdb), EJ2K(), EM_BCR())
 
 end

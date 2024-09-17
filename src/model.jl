@@ -216,6 +216,14 @@ function tangent_solve(dm::DynamicalModel{D, IAD}, q0, tspan, Q0::M=nothing;
     tangentf = create_tangent(dm)
     # Specify that the ode problem is not in place in type parameter
     tanprob = ODEProblem{false}(tangentf, hcat(q0, stm0), tspan, p)
-    solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
-          dense=dense, internalnorm=_tannorm, callback=callback)
+    # solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
+    # dense=dense, internalnorm=_tannorm, callback=callback)
+
+    if isa(dm, HFEModel)
+        solve(tanprob, solver, abstol=1e-12, reltol=1e-12, save_everystep=save_everystep,
+              dense=dense, internalnorm=_tannorm, callback=callback)
+    else 
+        solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
+              dense=dense, internalnorm=_tannorm, callback=callback)
+    end
 end

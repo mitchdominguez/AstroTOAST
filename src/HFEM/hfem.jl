@@ -48,12 +48,30 @@ get_additional_bodies(hfem::HFEModel) = hfem.additional_bodies
 
 Returns the universal gravitational constant [km^3/(kg.s^2)]
 """
-model_parameters(::HFEModel) = @SVector [UNIVERSAL_GRAVITATIONAL_CONSTANT]
+# model_parameters(::HFEModel) = @SVector [UNIVERSAL_GRAVITATIONAL_CONSTANT]
+model_parameters(hfem::HFEModel) = (UNIVERSAL_GRAVITATIONAL_CONSTANT,
+                                    get_central_body(hfem),
+                                    get_additional_bodies(hfem),
+                                    get_epoch(hfem),
+                                    dimensional_quantity_set(hfem))
 
 """
     get_epoch(hfem::HFEModel)
 """
 get_epoch(hfem::HFEModel) = hfem.epoch
+
+"""
+    to_ephemeris_time
+
+Convert a nondimensional time to an ephemeris time (seconds past J2000)
+"""
+function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel)
+    epoch_dim = str2et(get_epoch(hfem))
+
+    t_dim = epoch_dim + ndimtime*dimensional_time(hfem)
+end
+
+to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel) = [to_ephemeris_time(t, hfem) for t in ndimtime]
 
 
 """
@@ -89,9 +107,7 @@ In this case, `t` is the NONDIMENSIONAL time elapsed since the epoch of the HFEM
 
 Implementation follows the equations given in the ATD mathspec
 """
-function (hfem::HFEModel)(q::AbstractArray, p::AbstractArray, t::Real; debug=false)
-
-    # @warn "Need to adjust HFEModel to take in an epoch!!!"
+function (hfem::HFEModel)(q::AbstractArray, p, t::Real; debug=false)
 
     G_dim = p[1] ## Universal gravitational constant -- [km^3/(kg.s^2)]
 
@@ -151,3 +167,85 @@ end
 Return function to evaluate the Cr3bp equations of motion
 """
 model_eoms(m::HFEModel) = m
+
+"""
+    model_eoms(m::HFEModel)
+
+Return function to evaluate the jacobian of the Cr3bp equations of motion
+"""
+model_eoms_jacobian(::HFEModel) = hfem_jacobian
+
+"""
+    hfem_jacobian(q, p, t)
+
+Calcuate the sensitivity of the state velocity with respect to the state in the Cr3bp
+"""
+function hfem_jacobian(q::AbstractArray, p, t::Real; debug=false)
+    G_dim = p[1] ## Universal gravitational constant -- [km^3/(kg.s^2)]
+
+    ## Get bodies
+    cb = p[2]
+    ab = p[3]
+    epoch = p[4]
+    dq = p[5]
+
+    if debug
+        println([a.name for a in ab])
+    end
+    N = length(ab)
+
+    ## Get epoch
+    epoch_dim = str2et(epoch)
+
+    t_dim = epoch_dim + t*dimensional_time(dq)
+
+    if debug
+        println(et2utc(epoch_dim, :C, 14))
+        println(et2utc(t_dim, :C, 14))
+    end
+
+    ## Build set of nondimensional masses
+    m_c = (cb.gravitational_parameter/G_dim)/dimensional_mass(dq)
+    m_i = [bodyi.gravitational_parameter/G_dim/dimensional_mass(dq) for bodyi in ab]
+
+    if debug
+        println(m_c)
+        println(m_i)
+    end
+
+    ## Build set of state vectors from central body to additional bodies
+    q_ci = [ nondimensionalize_state(dq, ephemeris_state(;target=bodyi, epoch=t_dim,
+                                                        frame="J2000",
+                                                        observer=cb))
+                                                        for bodyi in ab]
+
+    ## Build set of state vectors from central
+    r_ci = [x[1:3] for x in q_ci]
+    r_si = [qq[1:3] - q[1:3] for qq in q_ci]
+    
+    r_cs = q[1:3]
+
+    inds = 1:length(r_si)
+
+    x = 1
+    y = 2
+    z = 3
+
+    A11 = m_c*(3r_cs[x]^2/(norm(r_cs)^5) - 1/(norm(r_cs)^3)) + sum([m_i[i]*(3r_si[i][x]^2/norm(r_si[i])^5 - 1/norm(r_si[i])^3) for i in inds])
+    A22 = m_c*(3r_cs[y]^2/(norm(r_cs)^5) - 1/(norm(r_cs)^3)) + sum([m_i[i]*(3r_si[i][y]^2/norm(r_si[i])^5 - 1/norm(r_si[i])^3) for i in inds])
+    A33 = m_c*(3r_cs[z]^2/(norm(r_cs)^5) - 1/(norm(r_cs)^3)) + sum([m_i[i]*(3r_si[i][z]^2/norm(r_si[i])^5 - 1/norm(r_si[i])^3) for i in inds])
+
+    A12 = A21 = m_c*(3r_cs[x]*r_cs[y]/(norm(r_cs)^5)) + sum([m_i[i]*(3r_si[i][x]*r_si[i][y]/norm(r_si[i])^5) for i in inds])
+    A13 = A31 = m_c*(3r_cs[x]*r_cs[z]/(norm(r_cs)^5)) + sum([m_i[i]*(3r_si[i][x]*r_si[i][z]/norm(r_si[i])^5) for i in inds])
+    A23 = A32 = m_c*(3r_cs[y]*r_cs[z]/(norm(r_cs)^5)) + sum([m_i[i]*(3r_si[i][y]*r_si[i][z]/norm(r_si[i])^5) for i in inds])
+
+    A = @SMatrix [
+            0.0     0.0     0.0     1.0     0.0     0.0;
+            0.0     0.0     0.0     0.0     1.0     0.0;
+            0.0     0.0     0.0     0.0     0.0     1.0;
+            A11     A12     A13     0.0     0.0     0.0;
+            A21     A22     A23     0.0     0.0     0.0;
+            A31     A32     A33     0.0     0.0     0.0
+    ]
+    return A
+end

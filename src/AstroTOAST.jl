@@ -33,6 +33,7 @@ export equilibrium_solutions
 
 include("time.jl")
 export UTCEpoch, TDBEpoch
+export jed2et, et2jed
 
 include("Body/naifbody.jl")
 export Bodies
@@ -54,7 +55,7 @@ export lyapunov_linear_ics
 
 include("HFEM/hfem.jl")
 export HFEModel
-export get_central_body, get_additional_bodies, get_epoch
+export get_central_body, get_additional_bodies, get_epoch, to_ephemeris_time
 
 include("Targeting/free_variable.jl")
 export FreeVariable

@@ -30,6 +30,8 @@ end
 SPICE.str2et(epoch::AbstractEpoch) = str2et(string(epoch))
 
 
+jed2et(jed::Float64) = (jed - j2000())*spd()
+et2jed(et::Float64) = j2000() + et/spd()
 ### TODO convert between TDBEpoch and UTCEpoch 
 
 # function TDBEpoch(utc::UTCEpoch)

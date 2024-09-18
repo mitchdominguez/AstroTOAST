@@ -4,8 +4,10 @@ using StaticArrays
 using Test
 using MAT
 using MATLAB
+using SPICE
 
 include("display.jl")
+load_only_default_kernels()
 
 @testset "test_ephemeris_rotation.jl" begin
 
@@ -166,15 +168,15 @@ include("display.jl")
 
     global dro_mj2k = sol_DRO.u
 
-    tsol_DRO = tangent_solve(hfem, x_mj2k_nadia, (0, 6.908*3))
+    tsol_DRO = tangent_solve(hfem, SVector{6,Float64}(x_mj2k_nadia), (0, 6.908*3))
 
     global dro_stm_mj2k = tsol_DRO.u
 
 
-    @test norm(dro_stm_mj2k[end][:,end] - [  0.14256142073152134,
-                                           -0.059612876466121796,
-                                           -0.031538842644633164,
-                                           0.04448366786328364,
-                                           -0.3339136083879748,
-                                           -0.1883781798794906]) <= 1e-12
+    @test norm(dro_stm_mj2k[end][:,end] - [0.14256142072712272
+                                           -0.0596128764642774
+                                           -0.03153884264364764
+                                           0.04448366786858148
+                                           -0.333913608376461
+                                           -0.1883781798729954]) <= 1e-12
 end

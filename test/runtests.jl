@@ -19,4 +19,5 @@ using Test
     load_only_default_kernels()
     include("ephemeris_rotation.jl")
     include("ephemeris_propagation.jl")
+    include("ephemeris_continuity.jl")
 end

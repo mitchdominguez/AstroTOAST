@@ -135,11 +135,7 @@ function OrdinaryDiffEq.solve(dm::DynamicalModel, q0, tspan;
                   callback=nothing)# where {D, IAD, M}
     prob = ODEProblem{false}(model_eoms(dm), q0, tspan, p)
 
-    if isa(dm, HFEModel)
-        solve(prob, solver, abstol=1e-12, reltol=1e-12, callback=callback)
-    else 
-        solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
-    end
+    solve(prob, solver, abstol=abstol, reltol=reltol, callback=callback)
 end
 
 # -------------------------------------------------------------------------------------- #
@@ -147,12 +143,18 @@ end
 #                              TANGENT SYSTEM CONSTRUCTION                               #
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
+
+abstract type AbstractTangentSystem <: Function end
 """
     TangentSystem{F, JAC, N} <: Function
 
 Structure providing equation of motion function for the augmented tangent model
+
+    - `f` is the system EOMs
+    - `J` is the Jacobian of the EOMs wrt the state, which is used to propagate the STM
+    - `ws` seems to be the indices that correspond to the STM
 """
-struct TangentSystem{F, JAC, N} <: Function
+struct TangentSystem{F, JAC, N} <: AbstractTangentSystem
     f::F
     j::JAC
     ws::SVector{N, Int}
@@ -166,8 +168,8 @@ Equations of motion for the tangent model
 function (tan::TangentSystem)(u, p, t)
     @inbounds s = u[:, 1]
     du = tan.f(s, p, t)
-    J = tan.j(s, p, t)
-    @inbounds dW = J * u[:, tan.ws]
+    J = tan.j(s, p, t) # A matrix 
+    @inbounds dW = J * u[:, tan.ws] # phidot = A*phi
     return hcat(du, dW)
 end
 
@@ -176,7 +178,7 @@ end
 
 Construct a tangent model for propagating variational equations
 """
-function create_tangent(dm::DynamicalModel) where {D}
+function create_tangent(dm::DynamicalModel)# where {D}
     eom = model_eoms(dm)
     jac = model_eoms_jacobian(dm)
     n = dimension(dm)
@@ -216,14 +218,7 @@ function tangent_solve(dm::DynamicalModel{D, IAD}, q0, tspan, Q0::M=nothing;
     tangentf = create_tangent(dm)
     # Specify that the ode problem is not in place in type parameter
     tanprob = ODEProblem{false}(tangentf, hcat(q0, stm0), tspan, p)
-    # solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
-    # dense=dense, internalnorm=_tannorm, callback=callback)
+    solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
+          dense=dense, internalnorm=_tannorm, callback=callback)
 
-    if isa(dm, HFEModel)
-        solve(tanprob, solver, abstol=1e-12, reltol=1e-12, save_everystep=save_everystep,
-              dense=dense, internalnorm=_tannorm, callback=callback)
-    else 
-        solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
-              dense=dense, internalnorm=_tannorm, callback=callback)
-    end
 end

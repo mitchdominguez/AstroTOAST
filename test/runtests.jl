@@ -15,6 +15,8 @@ using Test
     include("qposs.jl")
     include("perpendicular_crossing.jl")
     include("lvlh_targeting.jl")
+
+    load_only_default_kernels()
     include("ephemeris_rotation.jl")
-    # include("ephemeris_propagation.jl")
+    include("ephemeris_propagation.jl")
 end

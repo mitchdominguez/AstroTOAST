@@ -23,7 +23,7 @@ struct ContinuityEpochConstraint{D} <: Constraint{D}
     tangentsolvefunction::Function
 
     # function ContinuityEpochConstraint(x1, x2, T, dm, rminds = Vector{Int}()::Union{Int, AbstractVector{Int}})
-    function ContinuityEpochConstraint(x1, x2, T, dm; includeinds = Vector(1:dimension(dm)), solvefunction=solve, tangentsolvefunction=tangent_solve)
+    function ContinuityEpochConstraint(x1, x2, epoch1, epoch2, T, dm; includeinds = Vector(1:dimension(dm)), solvefunction=solve, tangentsolvefunction=tangent_solve)
 
 
         if full_length(x1) == full_length(x2) == dimension(dm)
@@ -34,7 +34,7 @@ struct ContinuityEpochConstraint{D} <: Constraint{D}
             rminds = setdiff(Vector(1:dimension(dm)), includeinds)
 
             rmlength = Base.length(rminds)
-            vallength = full_length(x1)
+            vallength = full_length(x1) + 1
 
             # Check for correct bounds on removeinds
             if !all(rminds.<=vallength) || !all(rminds.>=1) || rmlength>vallength
@@ -49,7 +49,7 @@ struct ContinuityEpochConstraint{D} <: Constraint{D}
             
             ccdimension = vallength-length(rmvec) # D in FreeVariable{D,T}
 
-            new{ccdimension}(x1,x2,T,dm,rmvec,solvefunction,tangentsolvefunction)
+            new{ccdimension}(x1,x2,epoch1,epoch2,T,dm,rmvec,solvefunction,tangentsolvefunction)
         else
             throw(DimensionMismatch("X1 and X2 must have the same full length"))
         end
@@ -76,7 +76,7 @@ tangentsolvefunction(cc::ContinuityEpochConstraint) = cc.tangentsolvefunction
 Return the full length of the ContinuityEpochConstraint, without
 removing elements
 """
-full_length(cc::ContinuityEpochConstraint) = full_length(x1(cc))
+full_length(cc::ContinuityEpochConstraint) = full_length(x1(cc)) + full_length(get_epoch1(cc))
 
 """
     x1(cc::ContinuityEpochConstraint)
@@ -119,7 +119,7 @@ get_epoch2(cc::ContinuityEpochConstraint) = cc.epoch2
 Return the tspan to integrate the continuity constraint for
 """
 function cctspan(cc::ContinuityEpochConstraint)
-    e1 = get_epoch1(cc)
+    e1 = get_epoch1(cc)[1]
     return (e1, e1+fullvalue(tof(cc))[1])
 end
 
@@ -137,7 +137,7 @@ Evaluate the continuity constraint
 """
 function evalconstraint(cc::ContinuityEpochConstraint)
     F16 = solvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc)).u[end]-tofullvector(x2(cc))
-    F7 = get_epoch1(cc) + tof(cc) - get_epoch2(cc)
+    F7 = get_epoch1(cc)[1] + tof(cc)[1] - get_epoch2(cc)[1]
 
     return vcat(F16...,F7)
 end
@@ -162,27 +162,27 @@ function partials(cc::ContinuityEpochConstraint, fv::FreeVariable{D,T}) where {D
     if fv == x1(cc) == x2(cc)
         # Constraint takes the form X1(T) - X1(0)
         # Note that this is the single shooter case
-        return __dCC_dx_ss{D}()
+        return __dCEC_dx_ss{D}()
 
     elseif fv == x1(cc) 
         # Partial with respect to X1(T)
-        return __dCC_dx1{D}() 
+        return __dCEC_dx1{D}() 
 
     elseif fv == x2(cc)
         # Partial with respect to X2(0)
-        return __dCC_dx2{full_length(fv)}()
+        return __dCEC_dx2{full_length(fv)}()
 
     elseif  fv == tof(cc) && active(tof(cc))
         # Partial with respect to T
-        return __dCC_dt{D}()
+        return __dCEC_dt{D}()
 
     elseif fv == get_epoch1(cc) && active(get_epoch1(cc))
         # Partial with respect to Epoch 1 (epoch of first patch point)
-        return __dCC_depoch1{D}()
+        return __dCEC_depoch1{D}()
 
     elseif fv == get_epoch2(cc) && active(get_epoch2(cc))
         # Partial with respect to Epoch 2 (epoch of first patch point)
-        return __dCC_depoch2{D}()
+        return __dCEC_depoch2{D}()
 
     else
         # No partial
@@ -192,13 +192,13 @@ function partials(cc::ContinuityEpochConstraint, fv::FreeVariable{D,T}) where {D
 end
 
 """
-    __dCC_dx_ss
+    __dCEC_dx_ss
 
 Partial of the continuity constraint with respect to x1(0),
 which is the STM phi(0,T)
 """
-struct __dCC_dx_ss{D} <: Partial{D} end
-function (::__dCC_dx_ss{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_dx_ss{D} <: Partial{D} end
+function (::__dCEC_dx_ss{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     sol = tangentsolvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
 
     # println("TSPAN")
@@ -210,13 +210,13 @@ function (::__dCC_dx_ss{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
 end
 
 """
-    __dCC_dx1
+    __dCEC_dx1
 
 Partial of the continuity constraint with respect to x1(0),
 which is the STM phi(0,T)
 """
-struct __dCC_dx1{D} <: Partial{D} end
-function (::__dCC_dx1{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_dx1{D} <: Partial{D} end
+function (::__dCEC_dx1{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     sol = tangentsolvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
 
     # println("TSPAN")
@@ -228,46 +228,46 @@ function (::__dCC_dx1{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
 end
 
 """
-    __dCC_dx2
+    __dCEC_dx2
 
 Partial of the continuity constraint with respect to x2(0),
 which is the negative identity matrix
 """
-struct __dCC_dx2{D} <: Partial{D} end
-function (::__dCC_dx2{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_dx2{D} <: Partial{D} end
+function (::__dCEC_dx2{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     return vcat(-I(C), zeros(1,dimension(dm(cc))))
 end
 
 """
-    __dCC_dt
+    __dCEC_dt
 
 Partial of the continuity constraint with respect to T,
 which is the derivative of the x1 state at time T
 """
-struct __dCC_dt{D} <: Partial{D} end
-function (::__dCC_dt{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_dt{D} <: Partial{D} end
+function (::__dCEC_dt{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     sol = solvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc))
     return vcat(dm(cc)((sol.u[end]), tof(cc)[1] + get_epoch1(cc)[1]), 1.0)
 end
 
 """
-    __dCC_depoch1
+    __dCEC_depoch1
 
 Partial of the continuity constraint with respect to the epoch of the first patch point
 """
-struct __dCC_depoch1{D} <: Partial{D} end
-function (::__dCC_depoch1{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_depoch1{D} <: Partial{D} end
+function (::__dCEC_depoch1{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     epochpartial = tangentsolvefunction(cc)(dm(cc), tofullsvector(x1(cc)), cctspan(cc)).u[end][:,end]
     return vcat(epochpartial, 1.0)
 end
 
 """
-    __dCC_depoch2
+    __dCEC_depoch2
 
 Partial of the continuity constraint with respect to the epoch of the first patch point
 """
-struct __dCC_depoch2{D} <: Partial{D} end
-function (::__dCC_depoch2{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
+struct __dCEC_depoch2{D} <: Partial{D} end
+function (::__dCEC_depoch2{C})(cc::ContinuityEpochConstraint{R}) where {R,C}
     return vcat(zeros(dimension(dm(cc))), -1.0) # TODO check that this is the right dimension to be returning
 end
 
@@ -277,7 +277,7 @@ end
 Overload the show operator to pretty print the ContinuityEpochConstraint to the console.
 """
 function Base.show(io::IO, ::MIME"text/plain", cc::ContinuityEpochConstraint)
-    print(io, "Continuity Constraint\n")
+    print(io, "Continuity+Epoch Constraint\n")
     print(io, "- Length: $(length(cc))\n")
     print(io, "- X1: $(name(x1(cc)))\n")
     print(io, "- X2: $(name(x2(cc)))\n")

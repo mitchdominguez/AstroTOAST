@@ -41,8 +41,16 @@ function (tan::HFEMTangentSystem)(u, p, t)
     @inbounds s = u[:, 1]
     du = tan.f(s, p, t)
     J = tan.j(s, p, t) # A matrix 
-    @inbounds dW = J[:,1:(tan.ws[end]-1)] * u[:, tan.ws] # phidot = A*phi
+    @inbounds dW = SMatrix{6,6,Float64}(J[:,1:(tan.ws[end]-1)] * u[:, tan.ws]) # phidot = A*phi
     @inbounds dE = J[:,1:(tan.ws[end]-1)]*u[:,tan.epind] + J[:,(tan.epind-1)]
+
+    # # println(hcat(du, dW, dE))
+    # println(typeof(du))
+    # println(typeof(dW))
+    # println(typeof(dE))
+    # println(typeof(hcat(du, dW, dE)))
+
+    # return nothing
     return hcat(du, dW, dE)
 end
 
@@ -77,6 +85,9 @@ function tangent_solve(dm::HFEModel, q0, tspan, Q0::M=nothing;
     stm0 = M == Nothing ? SMatrix{D, D, eltype(q0)}(I) : Q0
     tangentf = create_tangent(dm)
     # Specify that the ode problem is not in place in type parameter
+    #
+    # show(stdout, "text/plain", hcat(q0, stm0, SVector{6,Float64}(zeros(6))))
+    # println()
     tanprob = ODEProblem{false}(tangentf, hcat(q0, stm0, SVector{6,Float64}(zeros(6))), tspan, p)
     solve(tanprob, solver, abstol=abstol, reltol=reltol, save_everystep=save_everystep,
           dense=dense, internalnorm=_tannorm, callback=callback)

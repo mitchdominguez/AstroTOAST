@@ -60,15 +60,19 @@ debug = false
     targ = Targeter(xv, fx, 20, 1e-12)
 
 
-    println("Initial state discontinuity: ", ignore_zero(evalconstraint(cc)[1:6]))
-    println("Initial time discontinuity: ", T1[1] + TOF1[1] - T2[1])
+    if debug
+        println("Initial state discontinuity: ", ignore_zero(evalconstraint(cc)[1:6]))
+        println("Initial time discontinuity: ", T1[1] + TOF1[1] - T2[1])
+    end
 
-    Xhist, err = target(targ; debug=true)
-
-    println("Final state discontinuity: ", ignore_zero(evalconstraint(cc)[1:6]))
-    println("Final time discontinuity: ", evalconstraint(cc)[7])
-    println("Final time discontinuity: ", T1[1] + TOF1[1] - T2[1])
+    Xhist, err = target(targ; debug=false)
     xhistmat = hcat(tofullvector.(Xhist)...)
+
+    if debug
+        println("Final state discontinuity: ", ignore_zero(evalconstraint(cc)[1:6]))
+        println("Final time discontinuity: ", evalconstraint(cc)[7])
+        println("Final time discontinuity: ", T1[1] + TOF1[1] - T2[1])
+    end
 
     @test norm(evalconstraint(cc)[1:6]) < 1e-12
     @test norm(evalconstraint(cc)[7]) < 1e-12

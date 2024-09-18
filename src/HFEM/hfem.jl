@@ -179,6 +179,8 @@ model_eoms_jacobian(::HFEModel) = hfem_jacobian
     hfem_jacobian(q, p, t)
 
 Calcuate the sensitivity of the state velocity with respect to the state in the Cr3bp
+
+Also calculate part of the partial for the senstivity of the state wrt epoch
 """
 function hfem_jacobian(q::AbstractArray, p, t::Real; debug=false)
     G_dim = p[1] ## Universal gravitational constant -- [km^3/(kg.s^2)]
@@ -221,6 +223,7 @@ function hfem_jacobian(q::AbstractArray, p, t::Real; debug=false)
 
     ## Build set of state vectors from central
     r_ci = [x[1:3] for x in q_ci]
+    v_ci = [x[4:6] for x in q_ci]
     r_si = [qq[1:3] - q[1:3] for qq in q_ci]
     
     r_cs = q[1:3]
@@ -239,13 +242,57 @@ function hfem_jacobian(q::AbstractArray, p, t::Real; debug=false)
     A13 = A31 = m_c*(3r_cs[x]*r_cs[z]/(norm(r_cs)^5)) + sum([m_i[i]*(3r_si[i][x]*r_si[i][z]/norm(r_si[i])^5) for i in inds])
     A23 = A32 = m_c*(3r_cs[y]*r_cs[z]/(norm(r_cs)^5)) + sum([m_i[i]*(3r_si[i][y]*r_si[i][z]/norm(r_si[i])^5) for i in inds])
 
+    
+    E = zeros(6)
+    for i in inds
+        B11 = m_i[i]*(1/(norm(r_si[i])^3) - 3r_si[i][x]^2/(norm(r_si[i])^5) - 1/(norm(r_ci[i])^3) + 3r_ci[i][x]^2/(norm(r_ci[i])^5))
+        B22 = m_i[i]*(1/(norm(r_si[i])^3) - 3r_si[i][y]^2/(norm(r_si[i])^5) - 1/(norm(r_ci[i])^3) + 3r_ci[i][y]^2/(norm(r_ci[i])^5))
+        B33 = m_i[i]*(1/(norm(r_si[i])^3) - 3r_si[i][z]^2/(norm(r_si[i])^5) - 1/(norm(r_ci[i])^3) + 3r_ci[i][z]^2/(norm(r_ci[i])^5))
+
+        B12 = B21 = 3m_i[i]*( r_ci[i][x]*r_ci[i][y]/(norm(r_ci[i])^5) - r_si[i][x]*r_si[i][y]/(norm(r_si[i])^5) ) 
+        B13 = B31 = 3m_i[i]*( r_ci[i][x]*r_ci[i][z]/(norm(r_ci[i])^5) - r_si[i][x]*r_si[i][z]/(norm(r_si[i])^5) )
+        B23 = B32 = 3m_i[i]*( r_ci[i][y]*r_ci[i][z]/(norm(r_ci[i])^5) - r_si[i][y]*r_si[i][z]/(norm(r_si[i])^5) )
+
+        B = @SMatrix [ 
+                      0.0     0.0     0.0
+                      0.0     0.0     0.0
+                      0.0     0.0     0.0
+                      B11     B12     B13
+                      B21     B22     B23
+                      B31     B32     B33
+                     ]
+
+        if debug
+            println(ab[i].name)
+            show(stdout, "text/plain", B)
+            println()
+
+            println("---")
+            println(1/(norm(r_si[i])^3))
+            println(3r_si[i][x]^2/(norm(r_si[i])^5))
+            println(1/(norm(r_ci[i])^3))
+            println(3r_ci[i][x]^2/(norm(r_ci[i])^5))
+            println(r_ci[i])
+        end
+
+        E += B*v_ci[i]
+
+    end
+
+
     A = @SMatrix [
-            0.0     0.0     0.0     1.0     0.0     0.0;
-            0.0     0.0     0.0     0.0     1.0     0.0;
-            0.0     0.0     0.0     0.0     0.0     1.0;
-            A11     A12     A13     0.0     0.0     0.0;
-            A21     A22     A23     0.0     0.0     0.0;
-            A31     A32     A33     0.0     0.0     0.0
+            0.0     0.0     0.0     1.0     0.0     0.0     E[1];
+            0.0     0.0     0.0     0.0     1.0     0.0     E[2];
+            0.0     0.0     0.0     0.0     0.0     1.0     E[3];
+            A11     A12     A13     0.0     0.0     0.0     E[4];
+            A21     A22     A23     0.0     0.0     0.0     E[5];
+            A31     A32     A33     0.0     0.0     0.0     E[6]
     ]
+
+    # @warn "Include epoch partials in here as well! Make a new tangent_solve method for HFEM"
+    
     return A
 end
+
+
+include("hfem_propagation.jl")

@@ -52,16 +52,23 @@ end
 Constructor for generating a trajectory from multiple patch points
 """
 function Trajectory(dm::DynamicalModel, X0, T)
-    if length(X0) != length(T)
+    if (length(X0)!=length(T)) && (length(X0)+1!=length(T))
         throw(DimensionMismatch("Different numbers of patch points and times given"))
     end
 
-    len = length(X0)
+    lenX = length(X0)
+    lenT = length(T)
 
-    traj = Trajectory(dm, X0[1], T[1])
-
-    for i = 2:len
-        append!(traj, Trajectory(dm, X0[i], T[i]))
+    if lenX == lenT
+        traj = Trajectory(dm, X0[1], T[1])
+        for i = 2:lenX
+            append!(traj, Trajectory(dm, X0[i], T[i]))
+        end
+    else
+        traj = Trajectory(dm, X0[1], T[1], T[2])
+        for i = 2:lenX
+            append!(traj, Trajectory(dm, X0[i], T[i], T[i+1]))
+        end
     end
 
     return traj
@@ -75,6 +82,19 @@ Constructor for Trajectory object that uses FreeVariables as inputs
 function Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
     if full_length(X0) == dimension(dm) && full_length(T) == 1
         return Trajectory(dm, tofullvector(X0), tofullvector(T))
+    else
+        throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
+    end
+end
+
+"""
+    Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
+
+Constructor for Trajectory object that uses FreeVariables as inputs
+"""
+function Trajectory(dm::DynamicalModel, X0::FreeVariable, T1::FreeVariable, T2::FreeVariable)
+    if full_length(X0) == dimension(dm) && full_length(T1) == 1 && full_length(T1) == 1
+        return Trajectory(dm, tofullvector(X0), [tofullvector(T1)[1], tofullvector(T2)[1]])
     else
         throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
     end

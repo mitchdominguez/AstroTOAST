@@ -117,8 +117,8 @@ end
 
     ## XVector
     # xv = XVector(X1, X2, TOF1, TOF2, T1, T2)
-    xv = XVector(X1, X2, X3, TOF1, TOF2, TOF3, T1, T2, T3)
-    # xv = XVector(X1, X2, X3, TOF1, TOF2, TOF3, T1, T2, T3, T4)
+    # xv = XVector(X1, X2, X3, TOF1, TOF2, TOF3, T1, T2, T3)
+    xv = XVector(X1, X2, X3, X4, TOF1, TOF2, TOF3, T1, T2, T3, T4)
 
     ## Constraints
     cc1 = ContinuityEpochConstraint(X1, X2, T1, T2, TOF1, hfem)
@@ -145,5 +145,9 @@ end
         @test norm(evalconstraint(cc)[1:6]) < 1e-12
         @test norm(evalconstraint(cc)[7]) < 1e-12
     end
+
+    ephem_traj = Trajectory(hfem, [X1, X2, X3], [T1, T2, T3, T4])
+    @test tspan(ephem_traj)[1] == T1[1]
+    @test tspan(ephem_traj)[2] == T4[1]
 
 end

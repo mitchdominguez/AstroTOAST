@@ -20,7 +20,7 @@ debug = false
 
     model = AstroTOAST.em_cr3bp
     lstar = dimensional_length(model)
-    tstar = dimensional_length(model)
+    tstar = dimensional_time(model)
 
     ## 1 day, in nondimensional time
     day_ndim = day2sec/tstar

@@ -89,7 +89,7 @@ function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel; variable_time=true
 
         prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime))
 
-        return str2et(get_epoch(hfem)) + solve(prob, DEFAULT_SOLVER).u[end]
+        return str2et(get_epoch(hfem)) + solve(prob, DEFAULT_SOLVER, abstol=1e-12, reltol=1e-12).u[end]
     else # Constant time
         epoch_dim = str2et(get_epoch(hfem))
         return epoch_dim + ndimtime*dimensional_time(hfem)
@@ -104,7 +104,7 @@ function to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_ti
 
         prob = ODEProblem{false}(func, 0.0, [0.0, ndimtime[end]])
 
-        return str2et(get_epoch(hfem)) .+ solve(prob, DEFAULT_SOLVER)(ndimtime).u
+        return str2et(get_epoch(hfem)) .+ solve(prob, DEFAULT_SOLVER, abstol=1e-12, reltol=1e-12)(ndimtime).u
 
     else # constant time
         return [to_ephemeris_time(t, hfem;variable_time=false) for t in ndimtime]

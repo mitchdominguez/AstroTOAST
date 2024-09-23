@@ -1,5 +1,7 @@
 using StaticArrays
 using LinearAlgebra
+using OrdinaryDiffEq
+
 #=
 hfem.jl
 
@@ -61,17 +63,55 @@ model_parameters(hfem::HFEModel) = (UNIVERSAL_GRAVITATIONAL_CONSTANT,
 get_epoch(hfem::HFEModel) = hfem.epoch
 
 """
+    get_instantaneous_EM_lstar(ndtime::Float64, hfem::HFEModel)
+"""
+function get_instantaneous_EM_lstar(epoch_dim::Float64, hfem::HFEModel)
+    return norm(ephemeris_state(;target=Moon,
+                                epoch=epoch_dim+str2et(get_epoch(hfem)),
+                                frame="J2000", observer=Earth)[1:3])
+end
+
+"""
     to_ephemeris_time
 
 Convert a nondimensional time to an ephemeris time (seconds past J2000)
+
+Setting `variable_time=true` propagates `∫(dT/dt)dt from 0 to ndtime` to obtain
+the rotating-pulsating equivalent of the dimensional epoch
+
+Setting `variable_time=false` returns `dimensional_epoch = nondimensional_epoch*tstar`
 """
-function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel)
-    epoch_dim = str2et(get_epoch(hfem))
+function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel; variable_time=true)
 
-    t_dim = epoch_dim + ndimtime*dimensional_time(hfem)
+    if variable_time
+        func(T, p, t) = sqrt(get_instantaneous_EM_lstar(T[1],hfem)^3 /
+                             (UNIVERSAL_GRAVITATIONAL_CONSTANT*dimensional_mass(hfem)))
+
+        prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime))
+
+        return str2et(get_epoch(hfem)) + solve(prob, DEFAULT_SOLVER).u[end]
+    else # Constant time
+        epoch_dim = str2et(get_epoch(hfem))
+        return epoch_dim + ndimtime*dimensional_time(hfem)
+    end
+
 end
+function to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_time=true) 
 
-to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel) = [to_ephemeris_time(t, hfem) for t in ndimtime]
+    if variable_time
+        func(T, p, t) = sqrt(get_instantaneous_EM_lstar(T[1],hfem)^3 /
+                             (UNIVERSAL_GRAVITATIONAL_CONSTANT*dimensional_mass(hfem)))
+
+        prob = ODEProblem{false}(func, 0.0, [0.0, ndimtime[end]])
+
+        return str2et(get_epoch(hfem)) .+ solve(prob, DEFAULT_SOLVER)(ndimtime).u
+
+    else # constant time
+        return [to_ephemeris_time(t, hfem;variable_time=false) for t in ndimtime]
+
+    end
+
+end
 
 
 """

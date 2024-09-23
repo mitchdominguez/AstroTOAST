@@ -55,7 +55,7 @@ export lyapunov_linear_ics
 
 include("HFEM/hfem.jl")
 export HFEModel
-export get_central_body, get_additional_bodies, get_epoch, to_ephemeris_time
+export get_central_body, get_additional_bodies, get_epoch, get_instantaneous_EM_lstar, to_ephemeris_time
 
 include("Targeting/free_variable.jl")
 export FreeVariable

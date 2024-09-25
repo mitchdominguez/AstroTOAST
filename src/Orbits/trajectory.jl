@@ -88,7 +88,7 @@ function Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
 end
 
 """
-    Trajectory(dm::DynamicalModel, X0::FreeVariable, T::FreeVariable)
+    Trajectory(dm::DynamicalModel, X0::FreeVariable, T1::FreeVariable, T2::FreeVariable)
 
 Constructor for Trajectory object that uses FreeVariables as inputs
 """
@@ -98,6 +98,39 @@ function Trajectory(dm::DynamicalModel, X0::FreeVariable, T1::FreeVariable, T2::
     else
         throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
     end
+end
+
+"""
+    Trajectory(dm::DynamicalModel, X0::AbstractVector, T1::Float64, T2::Float64)
+
+Constructor for Trajectory object that uses FreeVariables as inputs
+"""
+function Trajectory(dm::DynamicalModel, X0::AbstractVector, T1::Real, T2::Real)
+    if length(X0) == dimension(dm)
+        return Trajectory(dm, X0, [T1, T2])
+    else
+        throw(DimensionMismatch("Initial conditions and dynamical model have different dimensions"))
+    end
+end
+
+"""
+    Trajectory(dm::DynamicalModel, X0::AbstractVector, T1::Float64, T2::Float64)
+
+Constructor for Trajectory object that uses FreeVariables as inputs
+"""
+function Trajectory(dm::DynamicalModel, X0, T1, T2)
+    if (length(X0)!=length(T1)) && length(X0)!=length(T2)
+        throw(DimensionMismatch("Different numbers of patch points and times given"))
+    end
+
+    lenX = length(X0)
+
+    traj = Trajectory(dm, X0[1], T1[1], T2[1])
+    for i = 2:lenX
+        append!(traj, Trajectory(dm, X0[i], T1[i], T2[i]))
+    end
+
+    return traj
 end
 
 """
@@ -493,4 +526,89 @@ function Base.show(io::IO, ::MIME"text/plain", solvec::Vector{OrdinaryDiffEq.ODE
             println("#undef")
         end
     end
+end
+
+"""
+    to_dict(traj::Trajectory)
+
+Convert Trajectory `traj` into a Dict
+"""
+function to_dict(traj::Trajectory; continuity_tol=DEFAULT_CONVERGENCE_TOL)
+    model = dm(traj) # Dynamical model of the periodic orbit
+
+    outdict = Dict() # Dictionary that will be used to output results
+
+    outdict["datatype"] = "Trajectory"
+    outdict["iscontinuous"] = iscontinuous(traj, continuity_tol)
+
+
+    # Add model information to the dictionary
+    if typeof(model) <: Cr3bpModel
+
+        ## Write CR3BP model info
+        outdict["modeltype"] = "Cr3bpModel"
+        if isnothing(model.primaries)
+            outdict["P1"] = ""
+            outdict["P2"] = ""
+            outdict["mu"] = mass_ratio(model)
+
+        else
+            outdict["P1"] = primary_bodies(model)[1].name
+            outdict["P2"] = primary_bodies(model)[2].name
+            outdict["mu"] = mass_ratio(model)
+        end
+        
+    elseif typeof(model) <: HFEModel
+        epoch = get_epoch(model)
+        outdict["modeltype"] = "HFEModel"
+        outdict["central_body"] = get_central_body(model).name
+        outdict["additional_bodies"] = map(x->x.name, get_additional_bodies(model))
+
+        outdict["epoch_type"] = string(typeof(epoch))
+        outdict["epoch_year"] = epoch.year
+        outdict["epoch_month"] = epoch.month
+        outdict["epoch_day"] = epoch.day
+        outdict["epoch_hour"] = epoch.hour
+        outdict["epoch_minute"] = epoch.minute
+        outdict["epoch_second"] = epoch.second
+
+        outdict["dimensional_mass"] = dimensional_mass(model)
+        outdict["dimensional_length"] = dimensional_length(model)
+        outdict["dimensional_time"] = dimensional_time(model)
+    end
+
+    ## Get states and times
+    outdict["X0"] = Vector{Vector{Float64}}(get_x0(traj))
+    outdict["T0"] = Vector{Float64}(get_t0(traj))
+    outdict["Tf"] = Vector{Float64}(get_tf(traj))
+
+    return outdict
+end
+
+function to_dict(trajvec::Vector{Trajectory})
+    outdict = Dict("data"=>[])
+    for traj in trajvec
+        push!(outdict["data"], to_dict(traj))
+    end
+    
+    return outdict
+end
+
+"""
+    to_mat(traj::Trajectory, filename::String)
+
+Save Trajectory `traj` to a .mat file 
+"""
+function to_mat(traj::Trajectory, filename::String)
+    outdict = to_dict(traj)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,Dict("data"=>[outdict]))
+    println("Saved to $(filename)")
+end
+
+function to_mat(trajvec::Vector{Trajectory}, filename::String)
+    outdict = to_dict(trajvec)
+    endswith(filename, ".mat") ? nothing : filename = filename*".mat"
+    matwrite(filename,outdict)
+    println("Saved to $(filename)")
 end

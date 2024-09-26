@@ -102,7 +102,7 @@ function to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_ti
         func(T, p, t) = sqrt(get_instantaneous_EM_lstar(T[1],hfem)^3 /
                              (UNIVERSAL_GRAVITATIONAL_CONSTANT*dimensional_mass(hfem)))
 
-        prob = ODEProblem{false}(func, 0.0, [0.0, ndimtime[end]])
+        prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime[end]))
 
         return str2et(get_epoch(hfem)) .+ solve(prob, DEFAULT_SOLVER, abstol=1e-12, reltol=1e-12)(ndimtime).u
 

@@ -11,10 +11,11 @@ High-Fidelity Ephemeris Model
 """
     HFEModel 
 """
-struct HFEModel <: NonAutonomousDynamicalModel{6, false}
+struct HFEModel{N} <: NonAutonomousDynamicalModel{6, false}
     central_body::DefaultNaifBody 
     dquants::DimensionalQuantitySet
-    additional_bodies::Vector{DefaultNaifBody}
+    # additional_bodies::Vector{DefaultNaifBody}
+    additional_bodies::SVector{N,DefaultNaifBody}
     epoch::AbstractEpoch
 
     function HFEModel(central_body::DefaultNaifBody,
@@ -24,7 +25,9 @@ struct HFEModel <: NonAutonomousDynamicalModel{6, false}
 
         @assert !(central_body in additional_bodies) "Central body cannot be in the list of additional bodies!"
 
-        new(central_body, dquants, additional_bodies, epoch)
+        N = length(additional_bodies)
+
+        new{N}(central_body, dquants, SVector{N, DefaultNaifBody}(additional_bodies), epoch)
     end
 end
 
@@ -147,9 +150,13 @@ In this case, `t` is the NONDIMENSIONAL time elapsed since the epoch of the HFEM
 
 Implementation follows the equations given in the ATD mathspec
 """
-function (hfem::HFEModel)(q::AbstractArray, p, t::Real; debug=false)
+function (hfem::HFEModel{N})(q::AbstractArray, p::Tuple, t::Real; debug=false) where {N}
 
-    G_dim = p[1] ## Universal gravitational constant -- [km^3/(kg.s^2)]
+    lstar::Float64 = dimensional_length(hfem)
+    tstar::Float64 = dimensional_time(hfem)
+    mstar::Float64 = dimensional_mass(hfem)
+
+    G_dim::Float64 = p[1] ## Universal gravitational constant -- [km^3/(kg.s^2)]
 
     ## Get bodies
     cb = get_central_body(hfem)
@@ -157,12 +164,12 @@ function (hfem::HFEModel)(q::AbstractArray, p, t::Real; debug=false)
     if debug
         println([a.name for a in ab])
     end
-    N = length(ab)
+    # N = length(ab)
 
     ## Get epoch
     epoch_dim = str2et(get_epoch(hfem))
 
-    t_dim = epoch_dim + t*dimensional_time(hfem)
+    t_dim::Float64 = epoch_dim + t*tstar
 
     if debug
         println(et2utc(epoch_dim, :C, 14))
@@ -170,8 +177,8 @@ function (hfem::HFEModel)(q::AbstractArray, p, t::Real; debug=false)
     end
 
     ## Build set of nondimensional masses
-    m_c = (cb.gravitational_parameter/G_dim)/dimensional_mass(hfem)
-    m_i = [bodyi.gravitational_parameter/G_dim/dimensional_mass(hfem) for bodyi in ab]
+    m_c::Float64 = (cb.gravitational_parameter/G_dim)/mstar
+    m_i = Float64[bodyi.gravitational_parameter/G_dim/mstar for bodyi in ab]
 
     if debug
         println(m_c)
@@ -179,27 +186,23 @@ function (hfem::HFEModel)(q::AbstractArray, p, t::Real; debug=false)
     end
 
     ## Build set of state vectors from central body to additional bodies
-    q_ci = [ nondimensionalize_state(hfem, ephemeris_state(;target=bodyi, epoch=t_dim,
-                                                        frame="J2000",
-                                                        observer=cb))
+    r_ci = [ ephemeris_position(;target=bodyi, epoch=t_dim, frame="J2000", observer=cb)/lstar
                                                         for bodyi in ab]
 
     ## Build set of state vectors from central
-    r_ci = [x[1:3] for x in q_ci]
-    r_si = [qq[1:3] - q[1:3] for qq in q_ci]
-    
-    r_cs = q[1:3]
+    r_si = @views [qq - q[1:3] for qq in r_ci]
 
-    acc_dominant = -m_c/(norm(r_cs)^3)*r_cs
+    ### ORIGINAL CODE
+    # acc_dominant = @views -m_c/(norm(q[1:3])^3)*q[1:3]
+    # acc_pert = -sum([m_i[i]*(r_ci[i]/(norm(r_ci[i])^3) - r_si[i]/(norm(r_si[i])^3)) for i=1:N])
+    # return SVector{6,Float64}(vcat(q[4:6], acc_dominant + acc_pert))
 
-    acc_pert = -sum([m_i[i]*(r_ci[i]/(norm(r_ci[i])^3) - r_si[i]/(norm(r_si[i])^3)) for i=1:N])
-    
-
-    return SVector{6,Float64}(vcat(q[4:6], acc_dominant + acc_pert))
-
+    ### SLIGHTLY FASTER CODE
+    acc = -m_c/(norm(q[1:3])^3)*q[1:3]-sum([m_i[i]*(r_ci[i]/(norm(r_ci[i])^3) - r_si[i]/(norm(r_si[i])^3)) for i=1:N])
+    return @SVector [q[4], q[5], q[6], acc[1], acc[2], acc[3]]
 end
 
-(m::HFEModel)(q::AbstractArray, t::AbstractFloat; debug=false) = m(q, model_parameters(m), t; debug=debug)
+(m::HFEModel)(q::AbstractArray, t::Real; debug=false) = m(q, model_parameters(m), t; debug=debug)
 
 """
     model_eoms(m::HFEModel)

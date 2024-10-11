@@ -126,7 +126,7 @@ end
     cc3 = ContinuityEpochConstraint(X3, X4, T3, T4, TOF3, hfem)
     fx = FXVector(cc1, cc2, cc3)
 
-    targ = Targeter(xv, fx, 20, 1e-12)
+    global targ = Targeter(xv, fx, 20, 1e-12)
 
     if debug
         println("Initial state discontinuities: ", [norm(evalconstraint(x)[1:6]) for x in [cc1,cc2,cc3]])

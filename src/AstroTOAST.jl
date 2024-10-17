@@ -69,6 +69,7 @@ export FXVector
 include("Targeting/targeter.jl")
 export Targeter
 export X, FX, DFX, getmaxiter, gettol, evalDFXMatrix, target
+export construct_sparse_DF
 
 ##################################################################
 ########################### ORBITS ##############################

@@ -1,3 +1,4 @@
+using SparseArrays
 # -------------------------------------------------------------------------------------- #
 # -------------------------------------------------------------------------------------- #
 #                                     Targeter
@@ -72,7 +73,8 @@ gettol(T::Targeter) = T.tol
 Evaluate the DF Matrix
 """
 function evalDFXMatrix(T::Targeter)
-    evalmat = Array{Array{Float64}}(undef,size(DFX(T)))
+    evalmat = Array{Array{Float64},2}(undef,size(DFX(T)))
+    # evalmat = Array{AbstractArray,2}(undef,size(DFX(T)))
 
     for j = 1:numels(X(T))
         for i = 1:numels(FX(T))
@@ -82,6 +84,8 @@ function evalDFXMatrix(T::Targeter)
             evalmat[i,j] = DFX(T)[i,j](FX(T)[i])
         end
     end
+
+    # return evalmat
 
     temp = Array{Array{Float64}}(undef,1,numels(X(T)))
     for i = 1:size(evalmat,2)
@@ -96,12 +100,56 @@ function evalDFXMatrix(T::Targeter)
 end
 
 """
+    evalSparseDFXMatrix
+
+Evaluate a Sparse DF Matrix
+"""
+function construct_sparse_DF(T::Targeter{Df,Dx}) where {Df, Dx}
+
+    temp = spzeros(Df,Dx)
+    # temp = zeros(Df,Dx)
+    c_ind = 1
+
+    for i = 1:numels(X(T))
+        n = full_length(X(T)[i])
+        r_ind = 1
+        for j = 1:numels(FX(T))
+
+            m = full_length(FX(T)[j])
+
+            if !isa(DFX(T)[j,i], __NP)
+                temp[r_ind:(r_ind+m-1),c_ind:(c_ind+n-1)] = DFX(T)[j,i](FX(T)[j])
+            end
+
+            r_ind += m
+        end
+        c_ind += n
+    end
+
+    outmat=temp[setdiff(1:end,removeinds(FX(T))), setdiff(1:end,removeinds(X(T)))]
+end
+
+function compute_invDF_times_F(fvec::AbstractVector, dfmat::AbstractMatrix; method=:fancy)
+    if method == :backslash
+        return dfmat\fvec
+    elseif method == :fancy
+        return dfmat'*((dfmat*dfmat')\fvec)
+    else
+        throw(ErrorException("Must specify inversion method!"))
+    end
+end
+
+"""
     target(T::Targeter, maxiter::Int, tol::Float64, att::Float64)
 
 Solve the targeting problem, specifying maximum number of iterations,
 convergence tolerance, and attenuation factor
 """
-function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64, att=1.0::Float64, debug=false)
+function target(T::Targeter; maxiter=getmaxiter(T)::Int,
+        tol=gettol(T)::Float64, att=1.0::Float64, debug=false, 
+        eval_DF_func=evalDFXMatrix, inversion_method=:backslash,
+        graceful_exit=false)
+
     # Save a copy of the initial value
     Xhist = Vector{XVector}()
     push!(Xhist, copy(X(T)))
@@ -121,7 +169,8 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
     cont = true
     while i<=maxiter && cont
         # Evaluate DF Matrix
-        DFmat = evalDFXMatrix(T)
+        # DFmat = evalDFXMatrix(T)
+        # DFmat = eval_DF_func(T)
 
         # show(stdout,"text/plain",tovector(X(T)))
         # println()
@@ -131,7 +180,8 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         # println()
 
         # Perform update
-        update!(X(T),tovector(X(T)) - att*(DFmat\tovector(FX(T))))
+        # update!(X(T),tovector(X(T)) - att*(DFmat\tovector(FX(T))))
+        update!(X(T),tovector(X(T)) - att*compute_invDF_times_F(tovector(FX(T)), eval_DF_func(T); method=inversion_method))
 
         # Update history
         push!(Xhist, copy(X(T)))
@@ -150,12 +200,18 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int, tol=gettol(T)::Float64,
         end
     end
 
+    # @warn "update DF in place!!"
+
     if i>maxiter
-        # println("Error history: $(err)")
-        # println("Error history")
-        # show(stdout, "text/plain", err)
-        # println("\n")
-        error("maximum number of iterations reached")
+        if graceful_exit
+            return (Xhist, err)
+        else
+            # println("Error history: $(err)")
+            # println("Error history")
+            # show(stdout, "text/plain", err)
+            # println("\n")
+            error("maximum number of iterations reached")
+        end
     end
 
     return (Xhist, err)

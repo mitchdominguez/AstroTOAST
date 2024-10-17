@@ -5,6 +5,7 @@
 # -------------------------------------------------------------------------------------- #
 using StaticArrays
 using LinearAlgebra
+using SparseArrays
 """
     Constraint{D}
 
@@ -82,7 +83,7 @@ struct __NP{D} <: Partial{D} end
 Function call to output a zero matrix of dimensions RxC
 """
 function (::__NP{C})(cc::Constraint{R}) where {R,C}
-    return zeros(full_length(cc),C)
+    return spzeros(full_length(cc),C)
 end
 
 # -------------------------------------------------------------------------------------- #

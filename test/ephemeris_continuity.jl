@@ -5,6 +5,7 @@ using Test
 using MAT
 using MATLAB
 using SPICE
+using SparseArrays
 
 include("display.jl")
 load_only_default_kernels()
@@ -133,7 +134,13 @@ end
         println("Initial time discontinuities: ", [evalconstraint(x)[end] for x in [cc1,cc2,cc3]])
     end
 
-    Xhist, err = target(targ; debug=false)
+    __sparsedf__(T::Targeter) = sparse(evalDFXMatrix(T))
+
+    # Xhist, err = target(targ; debug=false)
+    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy)
+    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy, eval_DF_func=__sparsedf__)
+    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy)
+    @time Xhist, err = target(targ; debug=false, inversion_method=:backslash)
     xhistmat = hcat(tofullvector.(Xhist)...)
 
     if debug

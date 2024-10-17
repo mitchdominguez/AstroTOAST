@@ -38,7 +38,8 @@ end
 Equations of motion for the tangent model
 """
 function (tan::HFEMTangentSystem)(u, p, t)
-    @inbounds s = u[:, 1]
+    # @inbounds s = u[:, 1]
+    @inbounds s = view(u,:,1)
     du = tan.f(s, p, t)
     J = tan.j(s, p, t) # A matrix 
     @inbounds dW = SMatrix{6,6,Float64}(J[:,1:(tan.ws[end]-1)] * u[:, tan.ws]) # phidot = A*phi

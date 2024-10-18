@@ -562,7 +562,7 @@ function to_dict(traj::Trajectory; continuity_tol=DEFAULT_CONVERGENCE_TOL)
         epoch = get_epoch(model)
         outdict["modeltype"] = "HFEModel"
         outdict["central_body"] = get_central_body(model).name
-        outdict["additional_bodies"] = map(x->x.name, get_additional_bodies(model))
+        outdict["additional_bodies"] = Vector{String}(map(x->x.name, get_additional_bodies(model)))
 
         outdict["epoch_type"] = string(typeof(epoch))
         outdict["epoch_year"] = epoch.year

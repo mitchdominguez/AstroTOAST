@@ -169,6 +169,19 @@ function Base.length(fx::FXVector)
 end
 
 """
+    full_length(fx::FXVector)
+
+Returns the length of the FXVector if it is output as a Vector
+"""
+function full_length(fx::FXVector)
+    els = 0
+    for c in fx
+        els = els + full_length(c)
+    end
+    return els
+end
+
+"""
     removeinds(fx::FXVector)
 
 Output a vector containing the indices of removed elements in the full XVector
@@ -247,6 +260,8 @@ Calculate the L2 norm of the constraint vector
 """
 LinearAlgebra.norm(fx::FXVector) = LinearAlgebra.norm(tovector(fx))
 LinearAlgebra.norm(fx::FXVector, xvorig::XVector, xveval::XVector) = LinearAlgebra.norm(tovector(fx, xvorig, xveval))
+LinearAlgebra.norm(fx::FXVector,p::Real=2) = LinearAlgebra.norm(tovector(fx),p)
+infty_constraint_mags(fx::FXVector) = norm([norm(evalconstraint(fx[i])) for i=1:numels(fx)], Inf)
 
 """
     Base.show

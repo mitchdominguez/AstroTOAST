@@ -73,30 +73,53 @@ gettol(T::Targeter) = T.tol
 Evaluate the DF Matrix
 """
 function evalDFXMatrix(T::Targeter)
-    evalmat = Array{Array{Float64},2}(undef,size(DFX(T)))
-    # evalmat = Array{AbstractArray,2}(undef,size(DFX(T)))
+    # evalmat = Array{Array{Float64},2}(undef,size(DFX(T)))
+    # # evalmat = Array{AbstractArray,2}(undef,size(DFX(T)))
 
-    for j = 1:numels(X(T))
-        for i = 1:numels(FX(T))
-            # println(i)
-            # println(j)
-            # println(DFX(T)[i,j](FX(T)[i]))
-            evalmat[i,j] = DFX(T)[i,j](FX(T)[i])
+    # for j = 1:numels(X(T))
+        # for i = 1:numels(FX(T))
+            # # println(i)
+            # # println(j)
+            # # println(DFX(T)[i,j](FX(T)[i]))
+            # evalmat[i,j] = DFX(T)[i,j](FX(T)[i])
+        # end
+    # end
+
+    # # return evalmat
+
+    # temp = Array{Array{Float64}}(undef,1,numels(X(T)))
+    # for i = 1:size(evalmat,2)
+        # # println(i)
+        # # println(evalmat[1,i])
+        # # println(evalmat[2,i])
+        # # println(evalmat[3,i])
+        # temp[1,i] = vcat(evalmat[:,i]...)
+        # # println(size(temp[1,i]))
+    # end 
+    # outmat=hcat(temp...)[setdiff(1:end,removeinds(FX(T))), setdiff(1:end,removeinds(X(T)))]
+
+
+
+    temp = zeros(full_length(FX(T)),full_length(X(T)))
+    c_ind = 1
+
+    for i = 1:numels(X(T))
+        n = full_length(X(T)[i])
+        r_ind = 1
+        for j = 1:numels(FX(T))
+
+            m = full_length(FX(T)[j])
+
+            if !isa(DFX(T)[j,i], __NP)
+                temp[r_ind:(r_ind+m-1),c_ind:(c_ind+n-1)] = DFX(T)[j,i](FX(T)[j])
+            end
+
+            r_ind += m
         end
+        c_ind += n
     end
 
-    # return evalmat
-
-    temp = Array{Array{Float64}}(undef,1,numels(X(T)))
-    for i = 1:size(evalmat,2)
-        # println(i)
-        # println(evalmat[1,i])
-        # println(evalmat[2,i])
-        # println(evalmat[3,i])
-        temp[1,i] = vcat(evalmat[:,i]...)
-        # println(size(temp[1,i]))
-    end 
-    outmat=hcat(temp...)[setdiff(1:end,removeinds(FX(T))), setdiff(1:end,removeinds(X(T)))]
+    outmat=temp[setdiff(1:end,removeinds(FX(T))), setdiff(1:end,removeinds(X(T)))]
 end
 
 """
@@ -104,9 +127,10 @@ end
 
 Evaluate a Sparse DF Matrix
 """
-function construct_sparse_DF(T::Targeter{Df,Dx}) where {Df, Dx}
+function construct_sparse_DF(T::Targeter)
 
-    temp = spzeros(Df,Dx)
+    # temp = spzeros(Df,Dx)
+    temp = spzeros(full_length(FX(T)),full_length(X(T)))
     # temp = zeros(Df,Dx)
     c_ind = 1
 
@@ -148,7 +172,7 @@ convergence tolerance, and attenuation factor
 function target(T::Targeter; maxiter=getmaxiter(T)::Int,
         tol=gettol(T)::Float64, att=1.0::Float64, debug=false, 
         eval_DF_func=evalDFXMatrix, inversion_method=:backslash,
-        graceful_exit=false)
+        graceful_exit=false, infinity_norm_tol=nothing)
 
     # Save a copy of the initial value
     Xhist = Vector{XVector}()
@@ -168,16 +192,6 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int,
     i = 1
     cont = true
     while i<=maxiter && cont
-        # Evaluate DF Matrix
-        # DFmat = evalDFXMatrix(T)
-        # DFmat = eval_DF_func(T)
-
-        # show(stdout,"text/plain",tovector(X(T)))
-        # println()
-        # show(stdout,"text/plain",tovector(FX(T)))
-        # println()
-        # show(stdout,"text/plain",DFmat)
-        # println()
 
         # Perform update
         # update!(X(T),tovector(X(T)) - att*(DFmat\tovector(FX(T))))
@@ -188,28 +202,34 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int,
 
         # Evaluate stopping condition
         push!(err, norm(FX(T))) # update error history
-        # println(err[end]<tol)
+        
+        infty_err = Vector{Float64}()
         if err[end] < tol
-            cont = false
+            if isnothing(infinity_norm_tol)
+                cont = false
+            else
+                push!(infty_err, infty_constraint_mags(FX(T)))
+                if infty_err[end] < infinity_norm_tol
+                    cont = false
+                end
+            end
         end
         i+=1
-        # println(size(Xhist))
+
         if debug
-            println("Iteration $(i): |F(X)| = $(err[i])")
-            # println("\t X = $(tofullvector(X(T)))")
+            if isnothing(infinity_norm_tol) || isempty(infty_err)
+                println("Iteration $(i): |F(X)| = $(err[i])")
+            else
+                println("Iteration $(i): |F(X)| = $(err[i])   -   |F(X)|∞ = $(infty_err[end])")
+            end
         end
     end
 
-    # @warn "update DF in place!!"
-
     if i>maxiter
         if graceful_exit
+            @warn "Exceeded maximum number of iterations ($(maxiter))! Returning Xhist and err..."
             return (Xhist, err)
         else
-            # println("Error history: $(err)")
-            # println("Error history")
-            # show(stdout, "text/plain", err)
-            # println("\n")
             error("maximum number of iterations reached")
         end
     end

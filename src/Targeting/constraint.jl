@@ -258,7 +258,7 @@ end
 
 Calculate the L2 norm of the constraint vector
 """
-LinearAlgebra.norm(fx::FXVector) = LinearAlgebra.norm(tovector(fx))
+# LinearAlgebra.norm(fx::FXVector) = LinearAlgebra.norm(tovector(fx))
 LinearAlgebra.norm(fx::FXVector, xvorig::XVector, xveval::XVector) = LinearAlgebra.norm(tovector(fx, xvorig, xveval))
 LinearAlgebra.norm(fx::FXVector,p::Real=2) = LinearAlgebra.norm(tovector(fx),p)
 infty_constraint_mags(fx::FXVector) = norm([norm(evalconstraint(fx[i])) for i=1:numels(fx)], Inf)

@@ -458,22 +458,22 @@ function paireigs!(v::Vector{Vector{ComplexF64}}, λ::Vector{ComplexF64}, M::Mat
     vcopy = copy(v)
     D = length(λ)
 
-    err = Vector{Float64}(undef, D)
+    ε = Vector{Float64}(undef, D)
 
     for i = 1:D
         # Calculate error for each eigenvector
         for j = 1:length(vcopy)
-            err[j] = norm((M-I(D)*λ[i])*vcopy[j])
+            ε[j] = norm((M-I(D)*λ[i])*vcopy[j])
         end
         
         # Find element of vcopy that results in the minimum error
-        minval, ind = findmin(err)
+        minval, ind = findmin(ε)
 
         # Write eigenvector corresponding to minval to index i in v
         v[i] = vcopy[ind]
 
-        # Remove the element from vcopy and err
-        deleteat!(err, ind)
+        # Remove the element from vcopy and ε
+        deleteat!(ε, ind)
         deleteat!(vcopy, ind)
     end
 
@@ -826,7 +826,7 @@ function targetcontinuity(model, _X0, _TOF, _name, _family)
     # return po, targ
     try 
         # Target fx rc version
-        Xhist, err = target(targ, debug=false);
+        Xhist, errr = target(targ, debug=false);
 
         po = PeriodicOrbit(model, states, times)#; name = _name, family = _family)
         return po, targ

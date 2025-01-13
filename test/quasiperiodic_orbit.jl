@@ -53,7 +53,7 @@ tol = 1e-10
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target QPO
-Xhist, err = target(targ,debug=false);
+Xhist, ε = target(targ,debug=false);
 
 ############### QUASIPERIODIC ORBIT OBJECT ############### 
 u0vec = tofullvector(U0)

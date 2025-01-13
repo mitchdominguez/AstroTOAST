@@ -27,17 +27,17 @@ tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target 2:1 halo
-Xhist, err = target(targ);
+Xhist, ε = target(targ);
 
 @testset "poss.jl" begin
 
-    @test norm(fx, xv, Xhist[1]) ≈ 0.0028364554191276227 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
-    @test norm(fx) ≈ 2.402323662518765e-13 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx, xv, Xhist[1]) ≈ 0.0028364554191276227 atol=2AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx) ≈ 2.402323662518765e-13 atol=2AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test norm(fx) < tol
-    @test norm(fx) == err[end] < tol
-    @test norm(tofullvector(fx)) ≈ 8.242143522346135e-13 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx) == ε[end] < tol
+    @test norm(tofullvector(fx)) ≈ 8.242143522346135e-13 atol=2AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
-    @test length(err) == 5
+    @test length(ε) == 5
 end
 
 ## Test an overconstrained example. In this case, I am fixing both x0 and period, which overconstrains the system

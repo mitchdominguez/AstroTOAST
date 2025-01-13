@@ -66,7 +66,7 @@ debug = false
         println("Initial time discontinuity: ", T1[1] + TOF1[1] - T2[1])
     end
 
-    Xhist, err = target(targ; debug=false)
+    Xhist, ε = target(targ; debug=false)
     xhistmat = hcat(tofullvector.(Xhist)...)
 
     if debug
@@ -136,11 +136,11 @@ end
 
     __sparsedf__(T::Targeter) = sparse(evalDFXMatrix(T))
 
-    # Xhist, err = target(targ; debug=false)
-    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy)
-    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy, eval_DF_func=__sparsedf__)
-    # @time Xhist, err = target(targ; debug=false, inversion_method=:fancy)
-    @time Xhist, err = target(targ; debug=false, inversion_method=:backslash)
+    # Xhist, ε = target(targ; debug=false)
+    # @time Xhist, ε = target(targ; debug=false, inversion_method=:fancy)
+    # @time Xhist, ε = target(targ; debug=false, inversion_method=:fancy, eval_DF_func=__sparsedf__)
+    # @time Xhist, ε = target(targ; debug=false, inversion_method=:fancy)
+    @time Xhist, ε = target(targ; debug=false, inversion_method=:backslash)
     xhistmat = hcat(tofullvector.(Xhist)...)
 
     if debug

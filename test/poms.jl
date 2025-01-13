@@ -49,22 +49,22 @@ using Test
     targ_fxrc = Targeter(xv_full, fx_fxrc, maxiter, tol);
 
     # Target fx rc version
-    Xhist, err = target(targ_fxrc);
+    Xhist, ε = target(targ_fxrc);
     
     # Test that norm of vector and fullvector are different, but that both satisfy the tolerance
-    @test norm(fx_fxrc) == err[end]
-    @test norm(tovector(fx_fxrc)) == err[end]
+    @test norm(fx_fxrc) == ε[end]
+    @test norm(tovector(fx_fxrc)) == ε[end]
     @test norm(tofullvector(fx_fxrc)) != norm(fx_fxrc)
     @test norm(fx_fxrc) ≈ 6.72863818142289e-14 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test norm(tofullvector(fx_fxrc)) ≈ 7.521894782093819e-14 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test norm(tofullvector(fx_fxrc)) < tol
 
-    # Initial error
-    @test err[1] ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
-    @test norm(fx_fxrc, xv_full, Xhist[1]) ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL# Initial error
+    # Initial εor
+    @test ε[1] ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test norm(fx_fxrc, xv_full, Xhist[1]) ≈ 0.7464423331586798 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL# Initial εor
 
     # Test number of iterations (this was a bad initial guess)
-    @test length(err) == 9
+    @test length(ε) == 9
 
     # Reset the test to run the alternate example where a free variable is fixed, and we use all the constraints
     AstroTOAST.update!(xv, Xhist[1])
@@ -72,14 +72,14 @@ using Test
     @test norm(fx_rxfc) ≈ 0.8417710513141402 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     targ_rxfc = Targeter(xv, fx_rxfc, maxiter, tol);
-    Xhist, err = target(targ_rxfc);
+    Xhist, ε = target(targ_rxfc);
 
     # Number of iterations
-    @test length(err) == 15
+    @test length(ε) == 15
 
     # Test that norm of vector and fullvector are the same, since no constraints are removed
-    @test norm(fx_rxfc) == err[end]
-    @test norm(tovector(fx_rxfc)) == err[end]
+    @test norm(fx_rxfc) == ε[end]
+    @test norm(tovector(fx_rxfc)) == ε[end]
     @test norm(tofullvector(fx_rxfc)) == norm(fx_rxfc)
     @test norm(tofullvector(fx_rxfc)) < tol
 

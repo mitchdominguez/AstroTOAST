@@ -55,7 +55,7 @@ fx = FXVector(ic, jcc)
 maxiter = 25
 tol = 1e-10
 targ = Targeter(xv, fx, maxiter, tol);
-@time Xhist, err = target(targ,debug=true);
+@time Xhist, ε = target(targ,debug=true);
 
 # dim_state_0 = dimensionalize_state(dimensional_quantity_set(model), U0[1:6])
 # println("\nDimensional State 0: $(dim_state_0)")
@@ -75,10 +75,10 @@ qpo92 = QuasiPeriodicOrbit(model, q0, tofullvector(T)[1],
 
 
 @testset "qposs.jl" begin
-    # @test length(err) == 10
+    # @test length(ε) == 10
     # @test norm(tofullvector(fx)) < tol
     # @test norm(fx) ≈ 4.946544871465505e-11 atol=tol
-    @test length(err) == 5
+    @test length(ε) == 5
     @test norm(tofullvector(fx)) < tol
     @test norm(fx) ≈ 2.0798637278273028e-13 atol=tol
     @test typeof(qpo92) == QuasiPeriodicOrbit{6,35}

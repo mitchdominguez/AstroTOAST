@@ -33,7 +33,7 @@ cc = ContinuityConstraint(X1, X2, T, Lmod;includeinds=7:12)
 fx = FXVector(cc)
 targ = Targeter(xv, fx, maxiter, tol)
 
-Xhist, err = target(targ)
+Xhist, ε = target(targ)
 q0_conv = tofullvector(X1)
 
 sol = solve(Lmod, q0_conv, cctspan(cc); abstol=AstroTOAST.DEFAULT_ABS_TOL)
@@ -42,7 +42,7 @@ println(sol[end][7:12])
 
 @testset "lvlh_targeting.jl" begin
 
-    @test err[end] < AstroTOAST.DEFAULT_CONVERGENCE_TOL
+    @test ε[end] < AstroTOAST.DEFAULT_CONVERGENCE_TOL
     @test norm(sol[end][7:9]) <= AstroTOAST.DEFAULT_CONVERGENCE_TOL
 
     

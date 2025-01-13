@@ -63,4 +63,4 @@ get_nrho92_baseline(nrho92, utcep, tol2, inftol, numrevs)
 
 # test_df(longtarg)
 
-# Xhist, err = target(longtarg; inversion_method=:fancy, infinity_norm_tol=1e-12, debug=true)
+# Xhist, ε = target(longtarg; inversion_method=:fancy, infinity_norm_tol=1e-12, debug=true)

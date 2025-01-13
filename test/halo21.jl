@@ -42,7 +42,7 @@ target(targ);
 tees = LinRange(tofullvector(T1)[1],Td,10)
 
 Xhist = []
-err = []
+ε = []
 
 # Continue in position towards 2:1 Halo
 for i = 1:length(tees)
@@ -50,12 +50,12 @@ for i = 1:length(tees)
     AstroTOAST.update!(T1, [tees[i]])
 
     # Target new PO
-    Xhist_temp, err_temp = target(targ)
+    Xhist_temp, ε_temp = target(targ)
     push!(Xhist,Xhist_temp)
-    push!(err,err_temp)
+    push!(ε,ε_temp)
 
     if maximum(map(x->abs(x), tofullvector(fx))) > tol*10
-        throw(ErrorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
+        throw(εorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
     end
 
 end
@@ -67,11 +67,11 @@ halo21_off = PeriodicOrbit(halo21_traj, "2:1 Halo", "L2 Halos";thT_offset=π)
 # Make θ_T=0 be at perilune
 AstroTOAST.update!(X1, halo21(pi).*[1,0,1,0,1,0])
 
-Xhist_temp2, err_temp2 = target(targ)
+Xhist_temp2, ε_temp2 = target(targ)
 push!(Xhist,Xhist_temp2)
-push!(err,err_temp2)
+push!(ε,ε_temp2)
 if maximum(map(x->abs(x), tofullvector(fx))) > tol*10
-    throw(ErrorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
+    throw(εorException("Full constraint violated on iteration $(i): Continuity constraint is $(tofullvector(fx))"))
 end
 
 # Re-save the trajectory and periodic orbit object

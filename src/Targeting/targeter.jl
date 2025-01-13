@@ -179,14 +179,14 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int,
     push!(Xhist, copy(X(T)))
 
     # Save the error history
-    err = Vector{Float64}()
-    push!(err, norm(FX(T)))
+    ε = Vector{Float64}()
+    push!(ε, norm(FX(T)))
     if debug
-        println("Iteration $(1): |F(X)| = $(err[1])")
+        println("Iteration $(1): |F(X)| = $(ε[1])")
         # println("\t X = $(tofullvector(X(T)))")
     end
-    if err[1] < tol
-        return (Xhist, err) 
+    if ε[1] < tol
+        return (Xhist, ε) 
     end
 
     i = 1
@@ -201,10 +201,10 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int,
         push!(Xhist, copy(X(T)))
 
         # Evaluate stopping condition
-        push!(err, norm(FX(T))) # update error history
+        push!(ε, norm(FX(T))) # update error history
         
         infty_err = Vector{Float64}()
-        if err[end] < tol
+        if ε[end] < tol
             if isnothing(infinity_norm_tol)
                 cont = false
             else
@@ -218,23 +218,23 @@ function target(T::Targeter; maxiter=getmaxiter(T)::Int,
 
         if debug
             if isnothing(infinity_norm_tol) || isempty(infty_err)
-                println("Iteration $(i): |F(X)| = $(err[i])")
+                println("Iteration $(i): |F(X)| = $(ε[i])")
             else
-                println("Iteration $(i): |F(X)| = $(err[i])   -   |F(X)|∞ = $(infty_err[end])")
+                println("Iteration $(i): |F(X)| = $(ε[i])   -   |F(X)|∞ = $(infty_err[end])")
             end
         end
     end
 
     if i>maxiter
         if graceful_exit
-            @warn "Exceeded maximum number of iterations ($(maxiter))! Returning Xhist and err..."
-            return (Xhist, err)
+            @warn "Exceeded maximum number of iterations ($(maxiter))! Returning Xhist and ε..."
+            return (Xhist, ε)
         else
             error("maximum number of iterations reached")
         end
     end
 
-    return (Xhist, err)
+    return (Xhist, ε)
 end
 
 """

@@ -33,10 +33,10 @@ tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target perpendicular crossing
-Xhist, err = target(targ,debug=false);
+Xhist, ε = target(targ,debug=false);
 
 @testset "perpendicular_crossing.jl" begin
-    @test length(err) == 6
+    @test length(ε) == 6
     sol = solve(model, tofullsvector(X1), tofullvector(T)[1])
 
     @test sol[end][2] ≈ 0 atol=AstroTOAST.DEFAULT_CONVERGENCE_TOL

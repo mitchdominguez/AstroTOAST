@@ -23,6 +23,6 @@ fx = FXVector(q2p)
 maxiter = 100
 tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
-Xhist, err = target(targ,debug=true)
-err
+Xhist, ε = target(targ,debug=true)
+ε
 

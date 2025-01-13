@@ -40,7 +40,7 @@ tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target fx rc version
-Xhist, err = target(targ);
+Xhist, ε = target(targ);
 
 # println("After first targeting")
 # println(norm(tofullvector(fx)))
@@ -87,7 +87,7 @@ fx2 = FXVector(cc2..., tofc)
 
 # Target with tof constraint
 targ2 = Targeter(xv2, fx2, maxiter, tol)
-Xhist2, err2 = target(targ2)
+Xhist2, ε2 = target(targ2)
 
 # println("After retargeting")
 # println(norm(tofullvector(fx2)))

@@ -72,11 +72,11 @@ using Test
     errhist = [0.27090529198974395, 0.0209580766291283, 0.0013973143925265555, 
                4.762853576111877e-7, 1.120523198492099e-12, 3.819409822178141e-14]
     
-    Xhist, err = AstroTOAST.target(targ);
-    println(err)
+    Xhist, ε = AstroTOAST.target(targ);
+    println(ε)
 
-    @test err≈errhist atol=1e-10
-    @test size(err) == size(Xhist)
+    @test ε≈errhist atol=1e-10
+    @test size(ε) == size(Xhist)
     @test size(Xhist) == (6,)
 
     # Test norm(fx, xvorig, xveval)

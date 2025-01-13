@@ -2,6 +2,7 @@ using AstroTOAST
 using LinearAlgebra
 using StaticArrays
 using Test
+import AstroTOAST: iscontinuous
 
 # Calculate the 9:2 NRHO
 #   This will define X1, X2, X3, T1, T2, T3, xv, among others

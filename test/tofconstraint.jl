@@ -37,7 +37,7 @@ tol = 1e-12
 targ = Targeter(xv, fx, maxiter, tol);
 
 # Target fx rc version
-Xhist, err = target(targ);
+Xhist, ε = target(targ);
 
 
 @testset "tofconstraint.jl" begin

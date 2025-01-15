@@ -83,14 +83,16 @@ Setting `variable_time=true` propagates `∫(dT/dt)dt from 0 to ndtime` to obtai
 the rotating-pulsating equivalent of the dimensional epoch
 
 Setting `variable_time=false` returns `dimensional_epoch = nondimensional_epoch*tstar`
+
+`T0_ndim` is the nondimensional initial time (in the ephemeris model) 
 """
-function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel; variable_time=true)
+function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel; variable_time=true, T0_ndim=0.0)
 
     if variable_time
         func(T, p, t) = sqrt(get_instantaneous_EM_lstar(T[1],hfem)^3 /
                              (UNIVERSAL_GRAVITATIONAL_CONSTANT*dimensional_mass(hfem)))
 
-        prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime))
+        prob = ODEProblem{false}(func, T0_ndim*dimensional_time(hfem).+0.0, (0.0, ndimtime))
 
         return str2et(get_epoch(hfem)) + solve(prob, DEFAULT_SOLVER, abstol=1e-12, reltol=1e-12).u[end]
     else # Constant time
@@ -99,13 +101,22 @@ function to_ephemeris_time(ndimtime::Float64, hfem::HFEModel; variable_time=true
     end
 
 end
-function to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_time=true) 
+
+"""
+    to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_time=true, T0_ndim=0.0)
+
+    
+`T0_ndim` is the nondimensional initial time (in the ephemeris model) 
+"""
+function to_ephemeris_time(ndimtime::AbstractVector, hfem::HFEModel; variable_time=true, T0_ndim=0.0) 
 
     if variable_time
         func(T, p, t) = sqrt(get_instantaneous_EM_lstar(T[1],hfem)^3 /
                              (UNIVERSAL_GRAVITATIONAL_CONSTANT*dimensional_mass(hfem)))
 
-        prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime[end]))
+        # initial value is DIMENSIONAL TIME since epoch of hfem
+        # prob = ODEProblem{false}(func, 0.0, (0.0, ndimtime[end])) ### ORIGINAL
+        prob = ODEProblem{false}(func, T0_ndim*dimensional_time(hfem).+0.0, (ndimtime[begin], ndimtime[end]))
 
         return str2et(get_epoch(hfem)) .+ solve(prob, DEFAULT_SOLVER, abstol=1e-12, reltol=1e-12)(ndimtime).u
 
